@@ -18,7 +18,7 @@
 
 #define MEDIA_CODEC_H_
 
-#include <gui_legacy/ISurfaceTexture.h>
+#include <gui_legacy/IGraphicBufferProducer.h>
 #include <media/hardware/CryptoAPI.h>
 #include <media/stagefright/foundation/AHandler.h>
 #include <utils/Vector.h>

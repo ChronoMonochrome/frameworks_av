@@ -26,7 +26,7 @@ LOCAL_SHARED_LIBRARIES :=       \
     libcamera_client            \
     libcutils                   \
     libdl                       \
-    libgui                      \
+    libgui_legacy                      \
     libmedia                    \
     libmedia_native             \
     libsonivox                  \

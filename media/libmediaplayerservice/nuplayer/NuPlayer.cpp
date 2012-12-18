@@ -41,7 +41,7 @@
 #include <media/stagefright/MediaDefs.h>
 #include <media/stagefright/MediaErrors.h>
 #include <media/stagefright/MetaData.h>
-#include <gui/ISurfaceTexture.h>
+#include <gui_legacy/IGraphicBufferProducer.h>
 
 #include "avc_utils.h"
 
@@ -216,16 +216,16 @@ void NuPlayer::prepareAsync() {
 }
 
 void NuPlayer::setVideoSurfaceTextureAsync(
-        const sp<ISurfaceTexture> &surfaceTexture) {
+        const sp<IGraphicBufferProducer> &bufferProducer) {
     sp<AMessage> msg = new AMessage(kWhatSetVideoNativeWindow, id());
 
-    if (surfaceTexture == NULL) {
+    if (bufferProducer == NULL) {
         msg->setObject("native-window", NULL);
     } else {
         msg->setObject(
                 "native-window",
                 new NativeWindowWrapper(
-                    new SurfaceTextureClient(surfaceTexture)));
+                    new SurfaceTextureClient(bufferProducer)));
     }
 
     msg->post();

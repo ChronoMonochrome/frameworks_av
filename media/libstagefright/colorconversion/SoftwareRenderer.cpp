@@ -24,7 +24,7 @@
 #include <media/stagefright/MetaData.h>
 #include <system/window.h>
 #include <ui/GraphicBufferMapper.h>
-#include <gui/ISurfaceTexture.h>
+#include <gui_legacy/IGraphicBufferProducer.h>
 
 namespace android {
 

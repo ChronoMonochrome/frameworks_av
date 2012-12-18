@@ -45,7 +45,7 @@ struct NuPlayer : public AHandler {
     void prepareAsync();
 
     void setVideoSurfaceTextureAsync(
-            const sp<ISurfaceTexture> &surfaceTexture);
+            const sp<IGraphicBufferProducer> &bufferProducer);
 
     void setAudioSink(const sp<MediaPlayerBase::AudioSink> &sink);
     void start();

@@ -9,7 +9,7 @@ LOCAL_SRC_FILES:=       \
 
 LOCAL_SHARED_LIBRARIES := \
 	libstagefright libmedia libmedia_native libutils libbinder libstagefright_foundation \
-        libjpeg libgui
+        libjpeg libgui_legacy
 
 LOCAL_C_INCLUDES:= \
 	frameworks/av/media/libstagefright \
@@ -103,7 +103,7 @@ LOCAL_SRC_FILES:=         \
         stream.cpp    \
 
 LOCAL_SHARED_LIBRARIES := \
-	libstagefright liblog libutils libbinder libgui \
+	libstagefright liblog libutils libbinder libgui_legacy \
         libstagefright_foundation libmedia libmedia_native libcutils
 
 LOCAL_C_INCLUDES:= \
@@ -127,7 +127,7 @@ LOCAL_SRC_FILES:=         \
 
 LOCAL_SHARED_LIBRARIES := \
 	libstagefright liblog libutils libbinder libstagefright_foundation \
-        libmedia libmedia_native libgui libcutils libui
+        libmedia libmedia_native libgui_legacy libcutils libui
 
 LOCAL_C_INCLUDES:= \
 	frameworks/av/media/libstagefright \
@@ -151,7 +151,7 @@ LOCAL_SRC_FILES:=               \
 
 LOCAL_SHARED_LIBRARIES := \
 	libstagefright liblog libutils libbinder libstagefright_foundation \
-        libmedia libmedia_native libgui libcutils libui
+        libmedia libmedia_native libgui_legacy libcutils libui
 
 LOCAL_C_INCLUDES:= \
 	frameworks/av/media/libstagefright \
@@ -174,7 +174,7 @@ LOCAL_SRC_FILES:=               \
 
 LOCAL_SHARED_LIBRARIES := \
 	libstagefright liblog libutils libbinder libstagefright_foundation \
-        libmedia libgui libcutils libui libc
+        libmedia libgui_legacy libcutils libui libc
 
 LOCAL_C_INCLUDES:= \
 	frameworks/av/media/libstagefright \
