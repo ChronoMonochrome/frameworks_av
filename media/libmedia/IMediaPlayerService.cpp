@@ -126,9 +126,10 @@ public:
         return interface_cast<ICrypto>(reply.readStrongBinder());
     }
 
-    virtual sp<IHDCP> makeHDCP() {
+    virtual sp<IHDCP> makeHDCP(bool createEncryptionModule) {
         Parcel data, reply;
         data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(createEncryptionModule);
         remote()->transact(MAKE_HDCP, data, &reply);
         return interface_cast<IHDCP>(reply.readStrongBinder());
     }
@@ -232,7 +233,8 @@ status_t BnMediaPlayerService::onTransact(
         } break;
         case MAKE_HDCP: {
             CHECK_INTERFACE(IMediaPlayerService, data, reply);
-            sp<IHDCP> hdcp = makeHDCP();
+            bool createEncryptionModule = data.readInt32();
+            sp<IHDCP> hdcp = makeHDCP(createEncryptionModule);
             reply->writeStrongBinder(hdcp->asBinder());
             return NO_ERROR;
         } break;

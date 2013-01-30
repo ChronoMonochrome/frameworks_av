@@ -282,8 +282,8 @@ sp<ICrypto> MediaPlayerService::makeCrypto() {
     return new Crypto;
 }
 
-sp<IHDCP> MediaPlayerService::makeHDCP() {
-    return new HDCP;
+sp<IHDCP> MediaPlayerService::makeHDCP(bool createEncryptionModule) {
+    return new HDCP(createEncryptionModule);
 }
 
 sp<IRemoteDisplay> MediaPlayerService::listenForRemoteDisplay(
