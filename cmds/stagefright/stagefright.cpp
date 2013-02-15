@@ -54,7 +54,7 @@
 
 #include <fcntl.h>
 
-#include <gui/SurfaceTextureClient.h>
+#include <gui/Surface.h>
 #include <gui/SurfaceComposerClient.h>
 
 using namespace android;
@@ -941,8 +941,8 @@ int main(int argc, char **argv) {
         } else {
             CHECK(useSurfaceTexAlloc);
 
-            sp<SurfaceTexture> texture = new SurfaceTexture(0 /* tex */);
-            gSurface = new SurfaceTextureClient(texture);
+            sp<GLConsumer> texture = new GLConsumer(0 /* tex */);
+            gSurface = new Surface(texture->getBufferQueue());
         }
 
         CHECK_EQ((status_t)OK,

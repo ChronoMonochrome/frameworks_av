@@ -22,7 +22,7 @@
 
 #include "include/SoftwareRenderer.h"
 
-#include <gui_legacy/SurfaceTextureClient.h>
+#include <gui_legacy/Surface.h>
 #include <media/ICrypto.h>
 #include <media/stagefright/foundation/ABuffer.h>
 #include <media/stagefright/foundation/ADebug.h>
@@ -138,7 +138,7 @@ status_t MediaCodec::init(const char *name, bool nameIsType, bool encoder) {
 
 status_t MediaCodec::configure(
         const sp<AMessage> &format,
-        const sp<SurfaceTextureClient> &nativeWindow,
+        const sp<Surface> &nativeWindow,
         const sp<ICrypto> &crypto,
         uint32_t flags) {
     sp<AMessage> msg = new AMessage(kWhatConfigure, id());
@@ -1692,7 +1692,7 @@ ssize_t MediaCodec::dequeuePortBuffer(int32_t portIndex) {
 }
 
 status_t MediaCodec::setNativeWindow(
-        const sp<SurfaceTextureClient> &surfaceTextureClient) {
+        const sp<Surface> &surfaceTextureClient) {
     status_t err;
 
     if (mNativeWindow != NULL) {
