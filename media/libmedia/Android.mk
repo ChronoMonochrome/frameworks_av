@@ -56,7 +56,7 @@ LOCAL_SRC_FILES:= \
     SoundPoolThread.cpp
 
 LOCAL_SHARED_LIBRARIES := \
-	libui libcutils libutils libbinder libsonivox libicuuc libexpat \
+	libui liblog libcutils libutils libbinder libsonivox libicuuc libexpat \
         libcamera_client libstagefright_foundation \
         libgui libdl libaudioutils
 
