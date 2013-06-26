@@ -1452,7 +1452,7 @@ audio_io_handle_t AudioFlinger::openOutput(audio_module_handle_t module,
     config.channel_mask = (pChannelMask != NULL) ? *pChannelMask : 0;
     config.format = (pFormat != NULL) ? *pFormat : AUDIO_FORMAT_DEFAULT;
 #ifndef HAVE_PRE_KITKAT_AUDIO_BLOB
-    if (offloadInfo) {
+    if (offloadInfo != NULL) {
         config.offload_info = *offloadInfo;
     }
 #endif
