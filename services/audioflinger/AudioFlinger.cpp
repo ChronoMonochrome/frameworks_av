@@ -1697,7 +1697,7 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
 
     uint32_t reqSamplingRate = config.sample_rate;
     audio_format_t reqFormat = config.format;
-    audio_channel_mask_t reqChannels = config.channel_mask;
+    audio_channel_mask_t reqChannelMask = config.channel_mask;
     audio_stream_in_t *inStream = NULL;
     AudioHwDevice *inHwDev;
 
@@ -1738,7 +1738,7 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
     if (status == BAD_VALUE &&
         reqFormat == config.format && config.format == AUDIO_FORMAT_PCM_16_BIT &&
         (config.sample_rate <= 2 * reqSamplingRate) &&
-        (popcount(config.channel_mask) <= FCC_2) && (popcount(reqChannels) <= FCC_2)) {
+        (popcount(config.channel_mask) <= FCC_2) && (popcount(reqChannelMask) <= FCC_2)) {
         ALOGV("openInput() reopening with proposed sampling rate and channel mask");
         inStream = NULL;
 #ifndef ICS_AUDIO_BLOB
@@ -1811,7 +1811,7 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
         thread = new RecordThread(this,
                                   input,
                                   reqSamplingRate,
-                                  reqChannels,
+                                  reqChannelMask,
                                   id,
                                   primaryOutputDevice_l(),
                                   *pDevices
@@ -1828,7 +1828,7 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
             *pFormat = config.format;
         }
         if (pChannelMask != NULL) {
-            *pChannelMask = reqChannels;
+            *pChannelMask = reqChannelMask;
         }
 
         // notify client processes of the new input creation
