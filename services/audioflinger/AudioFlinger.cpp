@@ -1448,7 +1448,6 @@ audio_io_handle_t AudioFlinger::openOutput(audio_module_handle_t module,
                                            audio_output_flags_t flags,
                                            const audio_offload_info_t *offloadInfo)
 {
-    PlaybackThread *thread = NULL;
     struct audio_config config;
     memset(&config, 0, sizeof(config));
     config.sample_rate = (pSamplingRate != NULL) ? *pSamplingRate : 0;
@@ -1459,9 +1458,6 @@ audio_io_handle_t AudioFlinger::openOutput(audio_module_handle_t module,
         config.offload_info = *offloadInfo;
     }
 #endif
-
-    audio_stream_out_t *outStream = NULL;
-    AudioHwDevice *outHwDev;
 
     ALOGV("openOutput(), module %d Device %x, SamplingRate %d, Format %#08x, Channels %x, flags %x",
               module,
@@ -1481,7 +1477,7 @@ audio_io_handle_t AudioFlinger::openOutput(audio_module_handle_t module,
 
     Mutex::Autolock _l(mLock);
 
-    outHwDev = findSuitableHwDev_l(module, *pDevices);
+    AudioHwDevice *outHwDev = findSuitableHwDev_l(module, *pDevices);
     if (outHwDev == NULL) {
         return 0;
     }
@@ -1491,9 +1487,9 @@ audio_io_handle_t AudioFlinger::openOutput(audio_module_handle_t module,
 
     mHardwareStatus = AUDIO_HW_OUTPUT_OPEN;
 
-    status_t status;
 #ifndef ICS_AUDIO_BLOB
-    status = hwDevHal->open_output_stream(hwDevHal,
+    audio_stream_out_t *outStream = NULL;
+    status_t status = hwDevHal->open_output_stream(hwDevHal,
                                           id,
                                           *pDevices,
                                           (audio_output_flags_t)flags,
@@ -1522,6 +1518,7 @@ audio_io_handle_t AudioFlinger::openOutput(audio_module_handle_t module,
     if (status == NO_ERROR && outStream != NULL) {
         AudioStreamOut *output = new AudioStreamOut(outHwDev, outStream, flags);
 
+        PlaybackThread *thread;
         if (flags & AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD) {
             thread = new OffloadThread(this, output, id, *pDevices);
             ALOGV("openOutput() created offload output: ID %d thread %p", id, thread);
@@ -1693,8 +1690,6 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
                                           audio_format_t *pFormat,
                                           audio_channel_mask_t *pChannelMask)
 {
-    status_t status;
-    RecordThread *thread = NULL;
     struct audio_config config;
     memset(&config, 0, sizeof(config));
     config.sample_rate = (pSamplingRate != NULL) ? *pSamplingRate : 0;
@@ -1704,8 +1699,6 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
     uint32_t reqSamplingRate = config.sample_rate;
     audio_format_t reqFormat = config.format;
     audio_channel_mask_t reqChannelMask = config.channel_mask;
-    audio_stream_in_t *inStream = NULL;
-    AudioHwDevice *inHwDev;
 
     if (pDevices == NULL || *pDevices == 0) {
         return 0;
@@ -1713,7 +1706,7 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
 
     Mutex::Autolock _l(mLock);
 
-    inHwDev = findSuitableHwDev_l(module, *pDevices);
+    AudioHwDevice *inHwDev = findSuitableHwDev_l(module, *pDevices);
     if (inHwDev == NULL) {
         return 0;
     }
@@ -1722,7 +1715,8 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
     audio_io_handle_t id = nextUniqueId();
 
 #ifndef ICS_AUDIO_BLOB
-    status = inHwHal->open_input_stream(inHwHal, id, *pDevices, &config,
+    audio_stream_in_t *inStream = NULL;
+    status_t status = inHwHal->open_input_stream(inHwHal, id, *pDevices, &config,
                                         &inStream);
 #else
     status = inHwHal->open_input_stream(inHwHal, *pDevices, 
@@ -1815,7 +1809,7 @@ audio_io_handle_t AudioFlinger::openInput(audio_module_handle_t module,
         // Start record thread
         // RecordThread requires both input and output device indication to forward to audio
         // pre processing modules
-        thread = new RecordThread(this,
+        RecordThread *thread = new RecordThread(this,
                                   input,
                                   reqSamplingRate,
                                   reqChannelMask,
