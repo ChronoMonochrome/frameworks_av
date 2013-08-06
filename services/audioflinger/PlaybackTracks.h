@@ -34,6 +34,7 @@ public:
                                 int uid,
                                 IAudioFlinger::track_flags_t flags);
     virtual             ~Track();
+    virtual status_t    initCheck() const;
 
     static  void        appendDumpHeader(String8& result);
             void        dump(char* buffer, size_t size);
