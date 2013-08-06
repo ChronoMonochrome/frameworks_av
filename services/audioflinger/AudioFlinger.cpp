@@ -539,9 +539,7 @@ sp<IAudioTrack> AudioFlinger::createTrack(
     }
 
 Exit:
-    if (status != NULL) {
-        *status = lStatus;
-    }
+    *status = lStatus;
     return trackHandle;
 }
 
@@ -1284,9 +1282,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
     lStatus = NO_ERROR;
 
 Exit:
-    if (status) {
-        *status = lStatus;
-    }
+    *status = lStatus;
     return recordHandle;
 }
 
@@ -2273,9 +2269,7 @@ sp<IEffect> AudioFlinger::createEffect(
     }
 
 Exit:
-    if (status != NULL) {
-        *status = lStatus;
-    }
+    *status = lStatus;
     return handle;
 }
 
