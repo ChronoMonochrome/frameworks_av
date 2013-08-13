@@ -4208,6 +4208,9 @@ bool AudioFlinger::RecordThread::threadLoop()
     bool readOnce = false;
 
     // start recording
+    // FIXME Race here: exitPending could become true immediately after testing.
+    //       It is only set to true while mLock held, but we don't hold mLock yet.
+    //       Probably a benign race, but it would be safer to check exitPending with mLock held.
     while (!exitPending()) {
 
         processConfigEvents();
@@ -4274,7 +4277,10 @@ bool AudioFlinger::RecordThread::threadLoop()
             lockEffectChains_l(effectChains);
         }
 
+        // thread mutex is now unlocked
+        // FIXME RecordThread::start assigns to mActiveTrack under lock, but we read without lock
         if (mActiveTrack != 0) {
+            // FIXME RecordThread::stop assigns to mState under lock, but we read without lock
             if (mActiveTrack->mState != TrackBase::ACTIVE &&
                 mActiveTrack->mState != TrackBase::RESUMING) {
                 unlockEffectChains(effectChains);
@@ -4282,6 +4288,7 @@ bool AudioFlinger::RecordThread::threadLoop()
                 continue;
             }
             for (size_t i = 0; i < effectChains.size(); i ++) {
+                // thread mutex is not locked, but effect chain is locked
                 effectChains[i]->process_l();
             }
 
@@ -4327,12 +4334,14 @@ bool AudioFlinger::RecordThread::threadLoop()
                             mBytesRead = mInput->stream->read(mInput->stream, readInto,
                                     mBufferSize);
                             if (mBytesRead <= 0) {
+                                // FIXME read mState without lock
                                 if ((mBytesRead < 0) && (mActiveTrack->mState == TrackBase::ACTIVE))
                                 {
                                     ALOGE("Error reading audio input");
                                     // Force input into standby so that it tries to
                                     // recover at next read attempt
                                     inputStandBy();
+                                    // FIXME sleep with effect chains locked
                                     usleep(kRecordThreadSleepUs);
                                 }
                                 mRsmpInIndex = mFrameCount;
@@ -4407,6 +4416,7 @@ bool AudioFlinger::RecordThread::threadLoop()
                 // Release the processor for a while before asking for a new buffer.
                 // This will give the application more chance to read from the buffer and
                 // clear the overflow.
+                // FIXME sleep with effect chains locked
                 usleep(kRecordThreadSleepUs);
             }
         }
@@ -4575,6 +4585,7 @@ status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrac
     }
 
     {
+        // This section is a rendezvous between binder thread executing start() and RecordThread
         AutoMutex lock(mLock);
         if (mActiveTrack != 0) {
             if (recordTrack != mActiveTrack.get()) {
@@ -4585,11 +4596,13 @@ status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrac
             return status;
         }
 
+        // FIXME why? already set in constructor, 'STARTING_1' would be more accurate
         recordTrack->mState = TrackBase::IDLE;
         mActiveTrack = recordTrack;
         mLock.unlock();
         status_t status = AudioSystem::startInput(mId);
         mLock.lock();
+        // FIXME should verify that mActiveTrack is still == recordTrack
         if (status != NO_ERROR) {
             mActiveTrack.clear();
             clearSyncStartEvent();
@@ -4600,6 +4613,8 @@ status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrac
         if (mResampler != NULL) {
             mResampler->reset();
         }
+        // FIXME hijacking a playback track state name which was intended for start after pause;
+        //       here 'STARTING_2' would be more accurate
         mActiveTrack->mState = TrackBase::RESUMING;
         // signal thread to start
         ALOGV("Signal record thread");
@@ -4610,6 +4625,7 @@ status_t AudioFlinger::RecordThread::start(RecordThread::RecordTrack* recordTrac
             status = INVALID_OPERATION;
             goto startError;
         }
+        // FIXME incorrect usage of wait: no explicit predicate or loop
         mStartStopCond.wait(mLock);
         if (mActiveTrack == 0) {
             ALOGV("Record failed to start");
@@ -4660,11 +4676,13 @@ bool AudioFlinger::RecordThread::stop(RecordThread::RecordTrack* recordTrack) {
     if (recordTrack != mActiveTrack.get() || recordTrack->mState == TrackBase::PAUSING) {
         return false;
     }
+    // note that threadLoop may still be processing the track at this point [without lock]
     recordTrack->mState = TrackBase::PAUSING;
     // do not wait for mStartStopCond if exiting
     if (exitPending()) {
         return true;
     }
+    // FIXME incorrect usage of wait: no explicit predicate or loop
     mStartStopCond.wait(mLock);
     // if we have been restarted, recordTrack == mActiveTrack.get() here
     if (exitPending() || recordTrack != mActiveTrack.get()) {
