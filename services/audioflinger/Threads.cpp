@@ -4197,7 +4197,6 @@ bool AudioFlinger::RecordThread::threadLoop()
 {
     AudioBufferProvider::Buffer buffer;
     sp<RecordTrack> activeTrack;
-    Vector< sp<EffectChain> > effectChains;
 
     nsecs_t lastWarning = 0;
 
@@ -4215,6 +4214,7 @@ bool AudioFlinger::RecordThread::threadLoop()
 
         processConfigEvents();
 
+        Vector< sp<EffectChain> > effectChains;
         { // scope for mLock
             Mutex::Autolock _l(mLock);
             checkForNewParameters_l();
@@ -4422,7 +4422,7 @@ bool AudioFlinger::RecordThread::threadLoop()
         }
         // enable changes in effect chain
         unlockEffectChains(effectChains);
-        effectChains.clear();
+        // effectChains doesn't need to be cleared, since it is cleared by destructor at scope end
     }
 
     standby();
