@@ -4285,7 +4285,8 @@ bool AudioFlinger::RecordThread::threadLoop()
                 break;
 
             case TrackBase::IDLE:
-                break;
+                doSleep = true;
+                continue;
 
             default:
                 LOG_FATAL("Unexpected activeTrackState %d", activeTrackState);
@@ -4295,12 +4296,8 @@ bool AudioFlinger::RecordThread::threadLoop()
         }
 
         // thread mutex is now unlocked, mActiveTrack unknown, activeTrack != 0, kept, immutable
-        // activeTrack->mState unknown, activeTrackState immutable
-        if (activeTrackState != TrackBase::ACTIVE && activeTrackState != TrackBase::RESUMING) {
-            unlockEffectChains(effectChains);
-            doSleep = true;
-            continue;
-        }
+        // activeTrack->mState unknown, activeTrackState immutable and is ACTIVE or RESUMING
+
         for (size_t i = 0; i < effectChains.size(); i ++) {
             // thread mutex is not locked, but effect chain is locked
             effectChains[i]->process_l();
