@@ -4217,6 +4217,7 @@ bool AudioFlinger::RecordThread::threadLoop()
     // start recording
     for (;;) {
         sp<RecordTrack> activeTrack;
+        TrackBase::track_state activeTrackState;
         Vector< sp<EffectChain> > effectChains;
 
         // sleep with mutex unlocked
@@ -4253,7 +4254,8 @@ bool AudioFlinger::RecordThread::threadLoop()
                 continue;
             }
 
-            switch (activeTrack->mState) {
+            activeTrackState = activeTrack->mState;
+            switch (activeTrackState) {
             case TrackBase::PAUSING:
                 standby();
                 mActiveTrack.clear();
@@ -4286,16 +4288,15 @@ bool AudioFlinger::RecordThread::threadLoop()
                 break;
 
             default:
-                LOG_FATAL("Unexpected activeTrack->mState %d", activeTrack->mState);
+                LOG_FATAL("Unexpected activeTrackState %d", activeTrackState);
             }
 
             lockEffectChains_l(effectChains);
         }
 
         // thread mutex is now unlocked, mActiveTrack unknown, activeTrack != 0, kept, immutable
-        // FIXME RecordThread::stop assigns to mState under lock, but we read without lock
-        if (activeTrack->mState != TrackBase::ACTIVE &&
-            activeTrack->mState != TrackBase::RESUMING) {
+        // activeTrack->mState unknown, activeTrackState immutable
+        if (activeTrackState != TrackBase::ACTIVE && activeTrackState != TrackBase::RESUMING) {
             unlockEffectChains(effectChains);
             doSleep = true;
             continue;
@@ -4347,8 +4348,8 @@ bool AudioFlinger::RecordThread::threadLoop()
                         mBytesRead = mInput->stream->read(mInput->stream, readInto,
                                 mBufferSize);
                         if (mBytesRead <= 0) {
-                            // FIXME read mState without lock
-                            if ((mBytesRead < 0) && (activeTrack->mState == TrackBase::ACTIVE))
+                            // TODO: verify that it's benign to use a stale track state
+                            if ((mBytesRead < 0) && (activeTrackState == TrackBase::ACTIVE))
                             {
                                 ALOGE("Error reading audio input");
                                 // Force input into standby so that it tries to
