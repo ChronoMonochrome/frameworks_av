@@ -4202,7 +4202,6 @@ void AudioFlinger::RecordThread::onFirstRef()
 bool AudioFlinger::RecordThread::threadLoop()
 {
     AudioBufferProvider::Buffer buffer;
-    sp<RecordTrack> activeTrack;
 
     nsecs_t lastWarning = 0;
 
@@ -4214,6 +4213,7 @@ bool AudioFlinger::RecordThread::threadLoop()
 
     // start recording
     for (;;) {
+        sp<RecordTrack> activeTrack;
         Vector< sp<EffectChain> > effectChains;
 
         { // scope for mLock
@@ -4224,7 +4224,9 @@ bool AudioFlinger::RecordThread::threadLoop()
             processConfigEvents_l();
             // return value 'reconfig' is currently unused
             bool reconfig = checkForNewParameters_l();
-            if (mActiveTrack == 0) {
+            // make a stable copy of mActiveTrack
+            activeTrack = mActiveTrack;
+            if (activeTrack == 0) {
                 standby();
                 // exitPending() can't become true here
                 releaseWakeLock_l();
@@ -4235,11 +4237,11 @@ bool AudioFlinger::RecordThread::threadLoop()
                 acquireWakeLock_l();
                 continue;
             }
-            if (mActiveTrack->isTerminated()) {
-                removeTrack_l(mActiveTrack);
+            if (activeTrack->isTerminated()) {
+                removeTrack_l(activeTrack);
                 mActiveTrack.clear();
             } else {
-                switch (mActiveTrack->mState) {
+                switch (activeTrack->mState) {
                 case TrackBase::PAUSING:
                     standby();
                     mActiveTrack.clear();
@@ -4247,14 +4249,14 @@ bool AudioFlinger::RecordThread::threadLoop()
                     break;
 
                 case TrackBase::RESUMING:
-                    if (mReqChannelCount != mActiveTrack->channelCount()) {
+                    if (mReqChannelCount != activeTrack->channelCount()) {
                         mActiveTrack.clear();
                         mStartStopCond.broadcast();
                     } else if (readOnce) {
                         // record start succeeds only if first read from audio input
                         // succeeds
                         if (mBytesRead >= 0) {
-                            mActiveTrack->mState = TrackBase::ACTIVE;
+                            activeTrack->mState = TrackBase::ACTIVE;
                         } else {
                             mActiveTrack.clear();
                         }
@@ -4270,7 +4272,7 @@ bool AudioFlinger::RecordThread::threadLoop()
                     break;
 
                 default:
-                    LOG_FATAL("Unexpected mActiveTrack->mState %d", mActiveTrack->mState);
+                    LOG_FATAL("Unexpected activeTrack->mState %d", activeTrack->mState);
                 }
 
             }
@@ -4280,11 +4282,10 @@ bool AudioFlinger::RecordThread::threadLoop()
             lockEffectChains_l(effectChains);
         }
 
-        // thread mutex is now unlocked and mActiveTrack != 0
-        // FIXME RecordThread::start assigns to mActiveTrack under lock, but we read without lock
+        // thread mutex is now unlocked, mActiveTrack unknown, activeTrack != 0, kept, immutable
         // FIXME RecordThread::stop assigns to mState under lock, but we read without lock
-        if (mActiveTrack->mState != TrackBase::ACTIVE &&
-            mActiveTrack->mState != TrackBase::RESUMING) {
+        if (activeTrack->mState != TrackBase::ACTIVE &&
+            activeTrack->mState != TrackBase::RESUMING) {
             unlockEffectChains(effectChains);
             usleep(kRecordThreadSleepUs);
             continue;
@@ -4295,7 +4296,7 @@ bool AudioFlinger::RecordThread::threadLoop()
         }
 
         buffer.frameCount = mFrameCount;
-        status_t status = mActiveTrack->getNextBuffer(&buffer);
+        status_t status = activeTrack->getNextBuffer(&buffer);
         if (status == NO_ERROR) {
             readOnce = true;
             size_t framesOut = buffer.frameCount;
@@ -4306,7 +4307,7 @@ bool AudioFlinger::RecordThread::threadLoop()
                     if (framesIn > 0) {
                         int8_t *src = (int8_t *)mRsmpInBuffer + mRsmpInIndex * mFrameSize;
                         int8_t *dst = buffer.i8 + (buffer.frameCount - framesOut) *
-                                mActiveTrack->mFrameSize;
+                                activeTrack->mFrameSize;
                         if (framesIn > framesOut) {
                             framesIn = framesOut;
                         }
@@ -4337,7 +4338,7 @@ bool AudioFlinger::RecordThread::threadLoop()
                                 mBufferSize);
                         if (mBytesRead <= 0) {
                             // FIXME read mState without lock
-                            if ((mBytesRead < 0) && (mActiveTrack->mState == TrackBase::ACTIVE))
+                            if ((mBytesRead < 0) && (activeTrack->mState == TrackBase::ACTIVE))
                             {
                                 ALOGE("Error reading audio input");
                                 // Force input into standby so that it tries to
@@ -4370,7 +4371,7 @@ bool AudioFlinger::RecordThread::threadLoop()
                 mResampler->resample(mRsmpOutBuffer, framesOut,
                         this /* AudioBufferProvider* */);
                 // ditherAndClamp() works as long as all buffers returned by
-                // mActiveTrack->getNextBuffer() are 32 bit aligned which should be always true.
+                // activeTrack->getNextBuffer() are 32 bit aligned which should be always true.
                 if (mChannelCount == 2 && mReqChannelCount == 1) {
                     // temporarily type pun mRsmpOutBuffer from Q19.12 to int16_t
                     ditherAndClamp(mRsmpOutBuffer, mRsmpOutBuffer, framesOut);
@@ -4385,7 +4386,7 @@ bool AudioFlinger::RecordThread::threadLoop()
 
             }
             if (mFramestoDrop == 0) {
-                mActiveTrack->releaseBuffer(&buffer);
+                activeTrack->releaseBuffer(&buffer);
             } else {
                 if (mFramestoDrop > 0) {
                     mFramestoDrop -= buffer.frameCount;
@@ -4398,17 +4399,17 @@ bool AudioFlinger::RecordThread::threadLoop()
                             mSyncStartEvent->isCancelled()) {
                         ALOGW("Synced record %s, session %d, trigger session %d",
                               (mFramestoDrop >= 0) ? "timed out" : "cancelled",
-                              mActiveTrack->sessionId(),
+                              activeTrack->sessionId(),
                               (mSyncStartEvent != 0) ? mSyncStartEvent->triggerSession() : 0);
                         clearSyncStartEvent();
                     }
                 }
             }
-            mActiveTrack->clearOverflow();
+            activeTrack->clearOverflow();
         }
         // client isn't retrieving buffers fast enough
         else {
-            if (!mActiveTrack->setOverflow()) {
+            if (!activeTrack->setOverflow()) {
                 nsecs_t now = systemTime();
                 if ((now - lastWarning) > kWarningThrottleNs) {
                     ALOGW("RecordThread: buffer overflow");
