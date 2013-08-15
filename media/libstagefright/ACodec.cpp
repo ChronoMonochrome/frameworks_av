@@ -1229,6 +1229,12 @@ status_t ACodec::configureCodec(
         } else {
             mRotationDegrees = 0;
         }
+
+        int32_t push;
+        if (msg->findInt32("push-blank-buffers-on-shutdown", &push)
+                && push != 0) {
+            mFlags |= kFlagPushBlankBuffersToNativeWindowOnShutdown;
+        }
     }
 
     if (video) {
@@ -3760,6 +3766,7 @@ bool ACodec::UninitializedState::onAllocateComponent(const sp<AMessage> &msg) {
 
     if (componentName.endsWith(".secure")) {
         mCodec->mFlags |= kFlagIsSecure;
+        mCodec->mFlags |= kFlagPushBlankBuffersToNativeWindowOnShutdown;
     }
 
     mCodec->mQuirks = quirks;
@@ -4683,7 +4690,8 @@ void ACodec::ExecutingToIdleState::changeStateIfWeOwnAllBuffers() {
         CHECK_EQ(mCodec->freeBuffersOnPort(kPortIndexInput), (status_t)OK);
         CHECK_EQ(mCodec->freeBuffersOnPort(kPortIndexOutput), (status_t)OK);
 
-        if (mCodec->mFlags & kFlagIsSecure && mCodec->mNativeWindow != NULL) {
+        if ((mCodec->mFlags & kFlagPushBlankBuffersToNativeWindowOnShutdown)
+                && mCodec->mNativeWindow != NULL) {
             // We push enough 1x1 blank buffers to ensure that one of
             // them has made it to the display.  This allows the OMX
             // component teardown to zero out any protected buffers
