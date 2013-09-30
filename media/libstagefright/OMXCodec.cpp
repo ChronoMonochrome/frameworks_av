@@ -4642,12 +4642,6 @@ status_t QueryCodec(
     caps->mFlags = 0;
     caps->mComponentName = componentName;
 
-    if (!isEncoder && !strncmp(mime, "video/", 6) &&
-            omx->storeMetaDataInBuffers(
-                    node, 1 /* port index */, OMX_TRUE) == OK) {
-        caps->mFlags |= CodecCapabilities::kFlagSupportsAdaptivePlayback;
-    }
-
     OMX_VIDEO_PARAM_PROFILELEVELTYPE param;
     InitOMXParams(&param);
 
@@ -4681,6 +4675,12 @@ status_t QueryCodec(
             break;
         }
         caps->mColorFormats.push(portFormat.eColorFormat);
+    }
+
+    if (!isEncoder && !strncmp(mime, "video/", 6) &&
+            omx->storeMetaDataInBuffers(
+                    node, 1 /* port index */, OMX_TRUE) == OK) {
+        caps->mFlags |= CodecCapabilities::kFlagSupportsAdaptivePlayback;
     }
 
     CHECK_EQ(omx->freeNode(node), (status_t)OK);
