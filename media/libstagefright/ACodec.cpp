@@ -376,7 +376,8 @@ ACodec::ACodec()
       mStoreMetaDataInOutputBuffers(false),
       mMetaDataBuffersToSubmit(0),
       mRepeatFrameDelayUs(-1ll),
-      mMaxPtsGapUs(-1l) {
+      mMaxPtsGapUs(-1l),
+      mCreateInputBuffersSuspended(false) {
     mUninitializedState = new UninitializedState(this);
     mLoadedState = new LoadedState(this);
     mLoadedToIdleState = new LoadedToIdleState(this);
@@ -1155,6 +1156,12 @@ status_t ACodec::configureCodec(
 
         if (!msg->findInt64("max-pts-gap-to-encoder", &mMaxPtsGapUs)) {
             mMaxPtsGapUs = -1l;
+        }
+
+        if (!msg->findInt32(
+                    "create-input-buffers-suspended",
+                    (int32_t*)&mCreateInputBuffersSuspended)) {
+            mCreateInputBuffersSuspended = false;
         }
     }
 
@@ -3970,6 +3977,22 @@ void ACodec::LoadedState::onCreateInputSurface(
 
         if (err != OK) {
             ALOGE("[%s] Unable to configure max timestamp gap (err %d)",
+                    mCodec->mComponentName.c_str(),
+                    err);
+          }
+      }
+
+    if (err == OK && mCodec->mCreateInputBuffersSuspended) {
+        bool suspend = true;
+        err = mCodec->mOMX->setInternalOption(
+                mCodec->mNode,
+                kPortIndexInput,
+                IOMX::INTERNAL_OPTION_SUSPEND,
+                &suspend,
+                sizeof(suspend));
+
+        if (err != OK) {
+            ALOGE("[%s] Unable to configure option to suspend (err %d)",
                   mCodec->mComponentName.c_str(),
                   err);
         }
@@ -4032,6 +4055,7 @@ status_t ACodec::LoadedToIdleState::allocateBuffers() {
 
 bool ACodec::LoadedToIdleState::onMessageReceived(const sp<AMessage> &msg) {
     switch (msg->what()) {
+        case kWhatSetParameters:
         case kWhatShutdown:
         {
             mCodec->deferMessage(msg);
@@ -4098,6 +4122,7 @@ void ACodec::IdleToExecutingState::stateEntered() {
 
 bool ACodec::IdleToExecutingState::onMessageReceived(const sp<AMessage> &msg) {
     switch (msg->what()) {
+        case kWhatSetParameters:
         case kWhatShutdown:
         {
             mCodec->deferMessage(msg);
@@ -4363,6 +4388,22 @@ status_t ACodec::setParameters(const sp<AMessage> &params) {
             ALOGE("setConfig(OMX_IndexConfigVideoBitrate, %d) failed w/ err %d",
                    videoBitrate, err);
 
+            return err;
+        }
+    }
+
+    int64_t skipFramesBeforeUs;
+    if (params->findInt64("skip-frames-before", &skipFramesBeforeUs)) {
+        status_t err =
+            mOMX->setInternalOption(
+                     mNode,
+                     kPortIndexInput,
+                     IOMX::INTERNAL_OPTION_START_TIME,
+                     &skipFramesBeforeUs,
+                     sizeof(skipFramesBeforeUs));
+
+        if (err != OK) {
+            ALOGE("Failed to set parameter 'skip-frames-before' (err %d)", err);
             return err;
         }
     }
