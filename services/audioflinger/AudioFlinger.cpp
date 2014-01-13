@@ -1020,7 +1020,7 @@ size_t AudioFlinger::getInputBufferSize(uint32_t sampleRate, audio_format_t form
     return size;
 }
 
-unsigned int AudioFlinger::getInputFramesLost(audio_io_handle_t ioHandle) const
+uint32_t AudioFlinger::getInputFramesLost(audio_io_handle_t ioHandle) const
 {
     Mutex::Autolock _l(mLock);
 
