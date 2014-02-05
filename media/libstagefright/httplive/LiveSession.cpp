@@ -50,13 +50,10 @@ namespace android {
 
 LiveSession::LiveSession(
         const sp<AMessage> &notify, uint32_t flags,
-        const sp<IMediaHTTPService> &httpService,
-        bool uidValid, uid_t uid)
+        const sp<IMediaHTTPService> &httpService)
     : mNotify(notify),
       mFlags(flags),
       mHTTPService(httpService),
-      mUIDValid(uidValid),
-      mUID(uid),
       mInPreparationPhase(true),
       mHTTPDataSource(new MediaHTTP(mHTTPService->makeHTTPConnection())),
       mPrevBandwidthIndex(-1),
@@ -68,6 +65,7 @@ LiveSession::LiveSession(
       mLastDequeuedTimeUs(0ll),
       mRealTimeBaseUs(0ll),
       mReconfigurationInProgress(false),
+<<<<<<< HEAD
       mSwitchInProgress(false),
       mDisconnectReplyID(0),
       mSeekReplyID(0) {
@@ -78,6 +76,14 @@ LiveSession::LiveSession(
     mStreams[kAudioIndex] = StreamItem("audio");
     mStreams[kVideoIndex] = StreamItem("video");
     mStreams[kSubtitleIndex] = StreamItem("subtitles");
+=======
+      mDisconnectReplyID(0) {
+    mPacketSources.add(
+            STREAMTYPE_AUDIO, new AnotherPacketSource(NULL /* meta */));
+
+    mPacketSources.add(
+            STREAMTYPE_VIDEO, new AnotherPacketSource(NULL /* meta */));
+>>>>>>> 81e6844... Remove no longer needed http proxy handling code, it's obsolete now
 
     for (size_t i = 0; i < kMaxStreams; ++i) {
         mPacketSources.add(indexToType(i), new AnotherPacketSource(NULL /* meta */));

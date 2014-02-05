@@ -219,8 +219,7 @@ void NuPlayer::setDataSourceAsync(
 
     sp<Source> source;
     if (IsHTTPLiveURL(url)) {
-        source = new HTTPLiveSource(
-                notify, httpService, url, headers, mUIDValid, mUID);
+        source = new HTTPLiveSource(notify, httpService, url, headers);
     } else if (!strncasecmp(url, "rtsp://", 7)) {
         source = new RTSPSource(
                 notify, httpService, url, headers, mUIDValid, mUID);
@@ -231,8 +230,7 @@ void NuPlayer::setDataSourceAsync(
         source = new RTSPSource(
                 notify, httpService, url, headers, mUIDValid, mUID, true);
     } else {
-        source = new GenericSource(
-                notify, httpService, url, headers, mUIDValid, mUID);
+        source = new GenericSource(notify, httpService, url, headers);
     }
 
     msg->setObject("source", source);
