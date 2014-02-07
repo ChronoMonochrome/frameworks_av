@@ -167,14 +167,14 @@ status_t M3UParser::MediaGroup::selectTrack(size_t index, bool select) {
             return INVALID_OPERATION;
         }
         if (mSelectedIndex == (ssize_t)index) {
-            ALOGE("track %zu already selected", index);
+            ALOGE("track %d already selected", index);
             return BAD_VALUE;
         }
         ALOGV("selected track %d", index);
         mSelectedIndex = index;
     } else {
         if (mSelectedIndex != (ssize_t)index) {
-            ALOGE("track %zu is not selected", index);
+            ALOGE("track %d is not selected", index);
             return BAD_VALUE;
         }
         ALOGV("unselected track %d", index);

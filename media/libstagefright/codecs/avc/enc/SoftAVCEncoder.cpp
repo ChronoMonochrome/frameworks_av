@@ -34,6 +34,12 @@
 
 #include "SoftAVCEncoder.h"
 
+#if LOG_NDEBUG
+#define UNUSED_UNLESS_VERBOSE(x) (void)(x)
+#else
+#define UNUSED_UNLESS_VERBOSE(x)
+#endif
+
 namespace android {
 
 template<class T>
@@ -136,14 +142,14 @@ inline static void ConvertYUV420SemiPlanarToYUV420Planar(
 }
 
 static void* MallocWrapper(
-        void *userData, int32_t size, int32_t attrs) {
+        void * /* userData */, int32_t size, int32_t /* attrs */) {
     void *ptr = malloc(size);
     if (ptr)
         memset(ptr, 0, size);
     return ptr;
 }
 
-static void FreeWrapper(void *userData, void* ptr) {
+static void FreeWrapper(void * /* userData */, void* ptr) {
     free(ptr);
 }
 
@@ -722,7 +728,7 @@ OMX_ERRORTYPE SoftAVCEncoder::internalSetParameter(
     }
 }
 
-void SoftAVCEncoder::onQueueFilled(OMX_U32 portIndex) {
+void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
     if (mSignalledError || mSawInputEOS) {
         return;
     }
@@ -965,6 +971,7 @@ int32_t SoftAVCEncoder::bindOutputBuffer(int32_t index, uint8_t **yuv) {
 }
 
 void SoftAVCEncoder::signalBufferReturned(MediaBuffer *buffer) {
+    UNUSED_UNLESS_VERBOSE(buffer);
     ALOGV("signalBufferReturned: %p", buffer);
 }
 

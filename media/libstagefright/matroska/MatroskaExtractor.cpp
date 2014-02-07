@@ -411,7 +411,7 @@ void BlockIterator::seek(
         if (isAudio || block()->IsKey()) {
             // Accept the first key frame
             *actualFrameTimeUs = (block()->GetTime(mCluster) + 500LL) / 1000LL;
-            ALOGV("Requested seek point: %" PRId64 " actual: %" PRId64,
+            ALOGV("Requested seek point: %lld actual: %lld",
                   seekTimeUs, *actualFrameTimeUs);
             break;
         }
