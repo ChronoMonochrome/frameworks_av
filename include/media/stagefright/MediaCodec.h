@@ -205,7 +205,7 @@ private:
     };
 
     struct BufferInfo {
-        void *mBufferID;
+        uint32_t mBufferID;
         sp<ABuffer> mData;
         sp<ABuffer> mEncryptedData;
         sp<AMessage> mNotify;
