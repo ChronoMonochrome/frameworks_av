@@ -92,10 +92,14 @@ OMX_CALLBACKTYPE OMXNodeInstance::kCallbacks = {
 OMXNodeInstance::OMXNodeInstance(
         OMX *owner, const sp<IOMXObserver> &observer)
     : mOwner(owner),
-      mNodeID(NULL),
+      mNodeID(0),
       mHandle(NULL),
       mObserver(observer),
-      mDying(false) {
+      mDying(false)
+#ifdef __LP64__
+      , mBufferIDCount(0)
+#endif
+{
 }
 
 OMXNodeInstance::~OMXNodeInstance() {
@@ -232,7 +236,7 @@ status_t OMXNodeInstance::freeNode(OMXMaster *master) {
     }
 
     mOwner->invalidateNodeID(mNodeID);
-    mNodeID = NULL;
+    mNodeID = 0;
 
     ALOGV("OMXNodeInstance going away.");
     delete this;
@@ -270,7 +274,7 @@ status_t OMXNodeInstance::getParameter(
     Mutex::Autolock autoLock(mLock);
 
     OMX_ERRORTYPE err = OMX_GetParameter(mHandle, index, params);
-
+    ALOGE_IF(err != OMX_ErrorNone, "getParameter(%d) ERROR: %#x", index, err);
     return StatusFromOMXError(err);
 }
 
@@ -280,7 +284,7 @@ status_t OMXNodeInstance::setParameter(
 
     OMX_ERRORTYPE err = OMX_SetParameter(
             mHandle, index, const_cast<void *>(params));
-
+    ALOGE_IF(err != OMX_ErrorNone, "setParameter(%d) ERROR: %#x", index, err);
     return StatusFromOMXError(err);
 }
 
@@ -482,7 +486,7 @@ status_t OMXNodeInstance::useBuffer(
 
     CHECK_EQ(header->pAppPrivate, buffer_meta);
 
-    *buffer = header;
+    *buffer = makeBufferID(header);
 
     addActiveBuffer(portIndex, *buffer);
 
@@ -538,7 +542,7 @@ status_t OMXNodeInstance::useGraphicBuffer2_l(
     CHECK_EQ(header->pBuffer, bufferHandle);
     CHECK_EQ(header->pAppPrivate, bufferMeta);
 
-    *buffer = header;
+    *buffer = makeBufferID(header);
 
     addActiveBuffer(portIndex, *buffer);
 
@@ -609,7 +613,7 @@ status_t OMXNodeInstance::useGraphicBuffer(
 
     CHECK_EQ(header->pAppPrivate, bufferMeta);
 
-    *buffer = header;
+    *buffer = makeBufferID(header);
 
     addActiveBuffer(portIndex, *buffer);
 
@@ -621,7 +625,7 @@ status_t OMXNodeInstance::updateGraphicBufferInMeta(
         OMX::buffer_id buffer) {
     Mutex::Autolock autoLock(mLock);
 
-    OMX_BUFFERHEADERTYPE *header = (OMX_BUFFERHEADERTYPE *)(buffer);
+    OMX_BUFFERHEADERTYPE *header = findBufferHeader(buffer);
     VideoDecoderOutputMetaData *metadata =
         (VideoDecoderOutputMetaData *)(header->pBuffer);
     BufferMeta *bufferMeta = (BufferMeta *)(header->pAppPrivate);
@@ -717,7 +721,7 @@ status_t OMXNodeInstance::allocateBuffer(
 
     CHECK_EQ(header->pAppPrivate, buffer_meta);
 
-    *buffer = header;
+    *buffer = makeBufferID(header);
     *buffer_data = header->pBuffer;
 
     addActiveBuffer(portIndex, *buffer);
@@ -755,7 +759,7 @@ status_t OMXNodeInstance::allocateBufferWithBackup(
 
     CHECK_EQ(header->pAppPrivate, buffer_meta);
 
-    *buffer = header;
+    *buffer = makeBufferID(header);
 
     addActiveBuffer(portIndex, *buffer);
 
@@ -773,13 +777,14 @@ status_t OMXNodeInstance::freeBuffer(
 
     removeActiveBuffer(portIndex, buffer);
 
-    OMX_BUFFERHEADERTYPE *header = (OMX_BUFFERHEADERTYPE *)buffer;
+    OMX_BUFFERHEADERTYPE *header = findBufferHeader(buffer);
     BufferMeta *buffer_meta = static_cast<BufferMeta *>(header->pAppPrivate);
 
     OMX_ERRORTYPE err = OMX_FreeBuffer(mHandle, portIndex, header);
 
     delete buffer_meta;
     buffer_meta = NULL;
+    invalidateBufferID(buffer);
 
     return StatusFromOMXError(err);
 }
@@ -787,7 +792,7 @@ status_t OMXNodeInstance::freeBuffer(
 status_t OMXNodeInstance::fillBuffer(OMX::buffer_id buffer) {
     Mutex::Autolock autoLock(mLock);
 
-    OMX_BUFFERHEADERTYPE *header = (OMX_BUFFERHEADERTYPE *)buffer;
+    OMX_BUFFERHEADERTYPE *header = findBufferHeader(buffer);
     header->nFilledLen = 0;
     header->nOffset = 0;
     header->nFlags = 0;
@@ -803,7 +808,7 @@ status_t OMXNodeInstance::emptyBuffer(
         OMX_U32 flags, OMX_TICKS timestamp) {
     Mutex::Autolock autoLock(mLock);
 
-    OMX_BUFFERHEADERTYPE *header = (OMX_BUFFERHEADERTYPE *)buffer;
+    OMX_BUFFERHEADERTYPE *header = findBufferHeader(buffer);
     header->nFilledLen = rangeLength;
     header->nOffset = rangeOffset;
     header->nFlags = flags;
@@ -904,8 +909,7 @@ void OMXNodeInstance::onMessage(const omx_message &msg) {
 
     if (msg.type == omx_message::FILL_BUFFER_DONE) {
         OMX_BUFFERHEADERTYPE *buffer =
-            static_cast<OMX_BUFFERHEADERTYPE *>(
-                    msg.u.extended_buffer_data.buffer);
+            findBufferHeader(msg.u.extended_buffer_data.buffer);
 
         BufferMeta *buffer_meta =
             static_cast<BufferMeta *>(buffer->pAppPrivate);
@@ -930,8 +934,7 @@ void OMXNodeInstance::onMessage(const omx_message &msg) {
             // be very confused.
 
             OMX_BUFFERHEADERTYPE *buffer =
-                static_cast<OMX_BUFFERHEADERTYPE *>(
-                        msg.u.buffer_data.buffer);
+                findBufferHeader(msg.u.buffer_data.buffer);
 
             bufferSource->codecBufferEmptied(buffer);
             return;
@@ -991,7 +994,8 @@ OMX_ERRORTYPE OMXNodeInstance::OnEmptyBufferDone(
     if (instance->mDying) {
         return OMX_ErrorNone;
     }
-    return instance->owner()->OnEmptyBufferDone(instance->nodeID(), pBuffer);
+    return instance->owner()->OnEmptyBufferDone(instance->nodeID(),
+            instance->findBufferID(pBuffer), pBuffer);
 }
 
 // static
@@ -1003,7 +1007,8 @@ OMX_ERRORTYPE OMXNodeInstance::OnFillBufferDone(
     if (instance->mDying) {
         return OMX_ErrorNone;
     }
-    return instance->owner()->OnFillBufferDone(instance->nodeID(), pBuffer);
+    return instance->owner()->OnFillBufferDone(instance->nodeID(),
+            instance->findBufferID(pBuffer), pBuffer);
 }
 
 void OMXNodeInstance::addActiveBuffer(OMX_U32 portIndex, OMX::buffer_id id) {
@@ -1037,5 +1042,68 @@ void OMXNodeInstance::freeActiveBuffers() {
         freeBuffer(mActiveBuffers[i].mPortIndex, mActiveBuffers[i].mID);
     }
 }
+
+#ifdef __LP64__
+
+OMX::buffer_id OMXNodeInstance::makeBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
+    if (bufferHeader == NULL) {
+        return 0;
+    }
+    Mutex::Autolock autoLock(mBufferIDLock);
+    OMX::buffer_id buffer;
+    do { // handle the very unlikely case of ID overflow
+        if (++mBufferIDCount == 0) {
+           ++mBufferIDCount;
+        }
+        buffer = (OMX::buffer_id)mBufferIDCount;
+    } while (mBufferIDToBufferHeader.indexOfKey(buffer) >= 0);
+    mBufferIDToBufferHeader.add(buffer, bufferHeader);
+    mBufferHeaderToBufferID.add(bufferHeader, buffer);
+    return buffer;
+}
+
+OMX_BUFFERHEADERTYPE *OMXNodeInstance::findBufferHeader(OMX::buffer_id buffer) {
+    if (buffer == 0) {
+        return NULL;
+    }
+    Mutex::Autolock autoLock(mBufferIDLock);
+    return mBufferIDToBufferHeader.valueFor(buffer);
+}
+
+OMX::buffer_id OMXNodeInstance::findBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
+    if (bufferHeader == NULL) {
+        return 0;
+    }
+    Mutex::Autolock autoLock(mBufferIDLock);
+    return mBufferHeaderToBufferID.valueFor(bufferHeader);
+}
+
+void OMXNodeInstance::invalidateBufferID(OMX::buffer_id buffer) {
+    if (buffer == 0) {
+        return;
+    }
+    Mutex::Autolock autoLock(mBufferIDLock);
+    mBufferHeaderToBufferID.removeItem(mBufferIDToBufferHeader.valueFor(buffer));
+    mBufferIDToBufferHeader.removeItem(buffer);
+}
+
+#else
+
+OMX::buffer_id OMXNodeInstance::makeBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
+    return (OMX::buffer_id)bufferHeader;
+}
+
+OMX_BUFFERHEADERTYPE *OMXNodeInstance::findBufferHeader(OMX::buffer_id buffer) {
+    return (OMX_BUFFERHEADERTYPE *)buffer;
+}
+
+OMX::buffer_id OMXNodeInstance::findBufferID(OMX_BUFFERHEADERTYPE *bufferHeader) {
+    return (OMX::buffer_id)bufferHeader;
+}
+
+void OMXNodeInstance::invalidateBufferID(OMX::buffer_id buffer __unused) {
+}
+
+#endif
 
 }  // namespace android
