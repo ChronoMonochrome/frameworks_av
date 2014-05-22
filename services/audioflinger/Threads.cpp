@@ -1312,22 +1312,37 @@ void AudioFlinger::PlaybackThread::dumpTracks(int fd, const Vector<String16>& ar
         }
     }
 
-    write(fd, result.string(), result.size());
+    // These values are "raw"; they will wrap around.  See prepareTracks_l() for a better way.
+    FastTrackUnderruns underruns = getFastTrackUnderruns(0);
+    dprintf(fd, "Normal mixer raw underrun counters: partial=%u empty=%u\n",
+            underruns.mBitFields.mPartial, underruns.mBitFields.mEmpty);
 }
 
 void AudioFlinger::PlaybackThread::dumpInternals(int fd, const Vector<String16>& args)
 {
-    dprintf(fd, "\nOutput thread %p:\n", this);
-    dprintf(fd, "  Normal frame count: %zu\n", mNormalFrameCount);
-    dprintf(fd, "  Last write occurred (msecs): %llu\n", ns2ms(systemTime() - mLastWriteTime));
-    dprintf(fd, "  Total writes: %d\n", mNumWrites);
-    dprintf(fd, "  Delayed writes: %d\n", mNumDelayedWrites);
-    dprintf(fd, "  Blocked in write: %s\n", mInWrite ? "yes" : "no");
-    dprintf(fd, "  Suspend count: %d\n", mSuspended);
-    dprintf(fd, "  Sink buffer : %p\n", mSinkBuffer);
-    dprintf(fd, "  Mixer buffer: %p\n", mMixerBuffer);
-    dprintf(fd, "  Effect buffer: %p\n", mEffectBuffer);
-    dprintf(fd, "  Fast track availMask=%#x\n", mFastTrackAvailMask);
+    const size_t SIZE = 256;
+    char buffer[SIZE];
+    String8 result;
+
+    snprintf(buffer, SIZE, "\nOutput thread %p internals\n", this);
+    result.append(buffer);
+    snprintf(buffer, SIZE, "Normal frame count: %zu\n", mNormalFrameCount);
+    result.append(buffer);
+    snprintf(buffer, SIZE, "last write occurred (msecs): %llu\n",
+            ns2ms(systemTime() - mLastWriteTime));
+    result.append(buffer);
+    snprintf(buffer, SIZE, "total writes: %d\n", mNumWrites);
+    result.append(buffer);
+    snprintf(buffer, SIZE, "delayed writes: %d\n", mNumDelayedWrites);
+    result.append(buffer);
+    snprintf(buffer, SIZE, "blocked in write: %d\n", mInWrite);
+    result.append(buffer);
+    snprintf(buffer, SIZE, "suspend count: %d\n", mSuspended);
+    result.append(buffer);
+    snprintf(buffer, SIZE, "mix buffer : %p\n", mMixBuffer);
+    result.append(buffer);
+    write(fd, result.string(), result.size());
+    dprintf(fd, "Fast track availMask=%#x\n", mFastTrackAvailMask);
 
     dumpBase(fd, args);
 }
