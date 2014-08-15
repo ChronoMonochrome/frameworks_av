@@ -36,6 +36,7 @@
 #include <media/stagefright/MediaCodecList.h>
 #include <media/stagefright/MediaDefs.h>
 #include <media/stagefright/MediaErrors.h>
+#include <media/stagefright/MediaFilter.h>
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/ExtendedCodec.h>
 #include <media/stagefright/NativeWindowWrapper.h>
@@ -190,7 +191,16 @@ status_t MediaCodec::init(const AString &name, bool nameIsType, bool encoder) {
     // quickly, violating the OpenMAX specs, until that is remedied
     // we need to invest in an extra looper to free the main event
     // queue.
-    mCodec = new ACodec;
+
+    if (nameIsType || !strncasecmp(name, "omx.", 4)) {
+        mCodec = new ACodec;
+    } else if (!nameIsType
+            && !strncasecmp(name, "android.filter.", 15)) {
+        mCodec = new MediaFilter;
+    } else {
+        return NAME_NOT_FOUND;
+    }
+
     bool needDedicatedLooper = false;
     if (nameIsType && !strncasecmp(name.c_str(), "video/", 6)) {
         needDedicatedLooper = true;
