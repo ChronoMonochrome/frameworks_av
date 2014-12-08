@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "stagefright"
@@ -525,8 +527,13 @@ static void writeSourcesToMP4(
     sp<MPEG4Writer> writer =
         new MPEG4Writer(gWriteMP4Filename.string());
 #else
+    int fd = open(gWriteMP4Filename.string(), O_CREAT | O_LARGEFILE | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd < 0) {
+        fprintf(stderr, "couldn't open file");
+        return;
+    }
     sp<MPEG2TSWriter> writer =
-        new MPEG2TSWriter(gWriteMP4Filename.string());
+        new MPEG2TSWriter(fd);
 #endif
 
     // at most one minute.
