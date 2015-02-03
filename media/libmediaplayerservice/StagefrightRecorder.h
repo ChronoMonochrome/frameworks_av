@@ -143,6 +143,7 @@ private:
     sp<ALooper> mLooper;
 
     sp<RecorderExtendedStats> mRecorderExtendedStats;
+    static const int kMaxHighSpeedFps = 1000;
 
     status_t prepareInternal();
     status_t setupMPEG4orWEBMRecording();
