@@ -1141,6 +1141,14 @@ status_t ACodec::configureCodec(
     sp<AMessage> outputFormat = new AMessage();
 
     mIsEncoder = encoder;
+    /* Meticulus:
+     * Software codecs don't require configuration? Not sure
+     * but skipping configuration for them seems to work.
+     */
+    if(strncmp("OMX.google.h264", mComponentName.c_str(), 15) == 0) {
+        ALOGI("Meticulus: Soft codec %s detected, skipping configureCodec\n", mComponentName.c_str());
+        return OK;
+    }
 
     status_t err = setComponentRole(encoder /* isEncoder */, mime);
 
