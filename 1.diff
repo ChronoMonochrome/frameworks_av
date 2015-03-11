@@ -1,0 +1,396 @@
+diff --git a/media/libmediaplayerservice/nuplayer/NuPlayerDecoder.cpp b/media/libmediaplayerservice/nuplayer/NuPlayerDecoder.cpp
+index 8ce7baf..47c46d6 100644
+--- a/media/libmediaplayerservice/nuplayer/NuPlayerDecoder.cpp
++++ b/media/libmediaplayerservice/nuplayer/NuPlayerDecoder.cpp
+@@ -71,19 +71,6 @@ status_t PostAndAwaitResponse(
+     return err;
+ }
+ 
+-void NuPlayer::Decoder::rememberCodecSpecificData(const sp<AMessage> &format) {
+-    mCSDsForCurrentFormat.clear();
+-    for (int32_t i = 0; ; ++i) {
+-        AString tag = "csd-";
+-        tag.append(i);
+-        sp<ABuffer> buffer;
+-        if (!format->findBuffer(tag.c_str(), &buffer)) {
+-            break;
+-        }
+-        mCSDsForCurrentFormat.push(buffer);
+-    }
+-}
+-
+ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
+     CHECK(mCodec == NULL);
+ 
+@@ -136,8 +123,6 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
+         handleError(err);
+         return;
+     }
+-    rememberCodecSpecificData(format);
+-
+     // the following should work in configured state
+     CHECK_EQ((status_t)OK, mCodec->getOutputFormat(&mOutputFormat));
+     CHECK_EQ((status_t)OK, mCodec->getInputFormat(&mInputFormat));
+@@ -204,12 +189,6 @@ void NuPlayer::Decoder::configure(const sp<AMessage> &format) {
+     msg->post();
+ }
+ 
+-void NuPlayer::Decoder::signalUpdateFormat(const sp<AMessage> &format) {
+-    sp<AMessage> msg = new AMessage(kWhatUpdateFormat, id());
+-    msg->setMessage("format", format);
+-    msg->post();
+-}
+-
+ status_t NuPlayer::Decoder::getInputBuffers(Vector<sp<ABuffer> > *buffers) const {
+     sp<AMessage> msg = new AMessage(kWhatGetInputBuffers, id());
+     msg->setPointer("buffers", buffers);
+@@ -220,8 +199,6 @@ status_t NuPlayer::Decoder::getInputBuffers(Vector<sp<ABuffer> > *buffers) const
+ 
+ void NuPlayer::Decoder::handleError(int32_t err)
+ {
+-    mCodec->release();
+-
+     sp<AMessage> notify = mNotify->dup();
+     notify->setInt32("what", kWhatError);
+     notify->setInt32("err", err);
+@@ -252,15 +229,6 @@ bool NuPlayer::Decoder::handleAnInputBuffer() {
+     reply->setSize("buffer-ix", bufferIx);
+     reply->setInt32("generation", mBufferGeneration);
+ 
+-    if (!mCSDsToSubmit.isEmpty()) {
+-        sp<ABuffer> buffer = mCSDsToSubmit.itemAt(0);
+-        ALOGI("[%s] resubmitting CSD", mComponentName.c_str());
+-        reply->setBuffer("buffer", buffer);
+-        mCSDsToSubmit.removeAt(0);
+-        reply->post();
+-        return true;
+-    }
+-
+     sp<AMessage> notify = mNotify->dup();
+     notify->setInt32("what", kWhatFillThisBuffer);
+     notify->setBuffer("buffer", mInputBuffers[bufferIx]);
+@@ -344,12 +312,10 @@ void android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
+         uint32_t flags = 0;
+         CHECK(buffer->meta()->findInt64("timeUs", &timeUs));
+ 
+-        int32_t eos, csd;
+-        // we do not expect SYNCFRAME for decoder
++        int32_t eos;
++        // we do not expect CODECCONFIG or SYNCFRAME for decoder
+         if (buffer->meta()->findInt32("eos", &eos) && eos) {
+             flags |= MediaCodec::BUFFER_FLAG_EOS;
+-        } else if (buffer->meta()->findInt32("csd", &csd) && csd) {
+-            flags |= MediaCodec::BUFFER_FLAG_CODECCONFIG;
+         }
+ 
+         // copy into codec buffer
+@@ -482,7 +448,6 @@ void NuPlayer::Decoder::onFlush() {
+     status_t err = OK;
+     if (mCodec != NULL) {
+         err = mCodec->flush();
+-        mCSDsToSubmit = mCSDsForCurrentFormat; // copy operator
+         ++mBufferGeneration;
+     }
+ 
+@@ -550,14 +515,6 @@ void NuPlayer::Decoder::onMessageReceived(const sp<AMessage> &msg) {
+             break;
+         }
+ 
+-        case kWhatUpdateFormat:
+-        {
+-            sp<AMessage> format;
+-            CHECK(msg->findMessage("format", &format));
+-            rememberCodecSpecificData(format);
+-            break;
+-        }
+-
+         case kWhatGetInputBuffers:
+         {
+             uint32_t replyID;
+@@ -609,10 +566,6 @@ void NuPlayer::Decoder::onMessageReceived(const sp<AMessage> &msg) {
+ 
+         case kWhatFlush:
+         {
+-            sp<AMessage> format;
+-            if (msg->findMessage("new-format", &format)) {
+-                rememberCodecSpecificData(format);
+-            }
+             onFlush();
+             break;
+         }
+@@ -635,12 +588,8 @@ void NuPlayer::Decoder::onMessageReceived(const sp<AMessage> &msg) {
+     }
+ }
+ 
+-void NuPlayer::Decoder::signalFlush(const sp<AMessage> &format) {
+-    sp<AMessage> msg = new AMessage(kWhatFlush, id());
+-    if (format != NULL) {
+-        msg->setMessage("new-format", format);
+-    }
+-    msg->post();
++void NuPlayer::Decoder::signalFlush() {
++    (new AMessage(kWhatFlush, id()))->post();
+ }
+ 
+ void NuPlayer::Decoder::signalResume() {
+@@ -716,28 +665,72 @@ bool NuPlayer::Decoder::supportsSeamlessFormatChange(const sp<AMessage> &targetF
+     return seamless;
+ }
+ 
+-struct CCData {
++struct NuPlayer::CCDecoder::CCData {
+     CCData(uint8_t type, uint8_t data1, uint8_t data2)
+         : mType(type), mData1(data1), mData2(data2) {
+     }
+-    bool getChannel(size_t *channel) const {
+-        if (mData1 >= 0x10 && mData1 <= 0x1f) {
+-            *channel = (mData1 >= 0x18 ? 1 : 0) + (mType ? 2 : 0);
+-            return true;
+-        }
+-        return false;
+-    }
+ 
+     uint8_t mType;
+     uint8_t mData1;
+     uint8_t mData2;
+ };
+ 
+-static bool isNullPad(CCData *cc) {
++NuPlayer::CCDecoder::CCDecoder(const sp<AMessage> &notify)
++    : mNotify(notify),
++      mTrackCount(0),
++      mSelectedTrack(-1) {
++}
++
++size_t NuPlayer::CCDecoder::getTrackCount() const {
++    return mTrackCount;
++}
++
++sp<AMessage> NuPlayer::CCDecoder::getTrackInfo(size_t index) const {
++    CHECK(index == 0);
++
++    sp<AMessage> format = new AMessage();
++
++    format->setInt32("type", MEDIA_TRACK_TYPE_SUBTITLE);
++    format->setString("language", "und");
++    format->setString("mime", MEDIA_MIMETYPE_TEXT_CEA_608);
++    format->setInt32("auto", 1);
++    format->setInt32("default", 1);
++    format->setInt32("forced", 0);
++
++    return format;
++}
++
++status_t NuPlayer::CCDecoder::selectTrack(size_t index, bool select) {
++    CHECK(index < mTrackCount);
++
++    if (select) {
++        if (mSelectedTrack == (ssize_t)index) {
++            ALOGE("track %zu already selected", index);
++            return BAD_VALUE;
++        }
++        ALOGV("selected track %zu", index);
++        mSelectedTrack = index;
++    } else {
++        if (mSelectedTrack != (ssize_t)index) {
++            ALOGE("track %zu is not selected", index);
++            return BAD_VALUE;
++        }
++        ALOGV("unselected track %zu", index);
++        mSelectedTrack = -1;
++    }
++
++    return OK;
++}
++
++bool NuPlayer::CCDecoder::isSelected() const {
++    return mSelectedTrack >= 0 && mSelectedTrack < (int32_t)mTrackCount;
++}
++
++bool NuPlayer::CCDecoder::isNullPad(CCData *cc) const {
+     return cc->mData1 < 0x10 && cc->mData2 < 0x10;
+ }
+ 
+-static void dumpBytePair(const sp<ABuffer> &ccBuf) {
++void NuPlayer::CCDecoder::dumpBytePair(const sp<ABuffer> &ccBuf) const {
+     size_t offset = 0;
+     AString out;
+ 
+@@ -799,78 +792,6 @@ static void dumpBytePair(const sp<ABuffer> &ccBuf) {
+     ALOGI("%s", out.c_str());
+ }
+ 
+-NuPlayer::CCDecoder::CCDecoder(const sp<AMessage> &notify)
+-    : mNotify(notify),
+-      mCurrentChannel(0),
+-      mSelectedTrack(-1) {
+-      for (size_t i = 0; i < sizeof(mTrackIndices)/sizeof(mTrackIndices[0]); ++i) {
+-          mTrackIndices[i] = -1;
+-      }
+-}
+-
+-size_t NuPlayer::CCDecoder::getTrackCount() const {
+-    return mFoundChannels.size();
+-}
+-
+-sp<AMessage> NuPlayer::CCDecoder::getTrackInfo(size_t index) const {
+-    if (!isTrackValid(index)) {
+-        return NULL;
+-    }
+-
+-    sp<AMessage> format = new AMessage();
+-
+-    format->setInt32("type", MEDIA_TRACK_TYPE_SUBTITLE);
+-    format->setString("language", "und");
+-    format->setString("mime", MEDIA_MIMETYPE_TEXT_CEA_608);
+-    //CC1, field 0 channel 0
+-    bool isDefaultAuto = (mFoundChannels[index] == 0);
+-    format->setInt32("auto", isDefaultAuto);
+-    format->setInt32("default", isDefaultAuto);
+-    format->setInt32("forced", 0);
+-
+-    return format;
+-}
+-
+-status_t NuPlayer::CCDecoder::selectTrack(size_t index, bool select) {
+-    if (!isTrackValid(index)) {
+-        return BAD_VALUE;
+-    }
+-
+-    if (select) {
+-        if (mSelectedTrack == (ssize_t)index) {
+-            ALOGE("track %zu already selected", index);
+-            return BAD_VALUE;
+-        }
+-        ALOGV("selected track %zu", index);
+-        mSelectedTrack = index;
+-    } else {
+-        if (mSelectedTrack != (ssize_t)index) {
+-            ALOGE("track %zu is not selected", index);
+-            return BAD_VALUE;
+-        }
+-        ALOGV("unselected track %zu", index);
+-        mSelectedTrack = -1;
+-    }
+-
+-    return OK;
+-}
+-
+-bool NuPlayer::CCDecoder::isSelected() const {
+-    return mSelectedTrack >= 0 && mSelectedTrack < (int32_t) getTrackCount();
+-}
+-
+-bool NuPlayer::CCDecoder::isTrackValid(size_t index) const {
+-    return index < getTrackCount();
+-}
+-
+-int32_t NuPlayer::CCDecoder::getTrackIndex(size_t channel) const {
+-    if (channel < sizeof(mTrackIndices)/sizeof(mTrackIndices[0])) {
+-        return mTrackIndices[channel];
+-    }
+-    return -1;
+-}
+-
+-// returns true if a new CC track is found
+ bool NuPlayer::CCDecoder::extractFromSEI(const sp<ABuffer> &accessUnit) {
+     int64_t timeUs;
+     CHECK(accessUnit->meta()->findInt64("timeUs", &timeUs));
+@@ -880,7 +801,7 @@ bool NuPlayer::CCDecoder::extractFromSEI(const sp<ABuffer> &accessUnit) {
+         return false;
+     }
+ 
+-    bool trackAdded = false;
++    bool hasCC = false;
+ 
+     NALBitReader br(sei->data() + 1, sei->size() - 1);
+     // sei_message()
+@@ -915,6 +836,8 @@ bool NuPlayer::CCDecoder::extractFromSEI(const sp<ABuffer> &accessUnit) {
+                     && itu_t_t35_provider_code == 0x0031
+                     && user_identifier == 'GA94'
+                     && user_data_type_code == 0x3) {
++                hasCC = true;
++
+                 // MPEG_cc_data()
+                 // ATSC A/53 Part 4: 6.2.3.1
+                 br.skipBits(1); //process_em_data_flag
+@@ -944,12 +867,6 @@ bool NuPlayer::CCDecoder::extractFromSEI(const sp<ABuffer> &accessUnit) {
+                                 && (cc_type == 0 || cc_type == 1)) {
+                             CCData cc(cc_type, cc_data_1, cc_data_2);
+                             if (!isNullPad(&cc)) {
+-                                size_t channel;
+-                                if (cc.getChannel(&channel) && getTrackIndex(channel) < 0) {
+-                                    mTrackIndices[channel] = mFoundChannels.size();
+-                                    mFoundChannels.push_back(channel);
+-                                    trackAdded = true;
+-                                }
+                                 memcpy(ccBuf->data() + ccBuf->size(),
+                                         (void *)&cc, sizeof(cc));
+                                 ccBuf->setRange(0, ccBuf->size() + sizeof(CCData));
+@@ -972,33 +889,13 @@ bool NuPlayer::CCDecoder::extractFromSEI(const sp<ABuffer> &accessUnit) {
+         br.skipBits(payload_size * 8);
+     }
+ 
+-    return trackAdded;
+-}
+-
+-sp<ABuffer> NuPlayer::CCDecoder::filterCCBuf(
+-        const sp<ABuffer> &ccBuf, size_t index) {
+-    sp<ABuffer> filteredCCBuf = new ABuffer(ccBuf->size());
+-    filteredCCBuf->setRange(0, 0);
+-
+-    size_t cc_count = ccBuf->size() / sizeof(CCData);
+-    const CCData* cc_data = (const CCData*)ccBuf->data();
+-    for (size_t i = 0; i < cc_count; ++i) {
+-        size_t channel;
+-        if (cc_data[i].getChannel(&channel)) {
+-            mCurrentChannel = channel;
+-        }
+-        if (mCurrentChannel == mFoundChannels[index]) {
+-            memcpy(filteredCCBuf->data() + filteredCCBuf->size(),
+-                    (void *)&cc_data[i], sizeof(CCData));
+-            filteredCCBuf->setRange(0, filteredCCBuf->size() + sizeof(CCData));
+-        }
+-    }
+-
+-    return filteredCCBuf;
++    return hasCC;
+ }
+ 
+ void NuPlayer::CCDecoder::decode(const sp<ABuffer> &accessUnit) {
+-    if (extractFromSEI(accessUnit)) {
++    if (extractFromSEI(accessUnit) && mTrackCount == 0) {
++        mTrackCount++;
++
+         ALOGI("Found CEA-608 track");
+         sp<AMessage> msg = mNotify->dup();
+         msg->setInt32("what", kWhatTrackAdded);
+@@ -1008,18 +905,13 @@ void NuPlayer::CCDecoder::decode(const sp<ABuffer> &accessUnit) {
+ }
+ 
+ void NuPlayer::CCDecoder::display(int64_t timeUs) {
+-    if (!isTrackValid(mSelectedTrack)) {
+-        ALOGE("Could not find current track(index=%d)", mSelectedTrack);
+-        return;
+-    }
+-
+     ssize_t index = mCCMap.indexOfKey(timeUs);
+     if (index < 0) {
+         ALOGV("cc for timestamp %" PRId64 " not found", timeUs);
+         return;
+     }
+ 
+-    sp<ABuffer> ccBuf = filterCCBuf(mCCMap.valueAt(index), mSelectedTrack);
++    sp<ABuffer> &ccBuf = mCCMap.editValueAt(index);
+ 
+     if (ccBuf->size() > 0) {
+ #if 0
+@@ -1040,9 +932,5 @@ void NuPlayer::CCDecoder::display(int64_t timeUs) {
+     mCCMap.removeItemsAt(0, index + 1);
+ }
+ 
+-void NuPlayer::CCDecoder::flush() {
+-    mCCMap.clear();
+-}
+-
+ }  // namespace android
+ 
