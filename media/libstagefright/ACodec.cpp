@@ -83,6 +83,7 @@
 #include <media/stagefright/ExtendedCodec.h>
 #include <media/stagefright/FFMPEGSoftCodec.h>
 
+#include <media/stagefright/PersistentSurface.h>
 #include <media/hardware/HardwareAPI.h>
 
 #include <OMX_AudioExt.h>
@@ -320,8 +321,11 @@ private:
 
     bool onConfigureComponent(const sp<AMessage> &msg);
     void onCreateInputSurface(const sp<AMessage> &msg);
+    void onUsePersistentInputSurface(const sp<AMessage> &msg);
     void onStart();
     void onShutdown(bool keepComponentAllocated);
+
+    status_t setupInputSurface();
 
     DISALLOW_EVIL_CONSTRUCTORS(LoadedState);
 };
@@ -544,6 +548,13 @@ void ACodec::initiateConfigureComponent(const sp<AMessage> &msg) {
 
 void ACodec::initiateCreateInputSurface() {
     (new AMessage(kWhatCreateInputSurface, id()))->post();
+}
+
+void ACodec::initiateUsePersistentInputSurface(
+        const sp<PersistentSurface> &surface) {
+    sp<AMessage> msg = new AMessage(kWhatUsePersistentInputSurface, this);
+    msg->setObject("input-surface", surface);
+    msg->post();
 }
 
 void ACodec::signalEndOfInputStream() {
@@ -4522,6 +4533,7 @@ bool ACodec::BaseState::onMessageReceived(const sp<AMessage> &msg) {
         }
 
         case ACodec::kWhatCreateInputSurface:
+        case ACodec::kWhatUsePersistentInputSurface:
         case ACodec::kWhatSignalEndOfInputStream:
         {
             // This may result in an app illegal state exception.
@@ -5466,6 +5478,13 @@ bool ACodec::LoadedState::onMessageReceived(const sp<AMessage> &msg) {
             break;
         }
 
+        case ACodec::kWhatUsePersistentInputSurface:
+        {
+            onUsePersistentInputSurface(msg);
+            handled = true;
+            break;
+        }
+
         case ACodec::kWhatStart:
         {
             onStart();
@@ -5618,20 +5637,10 @@ bool ACodec::LoadedState::onConfigureComponent(
     return true;
 }
 
-void ACodec::LoadedState::onCreateInputSurface(
-        const sp<AMessage> & /* msg */) {
-    ALOGV("onCreateInputSurface");
+status_t ACodec::LoadedState::setupInputSurface() {
+    status_t err = OK;
 
-    sp<AMessage> notify = mCodec->mNotify->dup();
-    notify->setInt32("what", CodecBase::kWhatInputSurfaceCreated);
-
-    sp<IGraphicBufferProducer> bufferProducer;
-    status_t err;
-
-    err = mCodec->mOMX->createInputSurface(mCodec->mNode, kPortIndexInput,
-            &bufferProducer);
-
-    if (err == OK && mCodec->mRepeatFrameDelayUs > 0ll) {
+    if (mCodec->mRepeatFrameDelayUs > 0ll) {
         err = mCodec->mOMX->setInternalOption(
                 mCodec->mNode,
                 kPortIndexInput,
@@ -5644,10 +5653,11 @@ void ACodec::LoadedState::onCreateInputSurface(
                   "frames (err %d)",
                   mCodec->mComponentName.c_str(),
                   err);
+            return err;
         }
     }
 
-    if (err == OK && mCodec->mMaxPtsGapUs > 0ll) {
+    if (mCodec->mMaxPtsGapUs > 0ll) {
         err = mCodec->mOMX->setInternalOption(
                 mCodec->mNode,
                 kPortIndexInput,
@@ -5659,10 +5669,11 @@ void ACodec::LoadedState::onCreateInputSurface(
             ALOGE("[%s] Unable to configure max timestamp gap (err %d)",
                     mCodec->mComponentName.c_str(),
                     err);
+            return err;
         }
     }
 
-    if (err == OK && mCodec->mMaxFps > 0) {
+    if (mCodec->mMaxFps > 0) {
         err = mCodec->mOMX->setInternalOption(
                 mCodec->mNode,
                 kPortIndexInput,
@@ -5674,10 +5685,11 @@ void ACodec::LoadedState::onCreateInputSurface(
             ALOGE("[%s] Unable to configure max fps (err %d)",
                     mCodec->mComponentName.c_str(),
                     err);
+            return err;
         }
     }
 
-    if (err == OK && mCodec->mTimePerCaptureUs > 0ll
+    if (mCodec->mTimePerCaptureUs > 0ll
             && mCodec->mTimePerFrameUs > 0ll) {
         int64_t timeLapse[2];
         timeLapse[0] = mCodec->mTimePerFrameUs;
@@ -5693,10 +5705,11 @@ void ACodec::LoadedState::onCreateInputSurface(
             ALOGE("[%s] Unable to configure time lapse (err %d)",
                     mCodec->mComponentName.c_str(),
                     err);
+            return err;
         }
     }
 
-    if (err == OK && mCodec->mCreateInputBuffersSuspended) {
+    if (mCodec->mCreateInputBuffersSuspended) {
         bool suspend = true;
         err = mCodec->mOMX->setInternalOption(
                 mCodec->mNode,
@@ -5709,7 +5722,26 @@ void ACodec::LoadedState::onCreateInputSurface(
             ALOGE("[%s] Unable to configure option to suspend (err %d)",
                   mCodec->mComponentName.c_str(),
                   err);
+            return err;
         }
+    }
+
+    return OK;
+}
+
+void ACodec::LoadedState::onCreateInputSurface(
+        const sp<AMessage> & /* msg */) {
+    ALOGV("onCreateInputSurface");
+
+    sp<AMessage> notify = mCodec->mNotify->dup();
+    notify->setInt32("what", CodecBase::kWhatInputSurfaceCreated);
+
+    sp<IGraphicBufferProducer> bufferProducer;
+    status_t err = mCodec->mOMX->createInputSurface(
+            mCodec->mNode, kPortIndexInput, &bufferProducer);
+
+    if (err == OK) {
+        err = setupInputSurface();
     }
 
     if (err == OK) {
@@ -5720,6 +5752,35 @@ void ACodec::LoadedState::onCreateInputSurface(
         // the error through because it's in the "configured" state.  We
         // send a kWhatInputSurfaceCreated with an error value instead.
         ALOGE("[%s] onCreateInputSurface returning error %d",
+                mCodec->mComponentName.c_str(), err);
+        notify->setInt32("err", err);
+    }
+    notify->post();
+}
+
+void ACodec::LoadedState::onUsePersistentInputSurface(
+        const sp<AMessage> &msg) {
+    ALOGV("onUsePersistentInputSurface");
+
+    sp<AMessage> notify = mCodec->mNotify->dup();
+    notify->setInt32("what", CodecBase::kWhatInputSurfaceAccepted);
+
+    sp<RefBase> obj;
+    CHECK(msg->findObject("input-surface", &obj));
+    sp<PersistentSurface> surface = static_cast<PersistentSurface *>(obj.get());
+
+    status_t err = mCodec->mOMX->usePersistentInputSurface(
+            mCodec->mNode, kPortIndexInput, surface->getBufferConsumer());
+
+    if (err == OK) {
+        err = setupInputSurface();
+    }
+
+    if (err != OK) {
+        // Can't use mCodec->signalError() here -- MediaCodec won't forward
+        // the error through because it's in the "configured" state.  We
+        // send a kWhatInputSurfaceAccepted with an error value instead.
+        ALOGE("[%s] onUsePersistentInputSurface returning error %d",
                 mCodec->mComponentName.c_str(), err);
         notify->setInt32("err", err);
     }

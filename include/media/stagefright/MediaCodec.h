@@ -31,6 +31,7 @@ struct AString;
 struct CodecBase;
 struct ICrypto;
 struct IBatteryStats;
+struct PersistentSurface;
 struct SoftwareRenderer;
 struct Surface;
 
@@ -61,6 +62,8 @@ struct MediaCodec : public AHandler {
     static sp<MediaCodec> CreateByComponentName(
             const sp<ALooper> &looper, const char *name, status_t *err = NULL);
 
+    static sp<PersistentSurface> CreatePersistentInputSurface();
+
     status_t configure(
             const sp<AMessage> &format,
             const sp<Surface> &nativeWindow,
@@ -70,6 +73,8 @@ struct MediaCodec : public AHandler {
     status_t setCallback(const sp<AMessage> &callback);
 
     status_t createInputSurface(sp<IGraphicBufferProducer>* bufferProducer);
+
+    status_t usePersistentInputSurface(const sp<PersistentSurface> &surface);
 
     status_t start();
 
@@ -172,6 +177,7 @@ private:
         kWhatInit                           = 'init',
         kWhatConfigure                      = 'conf',
         kWhatCreateInputSurface             = 'cisf',
+        kWhatUsePersistentInputSurface      = 'pisf',
         kWhatStart                          = 'strt',
         kWhatStop                           = 'stop',
         kWhatRelease                        = 'rele',
