@@ -27,7 +27,7 @@ struct NuPlayer::Decoder : public DecoderBase {
     Decoder(const sp<AMessage> &notify,
             const sp<Source> &source,
             const sp<Renderer> &renderer = NULL,
-            const sp<NativeWindowWrapper> &nativeWindow = NULL,
+            const sp<Surface> &surface = NULL,
             const sp<CCDecoder> &ccDecoder = NULL);
 
     virtual void getStats(
@@ -53,7 +53,7 @@ private:
         kWhatRenderBuffer        = 'rndr',
     };
 
-    sp<NativeWindowWrapper> mNativeWindow;
+    sp<Surface> mSurface;
 
     sp<Source> mSource;
     sp<Renderer> mRenderer;

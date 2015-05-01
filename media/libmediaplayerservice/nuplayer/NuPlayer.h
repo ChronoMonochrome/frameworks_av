@@ -21,7 +21,6 @@
 #include <media/MediaPlayerInterface.h>
 #include <media/stagefright/ExtendedStats.h>
 #include <media/stagefright/foundation/AHandler.h>
-#include <media/stagefright/NativeWindowWrapper.h>
 
 #define PLAYER_STATS(func, ...) \
     do { \
@@ -112,7 +111,7 @@ private:
     enum {
         kWhatSetDataSource              = '=DaS',
         kWhatPrepare                    = 'prep',
-        kWhatSetVideoNativeWindow       = '=NaW',
+        kWhatSetVideoSurface            = '=VSu',
         kWhatSetAudioSink               = '=AuS',
         kWhatMoreDataQueued             = 'more',
         kWhatStart                      = 'strt',
@@ -138,7 +137,7 @@ private:
     uid_t mUID;
     sp<Source> mSource;
     uint32_t mSourceFlags;
-    sp<NativeWindowWrapper> mNativeWindow;
+    sp<Surface> mSurface;
     sp<MediaPlayerBase::AudioSink> mAudioSink;
     sp<DecoderBase> mVideoDecoder;
     bool mOffloadAudio;
@@ -252,7 +251,7 @@ private:
     void performDecoderFlush(FlushCommand audio, FlushCommand video);
     void performReset();
     void performScanSources();
-    void performSetSurface(const sp<NativeWindowWrapper> &wrapper);
+    void performSetSurface(const sp<Surface> &wrapper);
     void performResumeDecoders(bool needNotify);
 
     void onSourceNotify(const sp<AMessage> &msg);

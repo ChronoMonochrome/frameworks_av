@@ -61,6 +61,8 @@
 #include <inttypes.h>
 #include <utils/Trace.h>
 
+#include <gui/Surface.h>
+
 #include <media/stagefright/ACodec.h>
 
 #include <binder/MemoryDealer.h>
@@ -77,7 +79,6 @@
 #include <media/stagefright/BufferProducerWrapper.h>
 #include <media/stagefright/MediaCodecList.h>
 #include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/NativeWindowWrapper.h>
 #include <media/stagefright/OMXClient.h>
 #include <media/stagefright/OMXCodec.h>
 #include <media/stagefright/ExtendedCodec.h>
@@ -1529,9 +1530,8 @@ status_t ACodec::configureCodec(
         }
     }
     if (haveNativeWindow) {
-        sp<NativeWindowWrapper> windowWrapper(
-                static_cast<NativeWindowWrapper *>(obj.get()));
-        sp<ANativeWindow> nativeWindow = windowWrapper->getNativeWindow();
+        sp<ANativeWindow> nativeWindow =
+            static_cast<ANativeWindow *>(static_cast<Surface *>(obj.get()));
 
         // START of temporary support for automatic FRC - THIS WILL BE REMOVED
         int32_t autoFrc;
@@ -1740,10 +1740,8 @@ status_t ACodec::configureCodec(
         }
 
         if (haveNativeWindow) {
-            sp<NativeWindowWrapper> nativeWindow(
-                    static_cast<NativeWindowWrapper *>(obj.get()));
-            CHECK(nativeWindow != NULL);
-            mNativeWindow = nativeWindow->getNativeWindow();
+            mNativeWindow = static_cast<Surface *>(obj.get());
+            CHECK(mNativeWindow != NULL);
 
             native_window_set_scaling_mode(
                     mNativeWindow.get(), NATIVE_WINDOW_SCALING_MODE_SCALE_TO_WINDOW);

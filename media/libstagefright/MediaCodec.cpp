@@ -41,7 +41,6 @@
 #include <media/stagefright/MediaFilter.h>
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/ExtendedCodec.h>
-#include <media/stagefright/NativeWindowWrapper.h>
 #include <media/stagefright/OMXClient.h>
 #include <media/stagefright/OMXCodec.h>
 #include <media/stagefright/PersistentSurface.h>
@@ -325,9 +324,7 @@ status_t MediaCodec::configure(
     msg->setInt32("flags", flags);
 
     if (nativeWindow != NULL) {
-        msg->setObject(
-                "native-window",
-                new NativeWindowWrapper(nativeWindow));
+        msg->setObject("native-window", nativeWindow);
     }
 
     if (crypto != NULL) {
@@ -1367,11 +1364,7 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
 
             if (obj != NULL) {
                 format->setObject("native-window", obj);
-
-                status_t err = setNativeWindow(
-                    static_cast<NativeWindowWrapper *>(obj.get())
-                        ->getSurfaceTextureClient());
-
+                status_t err = setNativeWindow(static_cast<Surface *>(obj.get()));
                 if (err != OK) {
                     PostReplyWithError(replyID, err);
                     break;
