@@ -298,6 +298,13 @@ status_t StagefrightRecorder::setPreviewSurface(const sp<IGraphicBufferProducer>
     return OK;
 }
 
+status_t StagefrightRecorder::usePersistentSurface(
+        const sp<IGraphicBufferConsumer>& surface) {
+    mPersistentSurface = surface;
+
+    return OK;
+}
+
 status_t StagefrightRecorder::setOutputFile(int fd, int64_t offset, int64_t length) {
     ALOGV("setOutputFile: %d, %lld, %lld", fd, offset, length);
     // These don't make any sense, do they?
@@ -1782,7 +1789,6 @@ status_t StagefrightRecorder::setupVideoEncoder(
             client.interface(), enc_meta,
             true /* createEncoder */, cameraSource,
             NULL, encoder_flags);
-    if (encoder == NULL) {
         ALOGE("Failed to create video encoder");
         // When the encoder fails to be created, we need
         // release the camera source due to the camera's lock

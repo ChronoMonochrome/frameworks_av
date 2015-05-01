@@ -34,6 +34,7 @@ namespace android {
 class ALooper;
 class AMessage;
 class IGraphicBufferProducer;
+class IGraphicBufferConsumer;
 class MediaCodec;
 class MetaData;
 
@@ -48,6 +49,7 @@ struct MediaCodecSource : public MediaSource,
             const sp<ALooper> &looper,
             const sp<AMessage> &format,
             const sp<MediaSource> &source,
+            const sp<IGraphicBufferConsumer> &consumer = NULL,
             uint32_t flags = 0);
 
     bool isVideo() const { return mIsVideo; }
@@ -86,6 +88,7 @@ private:
             const sp<ALooper> &looper,
             const sp<AMessage> &outputFormat,
             const sp<MediaSource> &source,
+            const sp<IGraphicBufferConsumer> &consumer,
             uint32_t flags = 0);
 
     status_t onStart(MetaData *params);
@@ -115,6 +118,7 @@ private:
     bool mDoMoreWorkPending;
     sp<AMessage> mEncoderActivityNotify;
     sp<IGraphicBufferProducer> mGraphicBufferProducer;
+    sp<IGraphicBufferConsumer> mGraphicBufferConsumer;
     List<MediaBuffer *> mInputBufferQueue;
     List<size_t> mAvailEncoderInputIndices;
     List<int64_t> mDecodingTimeQueue; // decoding time (us) for video
