@@ -32,6 +32,7 @@
 
 #include "OMXMaster.h"
 
+#include <OMX_AsString.h>
 #include <OMX_Component.h>
 
 namespace android {
@@ -238,11 +239,11 @@ status_t OMX::allocateNode(
             instance, &handle);
 
     if (err != OMX_ErrorNone) {
-        ALOGE("FAILED to allocate omx component '%s'", name);
+        ALOGE("FAILED to allocate omx component '%s' err=%s(%#x)", name, asString(err), err);
 
         instance->onGetHandleFailed();
 
-        return UNKNOWN_ERROR;
+        return StatusFromOMXError(err);
     }
 
     *node = makeNodeID(instance);
