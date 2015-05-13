@@ -298,7 +298,7 @@ status_t StagefrightRecorder::setPreviewSurface(const sp<IGraphicBufferProducer>
     return OK;
 }
 
-status_t StagefrightRecorder::usePersistentSurface(
+status_t StagefrightRecorder::setInputSurface(
         const sp<IGraphicBufferConsumer>& surface) {
     mPersistentSurface = surface;
 
@@ -1995,6 +1995,8 @@ status_t StagefrightRecorder::stop() {
         err = mWriter->stop();
         mWriter.clear();
     }
+
+    mPersistentSurface.clear();
 
     if (mOutputFd >= 0) {
         ::close(mOutputFd);

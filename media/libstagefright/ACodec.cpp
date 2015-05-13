@@ -321,7 +321,7 @@ private:
 
     bool onConfigureComponent(const sp<AMessage> &msg);
     void onCreateInputSurface(const sp<AMessage> &msg);
-    void onUsePersistentInputSurface(const sp<AMessage> &msg);
+    void onSetInputSurface(const sp<AMessage> &msg);
     void onStart();
     void onShutdown(bool keepComponentAllocated);
 
@@ -550,9 +550,9 @@ void ACodec::initiateCreateInputSurface() {
     (new AMessage(kWhatCreateInputSurface, id()))->post();
 }
 
-void ACodec::initiateUsePersistentInputSurface(
+void ACodec::initiateSetInputSurface(
         const sp<PersistentSurface> &surface) {
-    sp<AMessage> msg = new AMessage(kWhatUsePersistentInputSurface, this);
+    sp<AMessage> msg = new AMessage(kWhatSetInputSurface, this);
     msg->setObject("input-surface", surface);
     msg->post();
 }
@@ -4533,7 +4533,7 @@ bool ACodec::BaseState::onMessageReceived(const sp<AMessage> &msg) {
         }
 
         case ACodec::kWhatCreateInputSurface:
-        case ACodec::kWhatUsePersistentInputSurface:
+        case ACodec::kWhatSetInputSurface:
         case ACodec::kWhatSignalEndOfInputStream:
         {
             // This may result in an app illegal state exception.
@@ -5478,9 +5478,9 @@ bool ACodec::LoadedState::onMessageReceived(const sp<AMessage> &msg) {
             break;
         }
 
-        case ACodec::kWhatUsePersistentInputSurface:
+        case ACodec::kWhatSetInputSurface:
         {
-            onUsePersistentInputSurface(msg);
+            onSetInputSurface(msg);
             handled = true;
             break;
         }
@@ -5758,9 +5758,9 @@ void ACodec::LoadedState::onCreateInputSurface(
     notify->post();
 }
 
-void ACodec::LoadedState::onUsePersistentInputSurface(
+void ACodec::LoadedState::onSetInputSurface(
         const sp<AMessage> &msg) {
-    ALOGV("onUsePersistentInputSurface");
+    ALOGV("onSetInputSurface");
 
     sp<AMessage> notify = mCodec->mNotify->dup();
     notify->setInt32("what", CodecBase::kWhatInputSurfaceAccepted);
@@ -5769,7 +5769,7 @@ void ACodec::LoadedState::onUsePersistentInputSurface(
     CHECK(msg->findObject("input-surface", &obj));
     sp<PersistentSurface> surface = static_cast<PersistentSurface *>(obj.get());
 
-    status_t err = mCodec->mOMX->usePersistentInputSurface(
+    status_t err = mCodec->mOMX->setInputSurface(
             mCodec->mNode, kPortIndexInput, surface->getBufferConsumer());
 
     if (err == OK) {
@@ -5780,7 +5780,7 @@ void ACodec::LoadedState::onUsePersistentInputSurface(
         // Can't use mCodec->signalError() here -- MediaCodec won't forward
         // the error through because it's in the "configured" state.  We
         // send a kWhatInputSurfaceAccepted with an error value instead.
-        ALOGE("[%s] onUsePersistentInputSurface returning error %d",
+        ALOGE("[%s] onSetInputSurface returning error %d",
                 mCodec->mComponentName.c_str(), err);
         notify->setInt32("err", err);
     }

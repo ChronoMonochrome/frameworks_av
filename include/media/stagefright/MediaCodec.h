@@ -74,7 +74,7 @@ struct MediaCodec : public AHandler {
 
     status_t createInputSurface(sp<IGraphicBufferProducer>* bufferProducer);
 
-    status_t usePersistentInputSurface(const sp<PersistentSurface> &surface);
+    status_t setInputSurface(const sp<PersistentSurface> &surface);
 
     status_t start();
 
@@ -177,7 +177,7 @@ private:
         kWhatInit                           = 'init',
         kWhatConfigure                      = 'conf',
         kWhatCreateInputSurface             = 'cisf',
-        kWhatUsePersistentInputSurface      = 'pisf',
+        kWhatSetInputSurface                = 'sisf',
         kWhatStart                          = 'strt',
         kWhatStop                           = 'stop',
         kWhatRelease                        = 'rele',
