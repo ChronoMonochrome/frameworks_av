@@ -2168,7 +2168,7 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
                         &info.mData);
             } else {
                 err = mOMX->allocateBufferWithBackup(
-                        mNode, portIndex, mem, &buffer);
+                        mNode, portIndex, mem, &buffer, mem->size());
             }
         } else if (portIndex == kPortIndexOutput
                 && (mQuirks & kRequiresAllocateBufferOnOutputPorts)) {
@@ -2180,10 +2180,10 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
                         &info.mData);
             } else {
                 err = mOMX->allocateBufferWithBackup(
-                        mNode, portIndex, mem, &buffer);
+                        mNode, portIndex, mem, &buffer, mem->size());
             }
         } else {
-            err = mOMX->useBuffer(mNode, portIndex, mem, &buffer);
+            err = mOMX->useBuffer(mNode, portIndex, mem, &buffer, mem->size());
         }
 
         if (err != OK) {
