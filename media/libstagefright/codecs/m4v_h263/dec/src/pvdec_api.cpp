@@ -193,7 +193,7 @@ OSCL_EXPORT_REF Bool PVInitVideoDecoder(VideoDecControls *decCtrl, uint8 *volbuf
                     int32 buffer_size;
                     if ((buffer_size = BitstreamOpen(stream, idx)) < 0)
                     {
-                        mp4dec_log("InitVideoDecoder(): Can't allocate bitstream buffer.\n");
+                        //mp4dec_log("InitVideoDecoder(): Can't allocate bitstream buffer.\n");
                         status = PV_FALSE;
                         break;
                     }
@@ -1365,7 +1365,7 @@ Bool PVDecodeVopBody(VideoDecControls *decCtrl, int32 buffer_size[])
         }
         else /* we have a B-Vop */
         {
-            mp4dec_log("DecodeVideoFrame(): B-VOP not supported.\n");
+            //mp4dec_log("DecodeVideoFrame(): B-VOP not supported.\n");
         }
     }
 
@@ -1486,7 +1486,7 @@ uint VideoDecoderErrorDetected(VideoDecData *)
 #include <stdio.h>
 #include <stdarg.h>
 /* ======================================================================== */
-/*  Function : m4vdec_dprintf()                                             */
+/*  Function : m4vdec_////dprintf()                                             */
 /*  Date     : 08/15/2000                                                   */
 /*  Purpose  : This is a function that logs messages in the mpeg4 video     */
 /*             decoder.  We can call the standard PacketVideo PVMessage     */
@@ -1497,14 +1497,14 @@ uint VideoDecoderErrorDetected(VideoDecData *)
 /*              when compiling this file (only this file).                  */
 /*  Modified :                                                              */
 /* ======================================================================== */
-void m4vdec_dprintf(char *format, ...)
+//void m4vdec_////dprintf(char *format, ...)
 {
     FILE *log_fp;
     va_list args;
     va_start(args, format);
 
     /* open the log file */
-    log_fp = fopen("\\mp4dec_log.txt", "a+");
+    log_fp = fopen("\\//mp4dec_log.txt", "a+");
     if (log_fp == NULL) return;
     /* output the message */
     vfprintf(log_fp, format, args);

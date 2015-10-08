@@ -76,7 +76,7 @@ LOCAL_MODULE:= libmedia
 LOCAL_C_INCLUDES := \
     $(call include-path-for, graphics corecg) \
     $(TOP)/frameworks/native/include/media/openmax \
-    external/icu/icu4c/source/common \
+    external/icu4c/common \
     $(call include-path-for, audio-effects) \
     $(call include-path-for, audio-utils)
 

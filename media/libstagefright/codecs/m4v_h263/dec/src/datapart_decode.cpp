@@ -64,7 +64,7 @@ PV_STATUS DecodeFrameDataPartMode(VideoDecData *video)
             resync_marker_length = 16 + currVop->fcodeForward;
             break;
         default :
-            mp4dec_log("DecodeFrameDataPartMode(): Vop type not supported.\n");
+            //mp4dec_log("DecodeFrameDataPartMode(): Vop type not supported.\n");
             return PV_FAIL;
     }
 
@@ -91,7 +91,7 @@ PV_STATUS DecodeFrameDataPartMode(VideoDecData *video)
                 break;
 
             default :
-                mp4dec_log("DecodeFrameDataPartMode(): Vop type not supported.\n");
+                //mp4dec_log("DecodeFrameDataPartMode(): Vop type not supported.\n");
                 return PV_FAIL;
         }
 

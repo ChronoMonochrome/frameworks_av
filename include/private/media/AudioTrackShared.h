@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <sys/limits.h>
 
 #include <utils/threads.h>
 #include <utils/Log.h>
@@ -26,6 +27,9 @@
 #include <media/nbaio/roundup.h>
 #include <media/SingleStateQueue.h>
 #include <private/media/StaticAudioTrackState.h>
+#include "../../bionic/libc/private/bionic_futex.h"
+
+#define UINT32_MAX    (4294967295U)
 
 namespace android {
 

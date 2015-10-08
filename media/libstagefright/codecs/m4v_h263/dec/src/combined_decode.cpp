@@ -76,7 +76,7 @@ PV_STATUS DecodeFrameCombinedMode(VideoDecData *video)
             stuffing_length = 10;
             break;
         default :
-            mp4dec_log("DecodeFrameCombinedMode(): Vop type not supported.\n");
+            //mp4dec_log("DecodeFrameCombinedMode(): Vop type not supported.\n");
             return PV_FAIL;
     }
 #ifdef PV_ANNEX_IJKT_SUPPORT

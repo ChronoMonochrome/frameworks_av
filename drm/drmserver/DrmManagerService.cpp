@@ -115,9 +115,6 @@ void DrmManagerService::instantiate() {
         abort();
     }
 
-    union selinux_callback cb;
-    cb.func_log = selinux_log_callback;
-    selinux_set_callback(SELINUX_CB_LOG, cb);
 }
 
 DrmManagerService::DrmManagerService() :

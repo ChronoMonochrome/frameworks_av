@@ -65,10 +65,10 @@ extern "C"
     uint VideoDecoderErrorDetected(VideoDecData *video);
 
 #ifdef ENABLE_LOG
-    void m4vdec_dprintf(char *format, ...);
-#define mp4dec_log(message) m4vdec_dprintf(message)
+    //void m4vdec_////dprintf(char *format, ...);
+//#define mp4dec_log(message) m4vdec_////dprintf(message)
 #else
-#define mp4dec_log(message)
+//#define mp4dec_log(message)
 #endif
 
     /*--------------------------------------------------------------------------*/
