@@ -53,7 +53,8 @@ LOCAL_SHARED_LIBRARIES:= \
 
 LOCAL_C_INCLUDES += \
     system/media/camera/include \
-    external/jpeg
+    external/jpeg \
+    bionic/libc
 
 
 LOCAL_CFLAGS += -Wall -Wextra

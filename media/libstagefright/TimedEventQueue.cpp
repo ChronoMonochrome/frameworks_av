@@ -1,3 +1,4 @@
+#define INT64_MAX 9223372036854775807LL
 /*
  * Copyright (C) 2009 The Android Open Source Project
  *

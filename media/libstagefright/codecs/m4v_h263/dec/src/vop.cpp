@@ -425,7 +425,7 @@ decode_vol:
         tmpvar = (uint32) BitstreamRead1Bits(stream);
         if (tmpvar != 0)
         {
-            mp4dec_log("DecodeVOLHeader(): Interlaced video is not supported.\n");
+            //mp4dec_log("DecodeVOLHeader(): Interlaced video is not supported.\n");
             return PV_FAIL;
         }
 
@@ -439,7 +439,7 @@ decode_vol:
             tmpvar = (uint32) BitstreamRead1Bits(stream);
             if (tmpvar)
             {
-                mp4dec_log("DecodeVOLHeader(): Sprite is not supported.\n");
+                //mp4dec_log("DecodeVOLHeader(): Sprite is not supported.\n");
                 return PV_FAIL;
             }
         }
@@ -450,7 +450,7 @@ decode_vol:
             tmpvar = (uint32) BitstreamReadBits16(stream, 2);
             if (tmpvar)
             {
-                mp4dec_log("DecodeVOLHeader(): Sprite is not supported.\n");
+                //mp4dec_log("DecodeVOLHeader(): Sprite is not supported.\n");
                 return PV_FAIL;
             }
         }
@@ -462,7 +462,7 @@ decode_vol:
             currVol->quantPrecision = BitstreamReadBits16(stream, 4);
             /* bits_per_pixel  */
             currVol->bitsPerPixel = BitstreamReadBits16(stream, 4);
-            mp4dec_log("DecodeVOLHeader(): not an 8-bit stream.\n");    // For the time being we do not support != 8 bits
+            //mp4dec_log("DecodeVOLHeader(): not an 8-bit stream.\n");    // For the time being we do not support != 8 bits
 
             return PV_FAIL;
         }
@@ -545,7 +545,7 @@ decode_vol:
                 tmpvar = BitstreamRead1Bits(stream);
                 if (tmpvar == 0)
                 {
-                    mp4dec_log("DecodeVOLHeader(): Shape Complexity estimation is not supported.\n");
+                    //mp4dec_log("DecodeVOLHeader(): Shape Complexity estimation is not supported.\n");
                     return PV_FAIL;
                 }
                 /* texture_complexity_estimation_set_1_disable */
@@ -576,7 +576,7 @@ decode_vol:
                     tmpvar = BitstreamRead1Bits(stream);
                     if (tmpvar == 0)
                     {
-                        mp4dec_log("DecodeVOLHeader(): sadct, quarter pel not supported.\n");
+                        //mp4dec_log("DecodeVOLHeader(): sadct, quarter pel not supported.\n");
                         return PV_FAIL;
                     }
                 }
@@ -1041,7 +1041,7 @@ PV_STATUS DecodeShortHeader(VideoDecData *video, Vop *currVop)
     /* Marker Bit */
     if (!BitstreamRead1Bits(stream))
     {
-        mp4dec_log("DecodeShortHeader(): Marker bit wrong.\n");
+        //mp4dec_log("DecodeShortHeader(): Marker bit wrong.\n");
         status = PV_FAIL;
         goto return_point;
     }
@@ -1049,7 +1049,7 @@ PV_STATUS DecodeShortHeader(VideoDecData *video, Vop *currVop)
     /* Zero Bit */
     if (BitstreamRead1Bits(stream))
     {
-        mp4dec_log("DecodeShortHeader(): Zero bit wrong.\n");
+        //mp4dec_log("DecodeShortHeader(): Zero bit wrong.\n");
         status = PV_FAIL;
         goto return_point;
     }
@@ -1057,21 +1057,21 @@ PV_STATUS DecodeShortHeader(VideoDecData *video, Vop *currVop)
     /*split_screen_indicator*/
     if (BitstreamRead1Bits(stream))
     {
-        mp4dec_log("DecodeShortHeader(): Split Screen not supported.\n");
+        //mp4dec_log("DecodeShortHeader(): Split Screen not supported.\n");
         VideoDecoderErrorDetected(video);
     }
 
     /*document_freeze_camera*/
     if (BitstreamRead1Bits(stream))
     {
-        mp4dec_log("DecodeShortHeader(): Freeze Camera not supported.\n");
+        //mp4dec_log("DecodeShortHeader(): Freeze Camera not supported.\n");
         VideoDecoderErrorDetected(video);
     }
 
     /*freeze_picture_release*/
     if (BitstreamRead1Bits(stream))
     {
-        mp4dec_log("DecodeShortHeader(): Freeze Release not supported.\n");
+        //mp4dec_log("DecodeShortHeader(): Freeze Release not supported.\n");
         VideoDecoderErrorDetected(video);
     }
     /* source format */
@@ -1147,7 +1147,7 @@ PV_STATUS DecodeShortHeader(VideoDecData *video, Vop *currVop)
         /* four_reserved_zero_bits */
         if (BitstreamReadBits16(stream, 4))
         {
-            mp4dec_log("DecodeShortHeader(): Reserved bits wrong.\n");
+            //mp4dec_log("DecodeShortHeader(): Reserved bits wrong.\n");
             status = PV_FAIL;
             goto return_point;
         }
@@ -1453,7 +1453,7 @@ PV_STATUS DecodeShortHeader(VideoDecData *video, Vop *currVop)
     {
         if (BitstreamRead1Bits(stream))
         {
-            mp4dec_log("DecodeShortHeader(): Zero bit wrong.\n");
+            //mp4dec_log("DecodeShortHeader(): Zero bit wrong.\n");
             status = PV_FAIL;
             goto return_point;
         }

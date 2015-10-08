@@ -1,3 +1,4 @@
+#define INT64_MAX 9223372036854775807LL
 /*
  * Copyright (C) 2009 The Android Open Source Project
  *
@@ -515,11 +516,11 @@ bool AudioPolicyService::isStreamActive(audio_stream_type_t stream, uint32_t inP
 
 bool AudioPolicyService::isStreamActiveRemotely(audio_stream_type_t stream, uint32_t inPastMs) const
 {
+	return 0;
     if (mpAudioPolicy == NULL) {
         return 0;
     }
     Mutex::Autolock _l(mLock);
-    return mpAudioPolicy->is_stream_active_remotely(mpAudioPolicy, stream, inPastMs);
 }
 
 bool AudioPolicyService::isSourceActive(audio_source_t source) const
