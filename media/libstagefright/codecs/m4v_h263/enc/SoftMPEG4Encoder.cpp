@@ -622,7 +622,7 @@ OMX_ERRORTYPE SoftMPEG4Encoder::internalSetParameter(
     }
 }
 
-void SoftMPEG4Encoder::onQueueFilled(OMX_U32 /* portIndex */) {
+void SoftMPEG4Encoder::onQueueFilled(OMX_U32 portIndex) {
     if (mSignalledError || mSawInputEOS) {
         return;
     }

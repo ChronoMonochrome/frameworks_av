@@ -251,7 +251,9 @@ status_t getNextNALUnit(
     return OK;
 }
 
-static sp<ABuffer> FindNAL(const uint8_t *data, size_t size, unsigned nalType) {
+static sp<ABuffer> FindNAL(
+        const uint8_t *data, size_t size, unsigned nalType,
+        size_t *stopOffset) {
     const uint8_t *nalStart;
     size_t nalSize;
     while (getNextNALUnit(&data, &size, &nalStart, &nalSize, true) == OK) {
@@ -291,7 +293,7 @@ sp<MetaData> MakeAVCCodecSpecificData(const sp<ABuffer> &accessUnit) {
     const uint8_t *data = accessUnit->data();
     size_t size = accessUnit->size();
 
-    sp<ABuffer> seqParamSet = FindNAL(data, size, 7);
+    sp<ABuffer> seqParamSet = FindNAL(data, size, 7, NULL);
     if (seqParamSet == NULL) {
         return NULL;
     }
@@ -301,7 +303,8 @@ sp<MetaData> MakeAVCCodecSpecificData(const sp<ABuffer> &accessUnit) {
     FindAVCDimensions(
             seqParamSet, &width, &height, &sarWidth, &sarHeight);
 
-    sp<ABuffer> picParamSet = FindNAL(data, size, 8);
+    size_t stopOffset;
+    sp<ABuffer> picParamSet = FindNAL(data, size, 8, &stopOffset);
     CHECK(picParamSet != NULL);
 
     size_t csdSize =

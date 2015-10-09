@@ -151,7 +151,7 @@ sp<MetaData> OggSource::getFormat() {
     return mExtractor->mImpl->getFormat();
 }
 
-status_t OggSource::start(MetaData * /* params */) {
+status_t OggSource::start(MetaData *params) {
     if (mStarted) {
         return INVALID_OPERATION;
     }
@@ -385,7 +385,7 @@ ssize_t MyVorbisExtractor::readPage(off64_t offset, Page *page) {
     ssize_t n;
     if ((n = mSource->readAt(offset, header, sizeof(header)))
             < (ssize_t)sizeof(header)) {
-        ALOGV("failed to read %zu bytes at offset 0x%016llx, got %d bytes",
+        ALOGV("failed to read %d bytes at offset 0x%016llx, got %ld bytes",
              sizeof(header), offset, n);
 
         if (n < 0) {
@@ -509,7 +509,7 @@ status_t MyVorbisExtractor::readNextPacket(MediaBuffer **out) {
                     packetSize);
 
             if (n < (ssize_t)packetSize) {
-                ALOGV("failed to read %zu bytes at 0x%016llx, got %d bytes",
+                ALOGV("failed to read %d bytes at 0x%016llx, got %ld bytes",
                      packetSize, dataOffset, n);
                 return ERROR_IO;
             }
@@ -550,7 +550,7 @@ status_t MyVorbisExtractor::readNextPacket(MediaBuffer **out) {
                 buffer = NULL;
             }
 
-            ALOGV("readPage returned %d", n);
+            ALOGV("readPage returned %ld", n);
 
             return n < 0 ? n : (status_t)ERROR_END_OF_STREAM;
         }
@@ -1002,7 +1002,7 @@ sp<MediaSource> OggExtractor::getTrack(size_t index) {
 }
 
 sp<MetaData> OggExtractor::getTrackMetaData(
-        size_t index, uint32_t /* flags */) {
+        size_t index, uint32_t flags) {
     if (index >= 1) {
         return NULL;
     }
