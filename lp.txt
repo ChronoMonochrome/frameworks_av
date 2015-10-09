@@ -1,0 +1,790 @@
+31d17d7 Revert "Handle recording failure more gracefully."
+4d9bbe8 Revert "Opus Matroska support in OpenMax"
+7c8ec2f Revert "Support AC3 in stagefright"
+129a4c1 stagefright: enable adaptive playback based on codec format key
+d72741a MediaCodecInfo: report supported color formats for non-native-window mode
+b69b016 Revert "mediaplayer: keep more buffers with the BufferQueue"
+d921f7e Revert "stagefright: allow for minUndequeuedBufs to be one less"
+1542c56 Revert "You can now opt-in to having the video decoder push blank buffers to the"
+6080def Revert "Camera1: Rename setPreviewTexture to ...Target for clarity"
+ad213d3 Revert "ACodec: fix flush/resume for decoder-output-meta-data mode"
+bb75cf8 Revert "Use changed MediaCodec.PARAMETER_KEY_VIDEO_BITRATE value"
+6df3448 Revert "MediaCodecInfo: report supported color formats for non-native-window mode"
+a8c8d5f Revert "MediaCodec: avoid codec EOS if flushing during port reconfiguration"
+aa45fa6 Revert "IOMX: Add prepareForAdaptivePlayback method"
+cfba5eb Revert "stagefright: enable adaptive playback based on codec format key"
+6c70dae Revert "configure bitrate and bitrate mode at encoder initialization for VP8/9"
+7d72518 Revert "Properly handle executing->idle in GraphicBufferSource"
+bb53ff9 Revert "media: 64 bit compile issues"
+61e7748 Revert "Support VP8 encoder key frame interval and number of"
+2d5518c Revert "ACodec: add frame render/drop systrace"
+192ee5d Revert "Remove legacy omx_message variables"
+63bbe60 Revert "MediaCodec: add renderAndReleaseOutputBuffer() method with timestamp"
+e107acd Revert "stagefright: added support, and SoftOMX decoder, for HEVC"
+7136bf9 Revert "Add HEVC decoder support to ACodec"
+941c14c Revert "Update OMX messages for 64 bit"
+448e828 Revert "Send 64 bit OMX codec handling to 32 bit MediaServer"
+4a62736 Revert "ACodec: remove PTS log spam"
+e450168 Revert "DO NOT MERGE: libstagefright: Add Opus support to ACodec::getPortFormat"
+8df303c Revert "Fix logging"
+cf9c2d4 Revert "Add HEVC encoder support to ACodec"
+83c0815 Revert "libstagefright: 64-bit compile warnings"
+f528085 Revert "av: native_window_set_buffers_geometry is deprecated."
+e886899 Revert "stagefright: update ACodec to use CodecBase enumerations directly"
+6290ac7 Revert "stagefright: add error log when create omx component failed"
+e080ea7 Revert "stagefright: use all input buffers in ACodec"
+c313e11 Revert "Hook up querying of VP8 temporal layering support."
+8a16d0a Revert "stagefright: add flexible YUV support"
+b35fdb8 Revert "stagefright: support flexible YUV format"
+05483f2 Revert "CameraService: Clean up availability listeners and HAL error codes"
+ff4f6d4 Revert "stagefright: enable decoder color format selection"
+c09b8b1 Revert "AAC encoder: add support for SBR mode selection"
+c84b695 Revert "Clarify and implement MediaCodec status codes"
+11f8c59 Revert "AAC decoder: add support for controlling presentation parameters"
+4c6c87b Revert "Added Tunneled video playback support to ACodec"
+ec2ed1f Revert "stagefright: allow scenarios when dequeueBufferFromNativeWindow fails"
+01f9f73 Revert "stagefright: allow specifying flac copmression level by 'complexity'"
+1c4367b Revert "stagefright: Fix thumbnail generation for some clips."
+a9deea6 Revert "ACodec: handle errors related to native window."
+71e7cdc Revert "Tunneled Video Playback:"
+e5dad70 Revert "stagefright: allow P-frames spacing of 0 and 1"
+8895358 Revert "MediaBuffer: ABuffer will release MediaBuffer when it's destructed."
+989d453 Revert "stagefright: use frame height if slice height is 0"
+261087b Revert "stagefright: do not allocate output buffers for tunneled playback"
+d8f3c0f Revert "add AAC audio decoder params for PCM limiter enable"
+eddd6bb Revert "mediarecorder: set level if setting default profile"
+b2e33c2 Revert "ACodec: only check crop rect on output port"
+c69a2f9 Revert "handle case OMX_AUDIO_CodingG711 in ACodec::getPortFormat"
+f376ad7 Revert "Revert "handle case OMX_AUDIO_CodingG711 in ACodec::getPortFormat""
+fb4865e Revert "Merge "ACodec: only check crop rect on output port" into lmp-dev"
+2c312bc Revert "stagefright: try to free codec instance if MediaCodec.release hangs"
+634b4cd Revert "release camera without holding CameraSource mutex"
+731609c release camera without holding CameraSource mutex
+4357d10 stagefright: try to free codec instance if MediaCodec.release hangs
+447898b Merge "ACodec: only check crop rect on output port" into lmp-dev
+512e979 stagefright: support passing GraphicBuffer in metadata buffer
+801a3ff Merge "handle case OMX_AUDIO_CodingG711 in ACodec::getPortFormat" into lmp-dev
+7225187 Merge "ACodec: process deferred messages when entering Loaded state." into lmp-dev
+10d023b handle case OMX_AUDIO_CodingG711 in ACodec::getPortFormat
+667623a Revert "handle case OMX_AUDIO_CodingG711 in ACodec::getPortFormat"
+f393c33 ACodec: process deferred messages when entering Loaded state.
+9c78328 handle case OMX_AUDIO_CodingG711 in ACodec::getPortFormat
+91a3cc0 ACodec: only check crop rect on output port
+584c14c Merge "stagefright: do not allocate output buffers for tunneled playback" into lmp-dev
+a147b4f mediarecorder: set level if setting default profile
+d0b9efe Merge "add AAC audio decoder params for PCM limiter enable" into lmp-dev
+2965f4e add AAC audio decoder params for PCM limiter enable
+ab76066 stagefright: do not allocate output buffers for tunneled playback
+b32ebac stagefright: use frame height if slice height is 0
+96e92b5 MediaBuffer: ABuffer will release MediaBuffer when it's destructed.
+5da491b stagefright: allow P-frames spacing of 0 and 1
+97827bd Tunneled Video Playback: Changed AudioHwSync token to int32_t to match Audio stack api.
+3fb9f68 ACodec: handle errors related to native window.
+1e2d7cd Merge "stagefright: Fix thumbnail generation for some clips." into lmp-dev
+a518dd9 stagefright: Fix thumbnail generation for some clips.
+cd39746 stagefright: allow specifying flac copmression level by 'complexity'
+e533503 stagefright: allow scenarios when dequeueBufferFromNativeWindow fails
+5a446aa Added Tunneled video playback support to ACodec
+ddabe55 Merge "AAC decoder: add support for controlling presentation parameters" into lmp-dev
+8045853 AAC decoder: add support for controlling presentation parameters
+317bb91 Merge "Clarify and implement MediaCodec status codes" into lmp-dev
+251d4be Clarify and implement MediaCodec status codes
+229d242 stagefright: support flexible YUV format
+60b1c0e stagefright: rework media codec list and infos
+b97cc6a AAC encoder: add support for SBR mode selection
+89869f6 stagefright: enable decoder color format selection
+e9e63bc handle rotation in NuPlayer
+f67e23e CameraService: Clean up availability listeners and HAL error codes
+03c556a stagefright: add flexible YUV support
+4730fa0 Hook up querying of VP8 temporal layering support.
+3cb5761 stagefright: use all input buffers in ACodec
+7a72702 stagefright: add error log when create omx component failed
+d8cbe4a stagefright: update ACodec to use CodecBase enumerations directly
+c09cec7 av: native_window_set_buffers_geometry is deprecated.
+4ce87ac Merge "Add HEVC encoder support to ACodec"
+a5750e0 libstagefright: 64-bit compile warnings
+c8efda9 Add HEVC encoder support to ACodec
+b10cdad cameraservice: Implement HAL1 and higher HAL API coexistence
+3a22796 Merge "Fix logging"
+7791cf1 Fix logging
+a7fa1d9 support for CEA-608 closed caption
+404fced refactor getTrackInfo()
+3b5a6b9 stagefright: added support, and SoftOMX decoder, for HEVC
+32f93b7 DO NOT MERGE: libstagefright: Add Opus support to ACodec::getPortFormat
+ddde219 Merge "Add HEVC decoder support to ACodec bug: 14571712"
+47aea1f ACodec: remove PTS log spam
+f87e30f Send 64 bit OMX codec handling to 32 bit MediaServer
+609b815 Update OMX messages for 64 bit
+2472b1c Add HEVC decoder support to ACodec bug: 14571712
+fc7fca7 MediaCodec: add renderAndReleaseOutputBuffer() method with timestamp
+784e24e Remove legacy omx_message variables
+8801418 am ee46bd37: am 2b0b701f: am 0c388650: Merge "ACodec: add frame render/drop systrace"
+ee46bd3 am 2b0b701f: am 0c388650: Merge "ACodec: add frame render/drop systrace"
+2b0b701 am 0c388650: Merge "ACodec: add frame render/drop systrace"
+6fbc1af ACodec: add frame render/drop systrace
+1a7be1e Merge commit '91820d46b5f3065c2fded3cdf65d305715b33bb1' into HEAD
+67ee990 Merge "Support VP8 encoder key frame interval and number of temporal layers configuration."
+4154795 Support VP8 encoder key frame interval and number of temporal layers configuration.
+1b24cf3 am e80631aa: am 839d11d1: Merge changes I0a744dc7,Id993a70d
+e80631a am 839d11d1: Merge changes I0a744dc7,Id993a70d
+db43b34 media: 64 bit compile issues
+dd01ce9 am 52a861d2: Merge "warnings be gone."
+d411b4c warnings be gone.
+54b0bc7 ACodec: do not signal kWhatShutdownCompleted on codec error
+5e184b0 ACodec: ignore OMX messages to already freed component
+4f1ef2c am 1000d426: am f780d28d: Merge "DO NOT MERGE: Revert "mediaplayer: keep more buffers with the BufferQueue"" into klp-dev
+ff382d0 am 8bf96c01: am 3d4e4fcb: Merge "DO NOT MERGE: Revert "stagefright: allow for minUndequeuedBufs to be one less"" into klp-dev
+1000d42 am f780d28d: Merge "DO NOT MERGE: Revert "mediaplayer: keep more buffers with the BufferQueue"" into klp-dev
+8bf96c0 am 3d4e4fcb: Merge "DO NOT MERGE: Revert "stagefright: allow for minUndequeuedBufs to be one less"" into klp-dev
+114c1b6 DO NOT MERGE: Revert "mediaplayer: keep more buffers with the BufferQueue"
+f5ee327 DO NOT MERGE: Revert "stagefright: allow for minUndequeuedBufs to be one less"
+2ceebb3 am bd1f8f0a: am fb28c384: am 1faa4170: stagefright: allow for minUndequeuedBufs to be one less
+bd1f8f0 am fb28c384: am 1faa4170: stagefright: allow for minUndequeuedBufs to be one less
+fb28c38 am 1faa4170: stagefright: allow for minUndequeuedBufs to be one less
+f4d9d45 am 1faa4170: stagefright: allow for minUndequeuedBufs to be one less
+1faa417 stagefright: allow for minUndequeuedBufs to be one less
+129c765 am 9cde5172: am b635b0e6: mediaplayer: keep more buffers with the BufferQueue
+9cde517 am b635b0e6: mediaplayer: keep more buffers with the BufferQueue
+4647dba am b635b0e6: mediaplayer: keep more buffers with the BufferQueue
+b635b0e mediaplayer: keep more buffers with the BufferQueue
+b1120b6 Merge changes I1455bfc6,I90c7e34b,I06e001df
+29c291f am a671f943: am c69bc40a: Merge "Cap pts gap between adjacent frames to specified value" into klp-dev
+7c47caf am c69bc40a: Merge "Cap pts gap between adjacent frames to specified value" into klp-dev
+a671f94 am c69bc40a: Merge "Cap pts gap between adjacent frames to specified value" into klp-dev
+e257e5e mediaplayer: keep more buffers with the BufferQueue
+8bd4d16 Cap pts gap between adjacent frames to specified value
+e038124 MediaCodec: add getInputFormat() method
+8e4b384 am 2613347d: Merge "Added support to query ACodec whether adaptive playback is enabled." into klp-dev
+385691a am 2338782d: Merge "Fixed misplaced bracket for switch-case block." into klp-dev
+7e65e10 am 72d09f62: am 2613347d: Merge "Added support to query ACodec whether adaptive playback is enabled." into klp-dev
+414c237 am 4dbd814d: am 2338782d: Merge "Fixed misplaced bracket for switch-case block." into klp-dev
+72d09f6 am 2613347d: Merge "Added support to query ACodec whether adaptive playback is enabled." into klp-dev
+4dbd814 am 2338782d: Merge "Fixed misplaced bracket for switch-case block." into klp-dev
+05a4b64 am 5db1e3a6: Merge "correct one logic error in decide whether should render or not"
+933a4d3 Added support to query ACodec whether adaptive playback is enabled.
+b2be2f2 Fixed misplaced bracket for switch-case block.
+b4350af Merge "Opus Matroska support in OpenMax"
+bf927f8 Opus Matroska support in OpenMax
+dc6ac20 Merge "support for time lapse/slow motion when using SURFACE source"
+26cee96 Handle recording failure more gracefully.
+2c9c8cb support for time lapse/slow motion when using SURFACE source
+ccb067b fix the build by fixing more warnings.
+84333e0 warnings be gone.
+72cecca Change StagefrightRecorder to use MediaCodec
+10d68aa am dd432ce0: [DO NOT MERGE] Support TS + AC3 for ATSC standard
+aae8d29 am 90903383: [DO NOT MERGE] Support AC3 in stagefright
+3627c74 Merge "Added support to query ACodec whether adaptive playback is enabled."
+3fe8a8f Merge "Fixed misplaced bracket for switch-case block."
+df900f8 am 324d9157: am 5db1e3a6: Merge "correct one logic error in decide whether should render or not"
+324d915 am 5db1e3a6: Merge "correct one logic error in decide whether should render or not"
+79ee239 correct one logic error in decide whether should render or not
+dd432ce [DO NOT MERGE] Support TS + AC3 for ATSC standard
+9090338 [DO NOT MERGE] Support AC3 in stagefright
+94ee4b7 Cap pts gap between adjacent frames to specified value
+7583293 Added support to query ACodec whether adaptive playback is enabled.
+625b93f Fixed misplaced bracket for switch-case block.
+4d69457 Support for MPEG2 video
+4bdda35 Only send a format change if the buffer has data
+704287d am 72afcd5d: am 5ea5b020: Merge "WA: Queue extra buffers on output port during reconfig if input EOS-ed" into klp-dev
+4dd0a8a WA: Queue extra buffers on output port during reconfig if input EOS-ed
+7000c85 am 728549e3: am 56477eb7: am 27ae268a: am 00cb884f: Merge "StageFright: Removes hacks for Nvidia MPEG2 decoder" into jb-mr2-dev
+56477eb am 27ae268a: am 00cb884f: Merge "StageFright: Removes hacks for Nvidia MPEG2 decoder" into jb-mr2-dev
+d725d23 am db50cb5f: am caee8747: Merge "configure bitrate and bitrate mode at encoder initialization for VP8/9" into klp-dev
+caee874 Merge "configure bitrate and bitrate mode at encoder initialization for VP8/9" into klp-dev
+2e70b42 am 86f79f23: am 51ac2d64: Merge "Properly handle executing->idle in GraphicBufferSource" into klp-dev
+ad3b7e8 Properly handle executing->idle in GraphicBufferSource
+5307612 Merge "Support TS + AC3 for ATSC standard"
+a19c9d4 Merge "Support AC3 in stagefright"
+d3c079a Support TS + AC3 for ATSC standard
+97358c3 Support AC3 in stagefright
+89b31a3 configure bitrate and bitrate mode at encoder initialization for VP8/9
+21264c4 am 2922d230: am 065789f2: Merge "Restore NuPlayer error and EOS handling" into klp-dev
+774eb18 Support for MPEG2 video
+7fa0152 Restore NuPlayer error and EOS handling
+7bab024 Merge "MediaCodec: avoid codec EOS if flushing during port reconfiguration" into klp-dev
+fce0d18 stagefright: enable adaptive playback based on codec format key
+56ce726 IOMX: Add prepareForAdaptivePlayback method
+a73c954 MediaCodec: avoid codec EOS if flushing during port reconfiguration
+c16c203 MediaCodecInfo: report supported color formats for non-native-window mode
+530fdbd Use changed MediaCodec.PARAMETER_KEY_VIDEO_BITRATE value
+c38fcfb ACodec: fix flush/resume for decoder-output-meta-data mode
+4b820b0 Camera1: Rename setPreviewTexture to ...Target for clarity
+75c16dd Merge "You can now opt-in to having the video decoder push blank buffers to the" into klp-dev
+0167414 You can now opt-in to having the video decoder push blank buffers to the
+7f76a81 Merge "Check adaptive playback support via CodecCapabilities" into klp-dev
+2ee1400 Check adaptive playback support via CodecCapabilities
+cd06d35 Merge "Optionally repeat the previously submitted frame to the encoder" into klp-dev
+a61285d Optionally repeat the previously submitted frame to the encoder
+b8689b3 Support for "request-sync" parameter in ACodec
+34242ac StageFright: Removes hacks for Nvidia MPEG2 decoder
+d071586 IOMX: add updateGraphicBufferInMeta method for metadata mode
+7b82efe Camera: Rename new API to camera2, rearrange camera service
+92cb8f9 Update error message
+760874c Merge "stagefright: set scaling mode for blank frames in ACodec"
+87eb285 stagefright: set scaling mode for blank frames in ACodec
+e40cda7 Support "suspension" of a video encoder in "surface-input" mode.
+3b6d6b1 Merge "Adds VP9 decoding support for stagefright."
+94705af Adds VP9 decoding support for stagefright.
+054e734 stagefright: support for video decoder metadata mode
+63e9f73 am f8af99b7: am 0662f7b6: Merge "stagefright: synchronously change nativewindow crop" into jb-mr2-dev
+577db6d stagefright: synchronously change nativewindow crop
+e532d37 stagefright: Fix port-reconfiguration & output-buffer-filled race condition
+14f7672 New HLS implementation supporting independent stream sources, audio-only streams
+6077b51 am 9545b670: am f21daf47: Merge "Avoid a deadlock during EmptyBufferDone" into jb-mr2-dev
+1b4ca5c Avoid a deadlock during EmptyBufferDone
+308bcaa wifi-display: add support for metadata mode on encoder output
+d7107bf am b12caf7b: am 519f7624: Merge "Don\'t render buffers that have size 0" into jb-mr2-dev
+6aade60 Don't render buffers that have size 0
+b6ac8e2 Don't render buffers that have size 0
+1f9374b am 9db1b382: am deff6910: Merge "Support MediaCodec::getOutputFormat for encoders" into jb-mr2-dev
+e96ee69 Support MediaCodec::getOutputFormat for encoders
+cd4ac42 Support MediaCodec::getOutputFormat for encoders
+2ded8b5 stagefright: Fix port-reconfiguration & output-buffer-filled race condition
+f0fba38 Merge "A flush of a video decoder connected to a native window must reclaim" into jb-mr2-dev
+d0229c9 Merge "A flush of a video decoder connected to a native window must reclaim" into jb-mr2-dev
+7e70133 A flush of a video decoder connected to a native window must reclaim
+0ae2001 A flush of a video decoder connected to a native window must reclaim
+5ffabf0 OMXNodeInstance: actually fix OMX_GetExtIndex logging
+d875429 OMXNodeInstance: actually fix OMX_GetExtIndex logging
+42392e4 Apparently the mp3 decoder glitches if it was configured with the wrong
+2242fbd Apparently the mp3 decoder glitches if it was configured with the wrong
+4a4256e Merge "OMXNodeInstance: fix OMX_GetExtensionIndex logging" into jb-mr2-dev
+6efa0c0 Merge "OMXNodeInstance: fix OMX_GetExtensionIndex logging" into jb-mr2-dev
+089edf2 Merge "Fix MediaCodec.flush()" into jb-mr2-dev
+91b4e0d Merge "Fix MediaCodec.flush()" into jb-mr2-dev
+f3bd197 Fix MediaCodec.flush()
+b3ac921 Fix MediaCodec.flush()
+5157b1e Merge "ACodec now signals an error if the mediaserver died while it is in" into jb-mr2-dev
+99076b9 Merge "ACodec now signals an error if the mediaserver died while it is in" into jb-mr2-dev
+ac0230d ACodec now signals an error if the mediaserver died while it is in
+6610a7d ACodec now signals an error if the mediaserver died while it is in
+76ab6df The framework really doesn't need to know the specifics of the codec
+3c09d02 The framework really doesn't need to know the specifics of the codec
+63594e8 OMXNodeInstance: fix OMX_GetExtensionIndex logging
+ce18d7d OMXNodeInstance: fix OMX_GetExtensionIndex logging
+6463e76 Make sure resume() and flush() are handled appropriately even if the codec
+488bf22 Make sure resume() and flush() are handled appropriately even if the codec
+d477b8d Make sure resume() and flush() are handled appropriately even if the codec
+5e691cd Make sure resume() and flush() are handled appropriately even if the codec
+a32fd0e Merge "remove uses of Surface in favor or IGraphicBufferProducer" into jb-mr2-dev
+8fb6f96 Merge "remove uses of Surface in favor or IGraphicBufferProducer" into jb-mr2-dev
+99617ad remove uses of Surface in favor or IGraphicBufferProducer
+33da402 remove uses of Surface in favor or IGraphicBufferProducer
+b9f4140 GraphicBufferSource fixes
+0c37f9d GraphicBufferSource fixes
+6507d14 Correct MediaCodec + Surface behavior
+ba6218e Correct MediaCodec + Surface behavior
+7cd5853 Implement Surface input to MediaCodec.
+f779bb5 Implement Surface input to MediaCodec.
+ceb388d CameraService and Stagefright: Support AppOps
+48af7e8 CameraService and Stagefright: Support AppOps
+a2eb22c Allow for dynamic reconfiguration of the video bitrate used
+c71601c Allow for dynamic reconfiguration of the video bitrate used
+0f6675d ACodec Fix.
+14e4016 ACodec Fix.
+21ad778 Report buffer size even when using hardware buffers
+616d9ea Report buffer size even when using hardware buffers
+516dacf Respect sample aspect ratio in NuPlayer.
+e9810fa Respect sample aspect ratio in NuPlayer.
+239a901 am 296cb9dd: am 0dbe5a93: Added optional intra macroblock refresh support for encoding
+2e57f4c am 296cb9dd: am 0dbe5a93: Added optional intra macroblock refresh support for encoding
+f6f3828 Clear the sticky EOS flags when transitioning to LOADED state
+16572be Clear the sticky EOS flags when transitioning to LOADED state
+0dbe5a9 Added optional intra macroblock refresh support for encoding
+e97adde Added optional intra macroblock refresh support for encoding
+ba933df Add GSM 6.10 decoder
+2ed5cf0 Add GSM 6.10 decoder
+33cf42f am dbb74f4e: am f0937247: Merge "Properly signal an error if codec configuration goes wrong." into jb-mr1.1-dev
+f550f56 am dbb74f4e: am f0937247: Merge "Properly signal an error if codec configuration goes wrong." into jb-mr1.1-dev
+4471e47 Properly signal an error if codec configuration goes wrong.
+b81ed71 Properly signal an error if codec configuration goes wrong.
+ad4e408 Turn off executable bit on ordinary files
+480421b Turn off executable bit on ordinary files
+9607696 Make video encoders' bitrate mode (constant, variable, ...) configurable
+7b42622 Make video encoders' bitrate mode (constant, variable, ...) configurable
+ccd0843 Added some extra failure logging messages
+5696614 Added some extra failure logging messages
+3a0ef0d Tell the encoder to emit SPS/PPS before IDR frames in wifi display code.
+13315ce Tell the encoder to emit SPS/PPS before IDR frames in wifi display code.
+96fc6cc Various improvements to a cleaner shutdown of the wifi display connection.
+a7f7e0a Various improvements to a cleaner shutdown of the wifi display connection.
+08654f9 Make a small correction in terms of GOP structure in the recorded video
+bcb54a4 Make a small correction in terms of GOP structure in the recorded video
+2637cb1 Merge "Allow OMXCodec to specify an output color format for OMX decoder component" into jb-mr1-dev
+afcb6ae Merge "Allow OMXCodec to specify an output color format for OMX decoder component" into jb-mr1-dev
+496238c Support IDR requests in wifi display, MediaCodec and ACodec.
+03e2ffa Support IDR requests in wifi display, MediaCodec and ACodec.
+8fa80e3 Allow OMXCodec to specify an output color format for OMX decoder component
+2020801 Allow OMXCodec to specify an output color format for OMX decoder component
+06096f9 To make mimetype for WAV file consistent over SF.
+4a315ab To make mimetype for WAV file consistent over SF.
+d7bee3a Initial checkin of support for acting as a wifi display source
+35213f1 Initial checkin of support for acting as a wifi display source
+aa8879d Fixed a native crash due to unexpected state at destroy time when encoder component's source fails to start
+e671207 Make sure codec names and corresponding quirks are returned together.
+a6ee7bc Remove obsolete hack for TI specific code
+983cf23 Dynamically configure the number of video buffers used by camera source, if supported
+0dff606 Allocate buffers before calling start on its source in OMXCodec::start() for encoder case
+9fbe942 Merge remote-tracking branch 'goog/jb-dev-mako' into jb-mr1-dev
+bf5bea9 Codecs: Add MetaDataMode support to software video encoders.
+f89a87a Process EBD and FBD messages in ERROR state
+1e5b2b3 Update ANativeWindow client code for sync
+18faac2 Add vendor specific output color format
+1d5ac80 stagefright: set scaling mode for blank frames
+01e5b56 Revert "Added some informational log messages to track down ANR related issues"
+c558fa8 Added some informational log messages to track down ANR related issues
+91b0d43 Merge "Unwedge ACodec if allocating output buffers fails while reconfiguring." into jb-dev
+755b986 Unwedge ACodec if allocating output buffers fails while reconfiguring.
+40fe18f Force shutdown of the omx decoder even if it's in a wedged state...
+bc09841 Tell surface flinger that we want to protect output buffers from being
+a92896f Merge "Fix a mediaserver crash caused by dereferencing a NULL pointer." into jb-dev
+21a0dca Fix a mediaserver crash caused by dereferencing a NULL pointer.
+91bfadb If we encounter an error during buffer allocation change state back
+5179ff3 Log which OMX component is not returning all buffers to us on executing->idle.
+1ec498e Explicitly set the video scaling mode to "stretch".
+44f84de ACodec mustn't override the video scaling mod.
+eb61431 Increase AAC software decoder's buffer count. Refactor how clients
+2f74ef3 OMX IL wrapper for FLAC encoder
+7c25df8 Get rid of vendor specific video encoder component names from ACodec and OMXCodec
+9806555 Respect channel mask in ACodec and NuPlayer.
+4f6eed0 Impl for supporting two video scaling modes
+a3cbc03 Removed software video encoders that are not OMX-based.
+8b71241 Fix mono gapless playback for decoders that output stereo
+aeb8fd4 Add Fraunhofer AAC encoder with AAC-ELD support.
+c1d8115 Make sure OMXCodec and ACodec both accept more than 2 channels of audio
+08ad5ef Remove new camera connect API.
+69829f3 Add a few more APIs to MediaCodecList.
+ecdd39c Implementation of a raw audio "decoder".
+cb5b766 Add ABuffer support to SkipCutBuffer
+ed3e3e0 Provisional support for secure decryption of media streams.
+bc8b5fa Fix the file mimetype reported by the mpeg4 extractor.
+a98478b Support gapless playback for mp3 and m4a
+fa6494d Merge "Do not set camera preview display if the surface is null."
+8e0792b Do not set camera preview display if the surface is null.
+c5255ac ACodec is a little more aggressive in its error checking now.
+2fd2440 Add a new camera open API that allows taking the ownership.
+f9d660a Defines MediaPlayer APIs to support multiple audio/video/timedtext tracks.
+6c6b4d0 Switched to use the header files in /frameworks/native and deleted the duplicate header files in /frameworks/base
+25a9ce1 Remove hacks that worked around issues in OMX components several releases back.
+afc16d6 Instead of hardcoding OMX component names in our code, support
+c95c2dd Separate the notion of "stop" from that of "release", i.e.
+df712ea fix libgui header location
+04394b1 Fix memory leakage due to unreleased MuxOMX objects after disconnection
+2d8bedd Add new APIs AMessage::(set|find)Buffer to make it safer to pass
+5778822 Implementation of a java media codec interface and associated tools.
+f1d5aa1 Move away from MediaDebug and use ADebug instead
+000e183 Enable B frame support in MPEG4Writer
+f9289a4 Merge "Don't call virtual functions in the destructor for audio and camera source classes"
+c71f6e2 Keep AACEncoder around for a bit longer to have more time fix issues related to video editor engine
+b44c9d2 Don't call virtual functions in the destructor for audio and camera source classes
+bf69545 Merge "Remove the restriction that the width must be a multiple of 4 or 2 for thumbnail generation"
+4e260ab Remove the restriction that the width must be a multiple of 4 or 2 for thumbnail generation
+83f70f4 The AMR WB software encoder is now an OMX component.
+2523530 The software AMR NB encoder is now an OMX component.
+d459b48 Slighly improve the API to discover if the OMX stack is running in the local
+e9c52da Instantiate software codecs locally whenever possible.
+2b1892d The software AAC encoder is now an OMX component.
+29357bc Rename (IF_)LOGE(_IF) to (IF_)ALOGE(_IF)  DO NOT MERGE
+5ff1dd5 Rename (IF_)LOGW(_IF) to (IF_)ALOGW(_IF)  DO NOT MERGE
+df64d15 Rename (IF_)LOGI(_IF) to (IF_)ALOGI(_IF)  DO NOT MERGE
+b8a8052 Rename (IF_)LOGD(_IF) to (IF_)ALOGD(_IF)  DO NOT MERGE
+7a3a2b2 Fix the broken build
+8afbf8e am 52607c53: am d12dc284: Merge "If an error occurs that prevents us from reallocating buffers during a format change" into ics-mr1
+d3d8222 If an error occurs that prevents us from reallocating buffers during a format change
+a7e4865 am 31626b30: am cb6fbc89: Merge "Report a runtime error instead of asserting on malformed avc configuration data." into ics-mr1
+e933cb5 Merge "Report a runtime error instead of asserting on malformed avc configuration data." into ics-mr1
+7c56bb3 am d0a25456: am 02740dc4: Merge "Fix log spamming during time lapse video recording" into ics-mr1
+e8e5f86 Fix log spamming during time lapse video recording
+71b61a9 Report a runtime error instead of asserting on malformed avc configuration data.
+783cfe3 am 5ded5fc5: am b7b4eaaa: Merge "Stagefright: push blank buffers when tearing down" into ics-mr0
+71adab5 am b7b4eaaa: Merge "Stagefright: push blank buffers when tearing down" into ics-mr0
+3856b09 Rename (IF_)LOGV(_IF) to (IF_)ALOGV(_IF)  DO NOT MERGE
+1765d6e Stagefright: push blank buffers when tearing down
+1d2acaf am 23d64420: Merge "Stagefright: idle OMX after ANW errors" into ics-mr0
+55f4bc5 Merge "Stagefright: idle OMX after ANW errors" into ics-mr0
+b1d666f Stagefright: idle OMX after ANW errors
+ca9f7f2 am 5264f600: Merge "Bail out after kMaxColorFormatSupported calls to OMX_GetParameter(). Avoid infinite loop in querying omx component about the supported color format." into ics-mr0
+5e69eb9 Bail out after kMaxColorFormatSupported calls to OMX_GetParameter(). Avoid infinite loop in querying omx component about the supported color format.
+f337772 Merge "Support for an MPEG2 Program Stream extractor."
+d20bf06 Set crop params to ANative Window during Initialization.
+2944eca Support for an MPEG2 Program Stream extractor.
+d3523f8 Gracefuly return on detecting wrong AAC format from corrupted files
+729de18 Support AMR, G.711 and vorbis audio in ACodec and friends.
+c32589a Cut down on AwesomePlayer and OMXCodec's verbosity.
+dc9bacd Propagate error signalled by the source all the way to the output EOS notification.
+078cfcf Various improvements to nuplayer playback
+9a5e044 Change an assert failure due to unsupported level by HW AVC decoder and report the error to applications
+cc54fba Turn an another assertion into a runtime error in ACodec's implementation
+8edb8e8 Don't check mFilledBuffers whether it is empty or not when the port reconfiguration is not meant for buffer reallocation
+9785747 Don't overwrite pending port setting change if there are more than one port setting change event.
+e8eb2f4 Fix a crash where the EOS was signalled but some output buffer were still pending.
+cb67cd1 Signal errors to the client instead of asserting in ACodec.
+934d865 Merge "When Camera is launched by media recording framework, stagefright controls the stop and release."
+9197441 When Camera is launched by media recording framework, stagefright controls the stop and release.
+539a735 Merge "Port setting change should happen before receiving any filled frame."
+0c5c7d2 Testing the GL/ CPU encoding w/ Gralloc buffers
+84f74fb Port setting change should happen before receiving any filled frame.
+2edd415 Merge "Remove useAndroidNativeBuffer(2) warning message."
+f764f8c Merge "Stagefright: fix a compiler warning"
+2e17686 Remove useAndroidNativeBuffer(2) warning message.
+1e7d2ba Merge "Don't time out prematurely for video encoding waiting for output buffers"
+c92fd24 Error handling in ACodec and Nuplayer.
+64b9441 Don't time out prematurely for video encoding waiting for output buffers
+a0dac9e Stagefright: fix a compiler warning
+c484718 When using "secure input buffer mode" we instantiate a different OMX component
+17741ba Revert "Notify the OMX component that it's going to be used in "secure" mode."
+beccb75 Merge "Do not release recording frames if camera is gone"
+a1f10e8 Notify the OMX component that it's going to be used in "secure" mode.
+334d097 Do not release recording frames if camera is gone
+c6354e9 Removing hack for framerate setting in Stagefright for encoders.
+57c8618 Pass camera frame metadata from camera service to Java.
+be1cc82 Merge "Do not wait forever for output buffers in OMXCodec.cpp and error out in case time out happens"
+726e452 Merge "QueryCodecs() signature change"
+d35924d QueryCodecs() signature change
+afa9771 Merge "Let the media recording framework release the Camera object when it is the owner"
+3bd3020 Let the media recording framework release the Camera object when it is the owner
+9bc7af1 use SurfaceTexture new scaling mode in SF
+db4d371 Merge "Add option to query hardware decoders only"
+df57a0d Add option to query hardware decoders only
+a57a9a4 Do not wait forever for output buffers in OMXCodec.cpp and error out in case time out happens
+dc3d678 Merge "Revert "Add some logging to track down where ANR happens during MediaPlayer._release().""
+a3f4d7f Revert "Add some logging to track down where ANR happens during MediaPlayer._release()."
+15825c7 Merge "Support profile and level query for SW video decoders"
+87e031c Remove old-style software decoders.
+1374edd Add support for TI H264 encoder
+fcf0efd Merge "Release camera if CameraSource::start() has not been called"
+457116d Support profile and level query for SW video decoders
+ae4c1ac Release camera if CameraSource::start() has not been called
+d552b88 Use advertised h264 encoding parameters by default if the profile is not baseline
+ea31782 Merge "Ignore all flush-complete notifications with port == OMX_ALL"
+0af9419 Ignore all flush-complete notifications with port == OMX_ALL
+0bb6b4c Support a "secure input buffer" mode for use by Widevine DRM in OMXCodec.
+e5bf640 Some (most) OMX decoders do not send a OMX_CmdComplete/Flush OMX_ALL notification
+0055e9e Fix a format string that triggered a compile-time warning in OMXCodec.cpp
+95068be Unlock the camera if media recorder fails to start recording.
+1065b3f Multiple changes to ACodec/codec tools:
+3571d50 Fix the new color converter to respect the destination crop rect.
+884946a Log video dimensions and crop rectangle.
+4ca2c7c Add framework support for camcorder zoom.
+c5a57ef Stagefright: add support for gralloc OMX_UseBuffer.
+cb62bc3 Integrating TI OMAP4 Video Decoder
+03168ed When a recording session is stopped, no outstanding input video frames exist for the output buffers returned from OMX component to SF.
+965e423 Add B frame support for MPEG4Writer
+d5fee4d Merge "Call storeMetaDataInVideoBuffers() before get/setParameters() on index OMX_IndexParamPortDefinition"
+abcd31d Merge "Add timestamp and data pointer checks in CameraSource"
+f6e1ff2 Call storeMetaDataInVideoBuffers() before get/setParameters() on index OMX_IndexParamPortDefinition
+d5623ca Merge "Move OMX_QCOM_COLOR_FormatYVU420SemiPlanar definition to OMX_IVCommon.h"
+20214f3 Merge "Initial-checkin for ON2 Software AVC/H264 decoder"
+98cfde0 Add timestamp and data pointer checks in CameraSource
+57ca262 Move OMX_QCOM_COLOR_FormatYVU420SemiPlanar definition to OMX_IVCommon.h
+2f0a840 Don't advertise the (old-style) software decoders unless they're actually present.
+0c1bc74 Initial-checkin for ON2 Software AVC/H264 decoder
+386d609 Support mpeg1,2 audio and mpeg1,2,4 video content extraction from .ts streams.
+9eff287 resolved conflicts for merge of d5762583 to master
+37b2d62 Add some logging to track down where ANR happens during MediaPlayer._release().
+b5746d9 Properly forward rotation information from input format to output format.
+bbba88c Squashed commit of the following:
+d7be5c5 Color conversion now supports YUV420p->RGB565 conversion even if the width is odd.
+89dc0df Merge "Initial CL for the timed text support: - Add support for MP4 timed text - Add API for app to turn on/off a text track - Add timed text metadata(language) in the MediaMetadataRetriever"
+7a1e3e8 Initial CL for the timed text support: - Add support for MP4 timed text - Add API for app to turn on/off a text track - Add timed text metadata(language) in the MediaMetadataRetriever
+8ce2364 frameworks/base: android_native_buffer_t -> ANativeWindowBuffer
+fa4e195 am 0fb4e73f: am 3a9f5143: am 66380f76: Stagefright: authenticate ANativeWindow.
+d4d43b2 Stagefright: authenticate ANativeWindow.
+5c43188 am 66ec9068: am 8de5df43: am ebf6a72b: Merge "Surfaceflinger expects rectangles to be specified right/bottom edge exclusive." into honeycomb-mr1
+f8374de Support for divx files, i.e. mpeg 4 video + mpeg audio layer III in .avi files
+89c120e Surfaceflinger expects rectangles to be specified right/bottom edge exclusive.
+51538b3 Merge "frameworks/base: some camera-interface cleanup"
+108dddf frameworks/base: some camera-interface cleanup
+0c03d5c Ignore OMX codec messages once we're in ERROR state.
+9cbb1a6 Handle display dimension scaling event due to SAR embedded in AVC videos
+27c1744 Fix missing AOSP copyright headers for a bunch of media framework files
+2eb6295 Bug 3012968 DRM output control
+9a5f9b7 Merge "Stagefright: Use the ANW min undequeued bufs query."
+59e7879 Merge "Stagefright: Query buffer usage from the component."
+e13e24b Merge "Add an OMX IL API for querying buffer usage flags."
+d2d38d5 Merge "Fix error recovery in Stagefright init."
+258d4e3 Stagefright: Use the ANW min undequeued bufs query.
+7400680 Fix error recovery in Stagefright init.
+3c14b97 Stagefright: Query buffer usage from the component.
+e2ce645 Add an OMX IL API for querying buffer usage flags.
+6fa83fb Merge "The color conversion from YUV420Planar to RGB only requires the image width to be a multiple of 2, not 4."
+1173118 Bug 3438258 Add SurfaceTexture as MediaPlayer sink
+a472613 A/V synchronization at the beginning of a recording session
+d48a604 Merge "Add AAC extractor"
+50c44c7 Add AAC extractor
+43270a8 Revert "Make AwesomePlayer's reset process more verbose to track down ANRs (yet again)"
+ff98976 The color conversion from YUV420Planar to RGB only requires the image width to be a multiple of 2, not 4.
+9c00963 Handle some edge cases when seeking while starting up OMXCodec
+349d3fc Improvements/fixes to ACodec.
+553ab64 Make AwesomePlayer's reset process more verbose to track down ANRs (yet again)
+856990b Bug 1804058 FLAC extractor
+7757f50 Make sure that key frame is generated for timelapse video recording if there are at least two input video frames from camera source.
+2494373 Merge "More instrumentation to track down the hardware decoder not shutting down bug." into honeycomb
+43e5eca More instrumentation to track down the hardware decoder not shutting down bug.
+6592195 Ignore errors returned from native_window_set_crop.
+7fac331 Properly rotate video that's marked as such and decoded to a surface.
+018761c Turn another assertion into a runtime error. Damn you surfaces.
+8eb0408 Merge "Fix uninitialized rect structure for retrieving rect cropping information from decoder" into honeycomb
+32ad210 Merge "NuPlayer now properly sends MEDIA_SET_VIDEOSIZE notifications." into honeycomb
+31e2508 NuPlayer now properly sends MEDIA_SET_VIDEOSIZE notifications.
+14c858e Avoid deadlock in OMX::freeNode by making sure OMXCodecObserver does not hold the last reference of OMXCodec object
+c29dd6f Fix uninitialized rect structure for retrieving rect cropping information from decoder
+b1787e3 Colorconverter may not support some src/dst bitmap configurations.
+4d785ae If we failed to initialize the codec after transitioning to IDLE state, don't assert
+5bc087c Squashed commit of the following:
+27a932a Merge "Squashed commit of the following:"
+3831a06 Squashed commit of the following:
+41152ef Add more debugging code to track down hang during video recording
+60693dd Change a Stagefright assert to an error check.
+f933441 Initial support for a true streaming player for mpeg2 transport streams.
+763b772 Properly signal the condition if we run out of input data.
+985f838 Yield the omx threads so that file writer threads have a chance to retrieve the output buffers once they become ready
+79e23b4 Revert "Allows the authoring engine to skip frame."
+abdd2ba Fixed a failure from timelapse video recording because of accidental use of metadata buffers
+d69c7f6 Release a recording frame only if mCamera exists and is not cleared. and also call mCamera->stopRecording() only after CameraSource releases all the outstanding video frames sent from CameraSource to its clients (such as video encoder).
+ba29002 First step towards renabling Timelapse video recording
+92bf2f9 Better buffer status management and verification in OMXCodec.
+ea7b485 Remove check if the target video resolution is not supported by CameraSource and clean up Camera is CameraSource could not created.
+495f154 Do not getConfig on video encoder on output port
+f5ab57c Squashed commit of the following:
+c726bd8 Set the external display usage bit in Stagefright.
+07e946c Log H.264 profile/level in OMXCodec
+c42478e Fixed a race condition where some recording frames may not be released.
+bfd41f3 Refactor h.264 profile/level support into avc_utils.
+393410a Separate the key for audio sampling rate and video frame rate in MetaData.h
+b50a803 Add color format query support to QueryCodecs()
+f23c4f9 Fix memory leak when 0-memcpy quirk is used
+412abda Merge "Use meta data in the media recording framework"
+c2daea2 Merge "Add support for WV DRM"
+b371426 Add support for WV DRM
+8480835 Use meta data in the media recording framework
+ed45fe0 Fix a MediaBuffer leak in Stagefright.
+09ddead Experimentally reenable mpeg4 and h.263 hardware decoders.
+0821a82 Stop using OMX_COLOR_FormatAndroidPrivateStart.
+67f4cae Notify surfaceflinger about (changes to) the crop rectangle output by the decoder.
+d332a72 Add two creation flags to OMXCodec::Create()
+1104688 Merge "Remove OMX.PV.* components from OMXCodec.cpp"
+c810b75 Remove OMX.PV.* components from OMXCodec.cpp
+6357308 Don't change the video recording frame rate if it is not requested.
+e870772 OMX extension to support storing meta data in video input buffers during recording
+bf2ba2a Fix the non-ANW video decode path.
+dc99cd6 Merge "Fix an issue where the video size was incorrectly retrieved from preview size"
+f96c9d1 Fix an issue where the video size was incorrectly retrieved from preview size
+6a9da9f Add decode-to-ANativeWindow support to Stagefright.
+5c95231 Make camera source ready for handling meta-data video buffers.
+2ad46be am 9b2f18df: am bc96c284: Merge "For thumbnail extraction make sure we instantiate a decoder that allows access to the framebuffer. Implement the samsung workaround to support this by reconfiguring the decoder." into gingerbread
+f3712f0 For thumbnail extraction make sure we instantiate a decoder that allows access to the framebuffer. Implement the samsung workaround to support this by reconfiguring the decoder.
+11b72e1 Remove hard-coded color format for Nvidia's  video encoder
+0e4d896 am bb708373: am 949f7d90: Merge "Work to support switching transport streams mid-stream and signalling discontinuities to the decoder." into gingerbread
+79e0ac1 am 45bd1159: am 02654f01: Merge "On this particular device the hardware video decoder spits out buffers that don\'t actually contain our video data, so we cannot use them to restore the video frame after suspend/resume." into gingerbread
+2b37ced 0-memcpy video recording framework
+54ff19a Move Camera specific logic out from StagefrightRecorder to CameraSource
+a240812 Some instrumentation of OMXCodec for future investigation and a possibly temporary fix for the green tinge on video playback.
+2a4d22d Work to support switching transport streams mid-stream and signalling discontinuities to the decoder.
+2b82e96 On this particular device the hardware video decoder spits out buffers that don't actually contain our video data, so we cannot use them to restore the video frame after suspend/resume.
+6d59aa4 Added two more video encoders
+45adaf6 am 693a430c: am 903fc221: Ignore errors from correction parameter query and config for M4v and H263 encoders
+8872633 am 30c7e132: am 697bd76e: Merge "Use the advertised profile and level from M4V and H263 video encoders" into gingerbread
+59f63db Ignore errors from correction parameter query and config for M4v and H263 encoders
+97e0fcc Use the advertised profile and level from M4V and H263 video encoders
+a60165d am 0b2affe8: am 87d208f7: Merge "This log message is codec specific." into gingerbread
+955194d This log message is codec specific.
+979d233 am 7bc600cb: am f98197a7: Make sure the message dispatcher stays around until after OMX_FreeHandle is finished in case it posts some more messages during shutdown. Clear the source as soon as possible in OMXCodec\'s destructor.
+6d2969a resolved conflicts for merge of 1fc97385 to master
+00998fb Make sure the message dispatcher stays around until after OMX_FreeHandle is finished in case it posts some more messages during shutdown. Clear the source as soon as possible in OMXCodec's destructor.
+78eff72 Implemented frequent read returns for quick stop in time lapse.
+095916d Register the new OMX components.
+e2d8ba8 Add YUV420P color format support for video output from camera hal
+38a7476 am e30d039f: am a7f5e476: Merge "Fixed a bug in the query to the supported profiles and levels" into gingerbread
+f01691f Fixed a bug in the query to the supported profiles and levels
+47dc308 am 7a848c0d: am 8946ab26: A ThreadedSource wraps around an existing MediaSource and reads output buffers on a separate thread. It\'s now used for the vpx decoder to decode frames ahead of time to improve playback performance.
+aae3516 A ThreadedSource wraps around an existing MediaSource and reads output buffers on a separate thread. It's now used for the vpx decoder to decode frames ahead of time to improve playback performance.
+0a1b9dc am 0cd2472b: am 82a39f4a: Merge "Add some explicit error log messages" into gingerbread
+a1abc1a Add some explicit error log messages
+83750ea Add the new Stagefright ANativeWindow OMX codec API.
+9f2d258 Revert "Merge "Add the new Stagefright ANativeWindow OMX codec API.""
+9dd4931 Merge "Add the new Stagefright ANativeWindow OMX codec API."
+559dc60 Add the new Stagefright ANativeWindow OMX codec API.
+5e9d8a2 Make sure we only reallocate buffers on a genuine port definition change.
+9bdccac am a5fe77d0: am df8356ff: Merge "Workaround for a QCOM issue where the output buffer size advertised by the AVC encoder is occasionally too small." into gingerbread
+824c9ff Workaround for a QCOM issue where the output buffer size advertised by the AVC encoder is occasionally too small.
+27fdb18 Disable all the hardware decoders except for h.264 video decode, since the software decoders are faster.
+8d9dda1 libstagefright: enable tegra hw audio decoders
+ea659e5 libstagefright: Enable tegra hw video decoders
+4937be2 libstagefright: Enable tegra hw encoder
+030b888 am 136d8336: am 90d1d104: Merge "This code in CameraSource really should hold the lock." into gingerbread
+56223b9 This code in CameraSource really should hold the lock.
+5d8e9cd am 4dc41bb4: am 18f0174f: Merge "We\'re now going to ignore timestamps completely in gtalk video conferencing, playing video as soon as it comes in. We also make up fake timestamps in the rtp code, ignoring rtcp SR information to enable early startup." into gingerbrea
+f8ca904 We're now going to ignore timestamps completely in gtalk video conferencing, playing video as soon as it comes in. We also make up fake timestamps in the rtp code, ignoring rtcp SR information to enable early startup.
+0cde1a7 am e14923b0: am 4edf85ab: Merge "Support for extracting G.711 a-law and mu-law audio from WAV files and a corresponding software decoder." into gingerbread
+42d66f2 Support for extracting G.711 a-law and mu-law audio from WAV files and a corresponding software decoder.
+250a4cf am 9c09a605: am 1441bdfc: Merge "Use the target color format from the camera source if possible" into gingerbread
+299766c Use the target color format from the camera source if possible
+982a931 am 1f513d88: am c17f35dd: Merge "Support for Gtalk video, includes AMR/H.263 assembler and packetization support, extensions to MediaRecorder to stream via RTP over a pair of UDP sockets as well as various fixes to the RTP implementation." into gingerbread
+39ddf8e Support for Gtalk video, includes AMR/H.263 assembler and packetization support, extensions to MediaRecorder to stream via RTP over a pair of UDP sockets as well as various fixes to the RTP implementation.
+55cb2b8 am 9bc4dc11: am 53d4e0d5: Allows the authoring engine to skip frame.
+542db5d Allows the authoring engine to skip frame.
+d3bc252 am 8a9a931f: am 8138e841: Merge "Support finer seek control on MediaSources." into gingerbread
+abd1f4f Support finer seek control on MediaSources.
+65e7e6f Adding support for timelapse capture using still camera's takepicture. Also moving entire implementation into a new class CameraSourceTimeLapse which inherits from CameraSource.
+a6163d6 am 10f8baa4: am 42ef0c71: Initial check-in for software m4v_h263 encoder
+59f566c Initial check-in for software m4v_h263 encoder
+cbcc684 am b068b47c: am d6a85a21: Merge "Support user-supplied timescales for authoring" into gingerbread
+8f5f2fc Support user-supplied timescales for authoring
+f6266bb am f6bdc764: am 9d8bea11: Merge "Initial checkin for software AVC encoder" into gingerbread
+29a8445 Initial checkin for software AVC encoder
+004a778 am 4f440632: am 929642ee: Add runtime dumpsys support for media recorder client
+b914122 Add runtime dumpsys support for media recorder client
+bf21177 am b3598832: am c4243342: Merge "Allow application to set two more encoding paramters: video profile and level" into gingerbread
+145bfe5 Allow application to set two more encoding paramters: video profile and level
+fc20aab Adding timelapse capture from videocamera.
+1c8ed2e Support for vanilla YUV420sp => RGB565 color conversion.
+d329e21 Added encoding parameters set up for H263 video encoder
+ae1f003 Add qcom's new OMX components to the list.
+608d77b Remove most stagefright property overrides, remove VorbisPlayer and VorbisMetadataRetriever as this functionality is now provided by stagefright.
+f60cafe Audio/video sync during recording (second part)
+8aa8fe5 Fixed a typo - maybe we should do comparison ignoring the case?
+80737ba Merge "Support "pausing" of MediaSources with the effect that they no longer pull on their upstream source until a subsequent read-with-seek." into kraken
+d35bd5f Support "pausing" of MediaSources with the effect that they no longer pull on their upstream source until a subsequent read-with-seek.
+decc91d Merge "Remove the lock/unlock workaround from CameraService" into kraken
+98c7c31 Apparently the TI video decoder only supports H.264 up to baseline profile/level 3, not level 3.x as previously assumed.
+9d7f58a Remove the lock/unlock workaround from CameraService
+ddcc4a6 Remove some hard-coded encoding parameters
+365a963 Initial check-in for collecting stats from authoring engine at runtime
+d07139e Second part of speeding up video recording frame rate
+cda17c6 Initial checkin of mpeg2 transport stream parser for stagefright.
+653252b Remove hard-coded pixel format for recording frames in CameraSource. Retrieve the pixel format from Camera HAL at runtime.
+7278cf3 Avoid copying for input recording frames in CameraSource
+a7414ea Remove the logic in CameraSource using CameraParameters class to find out the buffer size.
+5b39604 Merge "Avoid repeatedly allocating and freeing memory in CameraSource" into kraken
+cbe48a0 Avoid repeatedly allocating and freeing memory in CameraSource
+4d1265c Squashed commit of the following:
+26fe83e Merge "Support for media extraction from .mkv/.mka Matroska files in stagefright." into kraken
+093437c Support for media extraction from .mkv/.mka Matroska files in stagefright.
+7405500 Workaround for preview frame rate setting and encoder profile and level settings on passion 1. QCOM camera HAL does not honor the preview frame rate set request. see bug - 2701282 2. QCOM video encoder has lots of 0-length output buffers if the default level setting is changed. see bug - 2660974
+956c553 Initial software encoder checkins
+65ae665 Remove dummy surface in CameraSource
+f8fb8b8 should fix the build
+b1ccb62 am 17078510: am d13efb20: Merge "A new OggExtractor/VorbisDecoder combo to support approximate seeking." into froyo
+35a055b Support multiple cameras in framework.
+ee7ff20 A new OggExtractor/VorbisDecoder combo to support approximate seeking.
+13aec89 Support audio and video track interleaving in the recorded mp4 file
+aa9ca29 Merge "Support AAC recording" into kraken
+3830a4f am 8ea45aad: am e083d0a2: Merge "Support for Ogg Vorbis decoding in stagefright." into froyo
+3cf4e43 Support for Ogg Vorbis decoding in stagefright.
+050b28a Support AAC recording
+c32cd79 Use timestamp from camera driver for CameraSource
+261741e am 31431b34: am 374aee68: Switch to use software MP3 decoder Hardware MP3 decoder could lead to hang in the Music application, although the chance is very low.
+0b5ba9e Switch to use software MP3 decoder Hardware MP3 decoder could lead to hang in the Music application, although the chance is very low.
+fdce1cc am 1e1edb2c: am 25dc5f30: Merge "Don\'t coalesce more than 250ms worth of encoded data into a single codec input buffer. This currently only applies to the component OMX.TI.AAC.decode, it is the only one to support coalescing in the first place." into froyo
+d2c6894 Don't coalesce more than 250ms worth of encoded data into a single codec input buffer. This currently only applies to the component OMX.TI.AAC.decode, it is the only one to support coalescing in the first place.
+ea62308 am 9bb8e65a: am c15f48d7: Merge "Don\'t set encoder component role while we query decoders" into froyo
+a13da58 Merge "Don't set encoder component role while we query decoders" into froyo
+5e3cf6c Don't set encoder component role while we query decoders
+88b1b1c am 248ea4a9: am 5baa5e19: Merge "Distinguish QCELP audio from mpeg4 audio, ignore QCELP audio tracks since we don\'t have a decoder for it, ignore potentially malformed metadata for AMR NB and WB tracks." into froyo
+81f82c3 Distinguish QCELP audio from mpeg4 audio, ignore QCELP audio tracks since we don't have a decoder for it, ignore potentially malformed metadata for AMR NB and WB tracks.
+a3387af am f0a49f68: am 1d7a8b44: Merge "Fix a case where the aac hardware decoder is in a transition state and refused a fillbuffer request." into froyo
+7110385 Fix a case where the aac hardware decoder is in a transition state and refused a fillbuffer request.
+03b268e Various fixes to enable recording on passion and nexus1.
+80eb617 Partial revert of previous change to improve hardware AAC decoder performance, increasing the input buffer size so dramatically accidentally broke streaming performance.
+7f498b9 Coalesce multiple encoded AAC frames into a single input buffer on this particular OMX codec to increase throughput significantly.
+08a88e1 QueryCodecs now returns the names of the software codecs (non-OpenMax) as well.
+2a3847e Properly handle errors during the codec configuration phase, attempt to revert to next available (likely software-) codec if configuration fails.
+5295c0c Propagate errors all the way through the MediaSources and send either MEDIA_PLAYBACK_COMPLETE or MEDIA_ERROR depending on the final reason for running out of buffers to play back.
+86559de This hardware video decoder lies about its required input buffer sizes allocating 2.7 MB of memory instead of the required 176 KB... Added another quirk.
+c2158a2 Disable the TI AMR hardware decoder for audio decoding until its issues are resolved.
+3cf6135 split libsurfaceflinger_client and libcamera_client out of libui
+758cc74 TI does not want the hardware H.263 decoder to be enabled.
+c017cfc If the codec's input buffer size is too small to accomodate the buffer read from the source, report and error instead of asserting.
+22c8566 Merge "A little less verbosity in stagefright and special treatment for the error state while shutting down."
+ec9dd59 A little less verbosity in stagefright and special treatment for the error state while shutting down.
+0d681df During shutdown, don't loop forever on a state transition to OMX_StateInvalid.
+b25e2a9 Stop using the PV software decoders and use ours (based on PV code) instead even in non-FULL_STAGEFRIGHT builds.
+78d529e The TI MP3 decoder lies about the number of channels it outputs, add a quirk for that.
+867d2f6 Simplify the MemoryDealer implementation
+213addf The qcom OMX video decoders do not allocate output buffer memory at the time OMX_AllocateBuffer is called, wait until we received the first FILL_BUFFER_DONE notification until we rely on the buffer data ptr.
+a2a05bf Add an orientation parameter for overlay, so we can do camera preview in portrait mode.
+570a3cb Fix no-copy-overhead OMXCodec implementation to actually work.
+7eaa9c9 Avoid unnecessary buffer copying if at all possible, detect if running in the mediaserver process.
+b03fd8c Workaround for some hardware decoders not properly signaling end-of-output-stream properly.
+fd1fe13 Fix a memory corruption problem in software M4v/H263 decoder due to out-of-scope local variable
+3306cfe Initial checkins of the mpeg4 and h263 software decoders based on PV
+134ee6a Squashed commit of the following:
+1af80bc Properly integrate the software codecs into the OMXCodec::Create hierarchy of available components.
+733b772 AwesomePlayer now renders either remote (IOMXRenderer) or locally depending on what kind of decoder was instantiated. Split off color conversion code into its own shared library.
+b841f14 Initial checkin of software AMR NB encoder based on PV source code.
+6b91407 Propagate duration from input to output only if available, support multiple full frames of audio per input buffer in AMR/AAC decoders.
+609f1a0 Initial checkin of software AVC video decoder based on PV source code.
+4f1efc0 Initial check in of AMR (NB and WB) decoders based on PV source code.
+d9618f2 Initial checkin of stagefright MP3 audio decoder based on PV source code.
+92616b5 Fixing the build, only instantiate the software aac decoder in full stagefright builds.
+f44de51 Initial check in of stagefright software AAC decoder based on PV source code.
+bf697e3 Change OMXCodec::Create to return an sp<MediaSource> instead of an sp<OMXCodec>, this is more general and does not sacrifice any functionality as the remaining OMXCodec APIs are not meant to be public anyway.
+f0fb96c Enable proper cleanup of OMX nodes managed through stagefright.
+e3ec3ce Squashed commit of the following:
+c297fcc A small sample tool to encode pcm audio data to amr, decode it again and play it. Some changes to OMXCodec to properly configure the AMR decoder(s).
+e5d6df4 Some playable/decodable streams have been found in the wild that violate this assertion, let's be lenient for now.
+738c431 Make sure the decoder's input buffers are large enough to hold the largest input data. Verify that the setting actually sticks.
+bfa6b2d Squashed commit of the following:
+30ab662 Squashed commit of the following:
+fa70cad Handle OMX_StateInvalid in emergency shutdown properly (by ignoring it and hoping for the best) instead of asserting.
+022ad46 am 818a9cf8: Merge change Ia4eedace into eclair
+d899d73 Now that UseBuffer on this component is fixed, let's use it.
+0dba737 Adds a WAVExtractor for 16-bit signed PCM audio wave files.
+888f72a Revive support for video encoding in OMXCodec.
+548403b am 54620b1a: Merge change I6e50a8c6 into eclair
+636df89 Merge change I155e2ad0 into eclair-mr2
+be5c74f Re-enable CameraSource.
+d6703ab When freeing an OMX node, attempt to transition it from its current state all the way to "Loaded" in order to properly free any allocated buffers.
+17d58a8 Revert "Now that the underlying bug is fixed we can continue using OMX_UseBuffer for this decoder's input buffers."
+47bed1a Make stagefright a little less verbose. Fix heap corruption for real.
+48ac161 Merge change Ie13526ad into eclair-mr2
+ba229b3 Prefer software decoders over hardware for thumbnail extraction.
+7b70cfc Merge change Icb64cd2c into eclair-mr2
+7e04dcf Extract video thumbnails from the largest sync sample among the first 20.
+521bad4 am b0e6a9a0: Merge change I7a03b074 into eclair
+2d6d6e9 Still don't know why the heap gets corrupted, but not deleting the OMXNodeInstance appears to prevent this from happening.
+4926a47 Now that the underlying bug is fixed we can continue using OMX_UseBuffer for this decoder's input buffers.
+c6323f9 Some cleanup of OMXCodec code, make sure to ignore 0-length output buffers in the metadata retriever.
+66d1e82 do not merge: The qcom video decoders always output yuv data after adjusting dimensions to be a multiple of 16.
+12658b7 Avoid signaling a format change to the client if its insubstantial.
+318ad9c Reimplement the OMX backend for stagefright.
+89e69da Separated private from public header files.
+7f281f8 OMXCodec now notifies the reader of changes in the output format by returning a special result/error code.
+48c948b Change to a int64_t usecs representation for timestamps and duration throughout stagefright.
+d3eaeef Fixing the build.
+2a4a7d5 Split the ColorConverter off SoftwareRenderer, metadata support in stagefright.
+36efa03 Some decoders will return an error on OMX_EmptyThisBuffer to indicate that they don't support the media format, deal with this.
+9749025 The vendor is about to check in a fix for this issue, the workaround is no longer needed
+ec430b1 Workaround for avc decoder misreporting output buffer size requirements if the content is not a multiple-16 width/height.
+5228dd1 Another stagefright test-case and ignore end-of-stream notifications while we're flushing.
+269091d The 8k chipset qcom decoders require that the input buffers be allocated using OMX_AllocateBuffer rather than OMX_UseBuffer for now.
+9530119 Added a little more logging in OMXCodec.cpp for vendors to be able to reproduce issues...
+df4de7d Apparently I must not use OMX_UseBuffer on either input or output ports on any of the TI components... or else.
+18291bc Media MIME types now have corresponding constants in MediaDefs.h, new codec enumeration API.
+8cd11d2 Add component name to informational logging in OMXCodec.cpp
+2f7daa1 Added some more verbose output for AMR formats. Properly fill out the output format.
+195ea1e Calculate proper output buffer size for some more 16-bit RGB color spaces.
+f75978f Added a .amr file extractor (for AMR-NB and AMR-WB content).
+456db75 Support encoding amr-wb content in stagefright.
+b7802d9 The qcom decoder requires that the output buffers be allocated by the component for hardware accelerated display to work.
+7a6b9e2 Setting the component role appears to be mandatory now for all mime types.
+e5adbee Some work to make audio encoding work.
+37940ee Squashed commit of the following:
+53f2b2a Temporarily unlock our mutex while fetching a buffer from the upstream source.
+450bf4b Fixes a race condition between entering ERROR state and initial buffer submit.
+7f75ced Merge change 22991 into eclair
+7d719af Apparently setting the preferred role of the OMX component is now required on this platform.
+e0f0b08 Squashed commit of the following:
+284f513 An attempt to fix a deadlock between OMXCodec::start and upstream ::read
+8297ced Another quirk, some OMX components fail to properly flush before shutdown and we must do it for them...
+0c89199 assert => CHECK in stagefright.
+355edce Disregard the EOS buffer flag while flushing or shutting down the decoder.
+ea7d156 Keep up with latest changes to overlay handling on that unnamable platform.
+1beb760 Make sure not to ask for more buffers when we know that there won't be any, added a quirk for the aac decoder.
+7530e9c Dynamically allocate a pair of MemoryHeaps according buffer count/sizes required by the OMX component, respect JPEG compressed size.
+bde3caa Better (proper) parsing of the AVCDecoderConfigurationRecord, respect hardware decoder profile/level limits.
+dbc0344 The PV AVC software decoder expects each fragment of a NAL unit to be handed to the decoder unframed.
+693d271 Squashed commit of the following:
+408b8e1 Deprecate/remove now unused socketpair ipc communication in favour of exclusive binder use.
+20111aa Squashed commit of the following:
