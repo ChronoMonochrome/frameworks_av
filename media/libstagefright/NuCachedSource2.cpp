@@ -252,10 +252,6 @@ void NuCachedSource2::disconnect() {
             // set mDisconnecting to true, if a fetch returns after
             // this, the source will be marked as EOS.
             mDisconnecting = true;
-
-            // explicitly signal mCondition so that the pending readAt()
-            // will immediately return
-            mCondition.signal();
         }
 
         // explicitly disconnect from the source, to allow any
@@ -327,11 +323,7 @@ void NuCachedSource2::fetchInternal() {
 
         Mutex::Autolock autoLock(mLock);
 
-        if (mDisconnecting) {
-            mNumRetriesLeft = 0;
-            mFinalStatus = ERROR_END_OF_STREAM;
-            return;
-        } else if (err == ERROR_UNSUPPORTED || err == -EPIPE) {
+        if (err == ERROR_UNSUPPORTED || err == -EPIPE) {
             // These are errors that are not likely to go away even if we
             // retry, i.e. the server doesn't support range requests or similar.
             mNumRetriesLeft = 0;
@@ -521,12 +513,8 @@ ssize_t NuCachedSource2::readAt(off64_t offset, void *data, size_t size) {
     CHECK(mAsyncResult == NULL);
     msg->post();
 
-    while (mAsyncResult == NULL && !mDisconnecting) {
+    while (mAsyncResult == NULL) {
         mCondition.wait(mLock);
-    }
-
-    if (mDisconnecting) {
-        return ERROR_END_OF_STREAM;
     }
 
     int32_t result;
