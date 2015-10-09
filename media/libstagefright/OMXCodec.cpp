@@ -18,11 +18,6 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "OMXCodec"
-
-#ifdef __LP64__
-#define OMX_ANDROID_COMPILE_AS_32BIT_ON_64BIT_PLATFORMS
-#endif
-
 #include <utils/Log.h>
 
 #include "include/AACEncoder.h"
@@ -135,7 +130,6 @@ private:
 
 template<class T>
 static void InitOMXParams(T *params) {
-    COMPILE_TIME_ASSERT_FUNCTION_SCOPE(sizeof(OMX_PTR) == 4); // check OMX_PTR is 4 bytes.
     params->nSize = sizeof(T);
     params->nVersion.s.nVersionMajor = 1;
     params->nVersion.s.nVersionMinor = 0;
