@@ -449,17 +449,14 @@ private:
      *
      * Returns OK on success, or a negative error code.
      */
-    status_t            connectHelperLocked(
-            /*out*/
-            sp<Client>& client,
-            /*in*/
-            const sp<ICameraClient>& cameraClient,
-            int cameraId,
-            const String16& clientPackageName,
-            int clientUid,
-            int callingPid,
-            int halVersion = CAMERA_HAL_API_VERSION_UNSPECIFIED,
-            bool legacyMode = false);
+    status_t            connectHelperLocked(const sp<ICameraClient>& cameraClient,
+                                      int cameraId,
+                                      const String16& clientPackageName,
+                                      int clientUid,
+                                      int callingPid,
+                                      /*out*/
+                                      sp<Client>& client,
+                                      int halVersion = CAMERA_HAL_API_VERSION_UNSPECIFIED);
 };
 
 } // namespace android
