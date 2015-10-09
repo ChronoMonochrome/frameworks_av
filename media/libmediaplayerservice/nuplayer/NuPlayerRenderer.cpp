@@ -66,8 +66,8 @@ NuPlayer::Renderer::Renderer(
       mAudioQueueGeneration(0),
       mVideoQueueGeneration(0),
       mAudioFirstAnchorTimeMediaUs(-1),
-      mAnchorTimeMediaUs(-1),
-      mAnchorTimeRealUs(-1),
+      mVideoAnchorTimeMediaUs(-1),
+      mVideoAnchorTimeRealUs(-1),
       mVideoLateByUs(0ll),
       mHasAudio(false),
       mHasVideo(false),
@@ -140,7 +140,7 @@ void NuPlayer::Renderer::signalTimeDiscontinuity() {
     // CHECK(mAudioQueue.empty());
     // CHECK(mVideoQueue.empty());
     setAudioFirstAnchorTime(-1);
-    setAnchorTime(-1, -1);
+    setVideoAnchorTime(-1, -1);
     setVideoLateByUs(0);
     mSyncQueues = false;
 }
@@ -177,19 +177,22 @@ status_t NuPlayer::Renderer::getCurrentPosition(int64_t *mediaUs, int64_t nowUs)
         return NO_INIT;
     }
 
-    if (mAnchorTimeMediaUs < 0) {
-        return NO_INIT;
-    }
-    int64_t positionUs = (nowUs - mAnchorTimeRealUs) + mAnchorTimeMediaUs;
+    int64_t positionUs = 0;
+    if (!mHasAudio) {
+        if (mVideoAnchorTimeMediaUs < 0) {
+            return NO_INIT;
+        }
+        positionUs = (nowUs - mVideoAnchorTimeRealUs) + mVideoAnchorTimeMediaUs;
 
-    if (mPauseStartedTimeRealUs != -1) {
-        positionUs -= (nowUs - mPauseStartedTimeRealUs);
+        if (mPauseStartedTimeRealUs != -1) {
+            positionUs -= (nowUs - mPauseStartedTimeRealUs);
+        }
+    } else {
+        if (mAudioFirstAnchorTimeMediaUs < 0) {
+            return NO_INIT;
+        }
+        positionUs = mAudioFirstAnchorTimeMediaUs + getPlayedOutAudioDurationUs(nowUs);
     }
-
-    if (positionUs < mAudioFirstAnchorTimeMediaUs) {
-        positionUs = mAudioFirstAnchorTimeMediaUs;
-    }
-
     *mediaUs = (positionUs <= 0) ? 0 : positionUs;
     return OK;
 }
@@ -215,13 +218,10 @@ void NuPlayer::Renderer::setAudioFirstAnchorTimeIfNeeded(int64_t mediaUs) {
     }
 }
 
-void NuPlayer::Renderer::setAnchorTime(int64_t mediaUs, int64_t realUs, bool resume) {
+void NuPlayer::Renderer::setVideoAnchorTime(int64_t mediaUs, int64_t realUs) {
     Mutex::Autolock autoLock(mTimeLock);
-    mAnchorTimeMediaUs = mediaUs;
-    mAnchorTimeRealUs = realUs;
-    if (resume) {
-        mPauseStartedTimeRealUs = -1;
-    }
+    mVideoAnchorTimeMediaUs = mediaUs;
+    mVideoAnchorTimeRealUs = realUs;
 }
 
 void NuPlayer::Renderer::setVideoLateByUs(int64_t lateUs) {
@@ -526,7 +526,7 @@ size_t NuPlayer::Renderer::fillAudioBuffer(void *buffer, size_t size) {
             int64_t mediaTimeUs;
             CHECK(entry->mBuffer->meta()->findInt64("timeUs", &mediaTimeUs));
             ALOGV("rendering audio at media time %.2f secs", mediaTimeUs / 1E6);
-            onNewAudioMediaTime(mediaTimeUs);
+            setAudioFirstAnchorTimeIfNeeded(mediaTimeUs);
         }
 
         size_t copy = entry->mBuffer->size() - entry->mOffset;
@@ -597,7 +597,8 @@ bool NuPlayer::Renderer::onDrainAudioQueue() {
             int64_t mediaTimeUs;
             CHECK(entry->mBuffer->meta()->findInt64("timeUs", &mediaTimeUs));
             ALOGV("rendering audio at media time %.2f secs", mediaTimeUs / 1E6);
-            onNewAudioMediaTime(mediaTimeUs);
+
+            setAudioFirstAnchorTimeIfNeeded(mediaTimeUs);
         }
 
         size_t copy = entry->mBuffer->size() - entry->mOffset;
@@ -658,22 +659,9 @@ int64_t NuPlayer::Renderer::getPendingAudioPlayoutDurationUs(int64_t nowUs) {
 int64_t NuPlayer::Renderer::getRealTimeUs(int64_t mediaTimeUs, int64_t nowUs) {
     int64_t currentPositionUs;
     if (getCurrentPosition(&currentPositionUs, nowUs) != OK) {
-        // If failed to get current position, e.g. due to audio clock is not ready, then just
-        // play out video immediately without delay.
-        return nowUs;
+        currentPositionUs = 0;
     }
     return (mediaTimeUs - currentPositionUs) + nowUs;
-}
-
-void NuPlayer::Renderer::onNewAudioMediaTime(int64_t mediaTimeUs) {
-    // TRICKY: vorbis decoder generates multiple frames with the same
-    // timestamp, so only update on the first frame with a given timestamp
-    if (mediaTimeUs == mAnchorTimeMediaUs) {
-        return;
-    }
-    setAudioFirstAnchorTimeIfNeeded(mediaTimeUs);
-    int64_t nowUs = ALooper::GetNowUs();
-    setAnchorTime(mediaTimeUs, nowUs + getPendingAudioPlayoutDurationUs(nowUs));
 }
 
 void NuPlayer::Renderer::postDrainVideoQueue() {
@@ -710,8 +698,8 @@ void NuPlayer::Renderer::postDrainVideoQueue() {
         int64_t mediaTimeUs;
         CHECK(entry.mBuffer->meta()->findInt64("timeUs", &mediaTimeUs));
 
-        if (mAnchorTimeMediaUs < 0) {
-            setAnchorTime(mediaTimeUs, nowUs);
+        if (mVideoAnchorTimeMediaUs < 0) {
+            setVideoAnchorTime(mediaTimeUs, nowUs);
             realTimeUs = nowUs;
         } else {
             realTimeUs = getRealTimeUs(mediaTimeUs, nowUs);
@@ -781,14 +769,14 @@ void NuPlayer::Renderer::onDrainVideoQueue() {
         } else {
             ALOGV("rendering video at media time %.2f secs",
                     (mFlags & FLAG_REAL_TIME ? realTimeUs :
-                    (realTimeUs + mAnchorTimeMediaUs - mAnchorTimeRealUs)) / 1E6);
+                    (realTimeUs + mVideoAnchorTimeMediaUs - mVideoAnchorTimeRealUs)) / 1E6);
         }
     } else {
         setVideoLateByUs(0);
-        if (!mVideoSampleReceived && !mHasAudio) {
+        if (!mVideoSampleReceived) {
             // This will ensure that the first frame after a flush won't be used as anchor
             // when renderer is in paused state, because resume can happen any time after seek.
-            setAnchorTime(-1, -1);
+            setVideoAnchorTime(-1, -1);
         }
     }
 
@@ -1120,8 +1108,9 @@ void NuPlayer::Renderer::onResume() {
     mPaused = false;
     if (mPauseStartedTimeRealUs != -1) {
         int64_t newAnchorRealUs =
-            mAnchorTimeRealUs + ALooper::GetNowUs() - mPauseStartedTimeRealUs;
-        setAnchorTime(mAnchorTimeMediaUs, newAnchorRealUs, true /* resume */);
+            mVideoAnchorTimeRealUs + ALooper::GetNowUs() - mPauseStartedTimeRealUs;
+        setVideoAnchorTime(mVideoAnchorTimeMediaUs, newAnchorRealUs);
+        setPauseStartedTimeRealUs(-1);
     }
 
     if (!mAudioQueue.empty()) {
@@ -1186,7 +1175,7 @@ int64_t NuPlayer::Renderer::getPlayedOutAudioDurationUs(int64_t nowUs) {
 
     // TODO: remove the (int32_t) casting below as it may overflow at 12.4 hours.
     //CHECK_EQ(numFramesPlayed & (1 << 31), 0);  // can't be negative until 12.4 hrs, test
-    int64_t durationUs = (int64_t)((int32_t)numFramesPlayed * 1000LL * mAudioSink->msecsPerFrame())
+    int64_t durationUs = (int32_t)numFramesPlayed * 1000LL * mAudioSink->msecsPerFrame()
             + nowUs - numFramesPlayedAt;
     if (durationUs < 0) {
         // Occurs when numFramesPlayed position is very small and the following:
