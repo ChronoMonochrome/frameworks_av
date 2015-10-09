@@ -135,9 +135,6 @@ class ZslProcessor3 :
     nsecs_t getCandidateTimestampLocked(size_t* metadataIdx) const;
 
     bool isFixedFocusMode(uint8_t afMode) const;
-
-    // Update the post-processing metadata with the default still capture request template
-    status_t updateRequestWithDefaultStillRequest(CameraMetadata &request) const;
 };
 
 
