@@ -41,12 +41,6 @@
 
 #include "include/ESDS.h"
 
-#define WARN_UNLESS(condition, message, ...) \
-( (CONDITION(condition)) ? false : ({ \
-    ALOGW("Condition %s failed "  message, #condition, ##__VA_ARGS__); \
-    true; \
-}))
-
 namespace android {
 
 static const int64_t kMinStreamableFileSizeInBytes = 5 * 1024 * 1024;
@@ -2102,7 +2096,6 @@ status_t MPEG4Writer::Track::threadEntry() {
 
     status_t err = OK;
     MediaBuffer *buffer;
-    const char *trackName = mIsAudio ? "Audio" : "Video";
     while (!mDone && (err = mSource->read(&buffer)) == OK) {
         if (buffer->range_length() == 0) {
             buffer->release();
@@ -2198,27 +2191,15 @@ status_t MPEG4Writer::Track::threadEntry() {
 
         if (mResumed) {
             int64_t durExcludingEarlierPausesUs = timestampUs - previousPausedDurationUs;
-            if (WARN_UNLESS(durExcludingEarlierPausesUs >= 0ll, "for %s track", trackName)) {
-                copy->release();
-                return ERROR_MALFORMED;
-            }
-
+            CHECK_GE(durExcludingEarlierPausesUs, 0ll);
             int64_t pausedDurationUs = durExcludingEarlierPausesUs - mTrackDurationUs;
-            if (WARN_UNLESS(pausedDurationUs >= lastDurationUs, "for %s track", trackName)) {
-                copy->release();
-                return ERROR_MALFORMED;
-            }
-
+            CHECK_GE(pausedDurationUs, lastDurationUs);
             previousPausedDurationUs += pausedDurationUs - lastDurationUs;
             mResumed = false;
         }
 
         timestampUs -= previousPausedDurationUs;
-        if (WARN_UNLESS(timestampUs >= 0ll, "for %s track", trackName)) {
-            copy->release();
-            return ERROR_MALFORMED;
-        }
-
+        CHECK_GE(timestampUs, 0ll);
         if (!mIsAudio) {
             /*
              * Composition time: timestampUs
@@ -2230,11 +2211,7 @@ status_t MPEG4Writer::Track::threadEntry() {
             decodingTimeUs -= previousPausedDurationUs;
             cttsOffsetTimeUs =
                     timestampUs + kMaxCttsOffsetTimeUs - decodingTimeUs;
-            if (WARN_UNLESS(cttsOffsetTimeUs >= 0ll, "for %s track", trackName)) {
-                copy->release();
-                return ERROR_MALFORMED;
-            }
-
+            CHECK_GE(cttsOffsetTimeUs, 0ll);
             timestampUs = decodingTimeUs;
             ALOGV("decoding time: %lld and ctts offset time: %lld",
                 timestampUs, cttsOffsetTimeUs);
@@ -2242,11 +2219,7 @@ status_t MPEG4Writer::Track::threadEntry() {
             // Update ctts box table if necessary
             currCttsOffsetTimeTicks =
                     (cttsOffsetTimeUs * mTimeScale + 500000LL) / 1000000LL;
-            if (WARN_UNLESS(currCttsOffsetTimeTicks <= 0x0FFFFFFFFLL, "for %s track", trackName)) {
-                copy->release();
-                return ERROR_MALFORMED;
-            }
-
+            CHECK_LE(currCttsOffsetTimeTicks, 0x0FFFFFFFFLL);
             if (mStszTableEntries->count() == 0) {
                 // Force the first ctts table entry to have one single entry
                 // so that we can do adjustment for the initial track start
@@ -2284,13 +2257,9 @@ status_t MPEG4Writer::Track::threadEntry() {
             }
         }
 
-        if (WARN_UNLESS(timestampUs >= 0ll, "for %s track", trackName)) {
-            copy->release();
-            return ERROR_MALFORMED;
-        }
-
+        CHECK_GE(timestampUs, 0ll);
         ALOGV("%s media time stamp: %lld and previous paused duration %lld",
-                trackName, timestampUs, previousPausedDurationUs);
+                mIsAudio? "Audio": "Video", timestampUs, previousPausedDurationUs);
         if (timestampUs > mTrackDurationUs) {
             mTrackDurationUs = timestampUs;
         }
@@ -2305,8 +2274,7 @@ status_t MPEG4Writer::Track::threadEntry() {
                 (lastTimestampUs * mTimeScale + 500000LL) / 1000000LL);
         if (currDurationTicks < 0ll) {
             ALOGE("timestampUs %lld < lastTimestampUs %lld for %s track",
-                timestampUs, lastTimestampUs, trackName);
-            copy->release();
+                timestampUs, lastTimestampUs, mIsAudio? "Audio": "Video");
             return UNKNOWN_ERROR;
         }
 
@@ -2346,7 +2314,7 @@ status_t MPEG4Writer::Track::threadEntry() {
             previousSampleSize = sampleSize;
         }
         ALOGV("%s timestampUs/lastTimestampUs: %lld/%lld",
-                trackName, timestampUs, lastTimestampUs);
+                mIsAudio? "Audio": "Video", timestampUs, lastTimestampUs);
         lastDurationUs = timestampUs - lastTimestampUs;
         lastDurationTicks = currDurationTicks;
         lastTimestampUs = timestampUs;
@@ -2451,7 +2419,7 @@ status_t MPEG4Writer::Track::threadEntry() {
     sendTrackSummary(hasMultipleTracks);
 
     ALOGI("Received total/0-length (%d/%d) buffers and encoded %d frames. - %s",
-            count, nZeroLengthFrames, mStszTableEntries->count(), trackName);
+            count, nZeroLengthFrames, mStszTableEntries->count(), mIsAudio? "audio": "video");
     if (mIsAudio) {
         ALOGI("Audio track drift time: %lld us", mOwner->getDriftTimeUs());
     }
