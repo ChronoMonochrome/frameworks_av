@@ -125,11 +125,7 @@ void MtpServer::addStorage(MtpStorage* storage) {
 void MtpServer::removeStorage(MtpStorage* storage) {
     Mutex::Autolock autoLock(mMutex);
 
-<<<<<<< HEAD
     for (size_t i = 0; i < mStorages.size(); i++) {
-=======
-    for (int i = 0; i < mStorages.size(); i++) {
->>>>>>> parent of db43b34... media: 64 bit compile issues
         if (mStorages[i] == storage) {
             mStorages.removeAt(i);
             sendStoreRemoved(storage->getStorageID());
@@ -141,11 +137,7 @@ void MtpServer::removeStorage(MtpStorage* storage) {
 MtpStorage* MtpServer::getStorage(MtpStorageID id) {
     if (id == 0)
         return mStorages[0];
-<<<<<<< HEAD
     for (size_t i = 0; i < mStorages.size(); i++) {
-=======
-    for (int i = 0; i < mStorages.size(); i++) {
->>>>>>> parent of db43b34... media: 64 bit compile issues
         MtpStorage* storage = mStorages[i];
         if (storage->getStorageID() == id)
             return storage;
@@ -1140,11 +1132,7 @@ MtpResponseCode MtpServer::doSendPartialObject() {
     }
 
     const char* filePath = (const char *)edit->mPath;
-<<<<<<< HEAD
-    ALOGV("receiving partial %s %" PRIu64 " %" PRIu32, filePath, offset, length);
-=======
     ALOGV("receiving partial %s %lld %lld\n", filePath, offset, length);
->>>>>>> parent of db43b34... media: 64 bit compile issues
 
     // read the header, and possibly some data
     int ret = mData.read(mFD);
