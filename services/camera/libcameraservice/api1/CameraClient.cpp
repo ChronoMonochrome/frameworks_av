@@ -567,8 +567,7 @@ status_t CameraClient::setParameters(const String8& params) {
 // get preview/capture parameters - key/value pairs
 String8 CameraClient::getParameters() const {
     Mutex::Autolock lock(mLock);
-    // The camera service can unconditionally get the parameters at all times
-    if (getCallingPid() != mServicePid && checkPidAndHardware() != NO_ERROR) return String8();
+    if (checkPidAndHardware() != NO_ERROR) return String8();
 
     String8 params(mHardware->getParameters().flatten());
     LOG1("getParameters (pid %d) (%s)", getCallingPid(), params.string());
