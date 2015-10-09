@@ -4437,7 +4437,7 @@ bool ACodec::ExecutingState::onMessageReceived(const sp<AMessage> &msg) {
 
 status_t ACodec::setParameters(const sp<AMessage> &params) {
     int32_t videoBitrate;
-    if (params->findInt32("video-bitrate", &videoBitrate)) {
+    if (params->findInt32("videoBitrate", &videoBitrate)) {
         OMX_VIDEO_CONFIG_BITRATETYPE configParams;
         InitOMXParams(&configParams);
         configParams.nPortIndex = kPortIndexOutput;
