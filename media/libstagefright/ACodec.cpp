@@ -1267,7 +1267,13 @@ status_t ACodec::configureCodec(
         if (encoder) {
             err = setupVideoEncoder(mime, msg);
         } else {
-            err = setupVideoDecoder(mime, msg);
+            int32_t width, height;
+            if (!msg->findInt32("width", &width)
+                    || !msg->findInt32("height", &height)) {
+                err = INVALID_OPERATION;
+            } else {
+                err = setupVideoDecoder(mime, width, height);
+            }
         }
     } else if (!strcasecmp(mime, MEDIA_MIMETYPE_AUDIO_MPEG)) {
         int32_t numChannels, sampleRate;
@@ -1888,13 +1894,7 @@ static status_t GetMimeTypeForVideoCoding(
 }
 
 status_t ACodec::setupVideoDecoder(
-        const char *mime, const sp<AMessage> &msg) {
-    int32_t width, height;
-    if (!msg->findInt32("width", &width)
-            || !msg->findInt32("height", &height)) {
-        return INVALID_OPERATION;
-    }
-
+        const char *mime, int32_t width, int32_t height) {
     OMX_VIDEO_CODINGTYPE compressionFormat;
     status_t err = GetVideoCodingTypeFromMime(mime, &compressionFormat);
 
@@ -1909,20 +1909,7 @@ status_t ACodec::setupVideoDecoder(
         return err;
     }
 
-    int32_t tmp;
-    if (msg->findInt32("color-format", &tmp)) {
-        OMX_COLOR_FORMATTYPE colorFormat =
-            static_cast<OMX_COLOR_FORMATTYPE>(tmp);
-        err = setVideoPortFormatType(
-                kPortIndexOutput, OMX_VIDEO_CodingUnused, colorFormat);
-        if (err != OK) {
-            ALOGW("[%s] does not support color format %d",
-                  mComponentName.c_str(), colorFormat);
-            err = setSupportedOutputFormat();
-        }
-    } else {
-        err = setSupportedOutputFormat();
-    }
+    err = setSupportedOutputFormat();
 
     if (err != OK) {
         return err;
