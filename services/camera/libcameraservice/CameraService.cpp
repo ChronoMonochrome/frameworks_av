@@ -659,8 +659,7 @@ status_t CameraService::connectHelperLocked(const sp<ICameraClient>& cameraClien
                                       int clientUid,
                                       int callingPid,
                                       /*out*/
-                                      sp<Client>& client,
-                                      int halVersion) {
+                                      sp<Client>& client) {
 
     int facing = -1;
     int deviceVersion = getDeviceVersion(cameraId, &facing);
@@ -673,47 +672,28 @@ status_t CameraService::connectHelperLocked(const sp<ICameraClient>& cameraClien
                      cameraId);
     }
 
-    if (halVersion < 0 || halVersion == deviceVersion) {
-        // Default path: HAL version is unspecified by caller, create CameraClient
-        // based on device version reported by the HAL.
-        switch(deviceVersion) {
-          case CAMERA_DEVICE_API_VERSION_1_0:
-            client = new CameraClient(this, cameraClient,
-                    clientPackageName, cameraId,
-                    facing, callingPid, clientUid, getpid());
-            break;
-          case CAMERA_DEVICE_API_VERSION_2_0:
-          case CAMERA_DEVICE_API_VERSION_2_1:
-          case CAMERA_DEVICE_API_VERSION_3_0:
-          case CAMERA_DEVICE_API_VERSION_3_1:
-          case CAMERA_DEVICE_API_VERSION_3_2:
-            client = new Camera2Client(this, cameraClient,
-                    clientPackageName, cameraId,
-                    facing, callingPid, clientUid, getpid());
-            break;
-          case -1:
-            ALOGE("Invalid camera id %d", cameraId);
-            return BAD_VALUE;
-          default:
-            ALOGE("Unknown camera device HAL version: %d", deviceVersion);
-            return INVALID_OPERATION;
-        }
-    } else {
-        // A particular HAL version is requested by caller. Create CameraClient
-        // based on the requested HAL version.
-        if (deviceVersion > CAMERA_DEVICE_API_VERSION_1_0 &&
-            halVersion == CAMERA_DEVICE_API_VERSION_1_0) {
-            // Only support higher HAL version device opened as HAL1.0 device.
-            client = new CameraClient(this, cameraClient,
-                    clientPackageName, cameraId,
-                    facing, callingPid, clientUid, getpid());
-        } else {
-            // Other combinations (e.g. HAL3.x open as HAL2.x) are not supported yet.
-            ALOGE("Invalid camera HAL version %x: HAL %x device can only be"
-                    " opened as HAL %x device", halVersion, deviceVersion,
-                    CAMERA_DEVICE_API_VERSION_1_0);
-            return INVALID_OPERATION;
-        }
+    switch(deviceVersion) {
+      case CAMERA_DEVICE_API_VERSION_1_0:
+        client = new CameraClient(this, cameraClient,
+                clientPackageName, cameraId,
+                facing, callingPid, clientUid, getpid());
+        break;
+      case CAMERA_DEVICE_API_VERSION_2_0:
+      case CAMERA_DEVICE_API_VERSION_2_1:
+      case CAMERA_DEVICE_API_VERSION_3_0:
+      case CAMERA_DEVICE_API_VERSION_3_1:
+      case CAMERA_DEVICE_API_VERSION_3_2:
+        client = new Camera2Client(this, cameraClient,
+                clientPackageName, cameraId,
+                facing, callingPid, clientUid, getpid(),
+                deviceVersion);
+        break;
+      case -1:
+        ALOGE("Invalid camera id %d", cameraId);
+        return BAD_VALUE;
+      default:
+        ALOGE("Unknown camera device HAL version: %d", deviceVersion);
+        return INVALID_OPERATION;
     }
 
     status_t status = connectFinishUnsafe(client, client->getRemote());
@@ -782,6 +762,7 @@ status_t CameraService::connect(
     return OK;
 }
 
+<<<<<<< HEAD
 status_t CameraService::connectLegacy(
         const sp<ICameraClient>& cameraClient,
         int cameraId, int halVersion,
@@ -846,6 +827,8 @@ status_t CameraService::connectLegacy(
     return OK;
 }
 
+=======
+>>>>>>> parent of b10cdad... cameraservice: Implement HAL1 and higher HAL API coexistence
 status_t CameraService::connectFinishUnsafe(const sp<BasicClient>& client,
                                             const sp<IBinder>& remoteCallback) {
     status_t status = client->initialize(mModule);
@@ -1280,7 +1263,6 @@ status_t CameraService::onTransact(
         case BnCameraService::CONNECT:
         case BnCameraService::CONNECT_PRO:
         case BnCameraService::CONNECT_DEVICE:
-        case BnCameraService::CONNECT_LEGACY:
             const int pid = getCallingPid();
             const int self_pid = getpid();
             if (pid != self_pid) {

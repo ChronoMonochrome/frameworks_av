@@ -52,7 +52,6 @@ public:
         GET_CAMERA_VENDOR_TAG_DESCRIPTOR,
         GET_LEGACY_PARAMETERS,
         SUPPORTS_CAMERA_API,
-        CONNECT_LEGACY,
     };
 
     enum {
@@ -63,10 +62,6 @@ public:
         API_VERSION_1 = 1,
         API_VERSION_2 = 2,
     };
-
-    enum {
-        CAMERA_HAL_API_VERSION_UNSPECIFIED = -1
-      };
 
 public:
     DECLARE_META_INTERFACE(CameraService);
@@ -130,18 +125,6 @@ public:
      */
     virtual status_t supportsCameraApi(
             int cameraId, int apiVersion) = 0;
-
-    /**
-     * Connect the device as a legacy device for a given HAL version.
-     * For halVersion, use CAMERA_API_DEVICE_VERSION_* for a particular
-     * version, or CAMERA_HAL_API_VERSION_UNSPECIFIED for a service-selected version.
-     */
-    virtual status_t connectLegacy(const sp<ICameraClient>& cameraClient,
-            int cameraId, int halVersion,
-            const String16& clientPackageName,
-            int clientUid,
-            /*out*/
-            sp<ICamera>& device) = 0;
 };
 
 // ----------------------------------------------------------------------------

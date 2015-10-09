@@ -83,11 +83,6 @@ public:
             /*out*/
             sp<ICamera>& device);
 
-    virtual status_t connectLegacy(const sp<ICameraClient>& cameraClient, int cameraId,
-            int halVersion, const String16& clientPackageName, int clientUid,
-            /*out*/
-            sp<ICamera>& device);
-
     virtual status_t connectPro(const sp<IProCameraCallbacks>& cameraCb,
             int cameraId, const String16& clientPackageName, int clientUid,
             /*out*/
@@ -455,8 +450,7 @@ private:
                                       int clientUid,
                                       int callingPid,
                                       /*out*/
-                                      sp<Client>& client,
-                                      int halVersion = CAMERA_HAL_API_VERSION_UNSPECIFIED);
+                                      sp<Client>& client);
 };
 
 } // namespace android
