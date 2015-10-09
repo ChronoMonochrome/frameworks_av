@@ -2136,8 +2136,6 @@ Camera3Device::RequestThread::RequestThread(wp<Camera3Device> parent,
         mPaused(true),
         mFrameNumber(0),
         mLatestRequestId(NAME_NOT_FOUND),
-        mCurrentAfTriggerId(0),
-        mCurrentPreCaptureTriggerId(0),
         mRepeatingLastFrameNumber(NO_IN_FLIGHT_REPEATING_FRAMES) {
     mStatusId = statusTracker->addComponent();
 }
@@ -2620,8 +2618,6 @@ sp<Camera3Device::CaptureRequest>
 
     if (nextRequest != NULL) {
         nextRequest->mResultExtras.frameNumber = mFrameNumber++;
-        nextRequest->mResultExtras.afTriggerId = mCurrentAfTriggerId;
-        nextRequest->mResultExtras.precaptureTriggerId = mCurrentPreCaptureTriggerId;
     }
     return nextRequest;
 }
@@ -2701,13 +2697,8 @@ status_t Camera3Device::RequestThread::insertTriggers(
         if (tag == ANDROID_CONTROL_AF_TRIGGER_ID || tag == ANDROID_CONTROL_AE_PRECAPTURE_ID) {
             bool isAeTrigger = (trigger.metadataTag == ANDROID_CONTROL_AE_PRECAPTURE_ID);
             uint32_t triggerId = static_cast<uint32_t>(trigger.entryValue);
-            if (isAeTrigger) {
-                request->mResultExtras.precaptureTriggerId = triggerId;
-                mCurrentPreCaptureTriggerId = triggerId;
-            } else {
-                request->mResultExtras.afTriggerId = triggerId;
-                mCurrentAfTriggerId = triggerId;
-            }
+            isAeTrigger ? request->mResultExtras.precaptureTriggerId = triggerId :
+                          request->mResultExtras.afTriggerId = triggerId;
             if (parent->mDeviceVersion >= CAMERA_DEVICE_API_VERSION_3_2) {
                 continue; // Trigger ID tag is deprecated since device HAL 3.2
             }
