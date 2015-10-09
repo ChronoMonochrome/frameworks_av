@@ -746,6 +746,7 @@ void PlaylistFetcher::onDownloadNext() {
     if (mSeqNumber < 0) {
         CHECK_GE(mStartTimeUs, 0ll);
 
+<<<<<<< HEAD
         if (mSegmentStartTimeUs < 0) {
             if (!mPlaylist->isComplete() && !mPlaylist->isEvent()) {
                 // If this is a live session, start 3 segments from the end on connect
@@ -759,6 +760,11 @@ void PlaylistFetcher::onDownloadNext() {
             }
             mStartTimeUsRelative = true;
             ALOGV("Initial sequence number for time %" PRId64 " is %d from (%d .. %d)",
+=======
+        if (mPlaylist->isComplete() || mPlaylist->isEvent()) {
+            mSeqNumber = getSeqNumberForTime(mStartTimeUs);
+            ALOGV("Initial sequence number for time %lld is %ld from (%ld .. %ld)",
+>>>>>>> parent of 84333e0... warnings be gone.
                     mStartTimeUs, mSeqNumber, firstSeqNumberInPlaylist,
                     lastSeqNumberInPlaylist);
         } else {
@@ -775,11 +781,15 @@ void PlaylistFetcher::onDownloadNext() {
             if (mSeqNumber < firstSeqNumberInPlaylist) {
                 mSeqNumber = firstSeqNumberInPlaylist;
             }
+<<<<<<< HEAD
 
             if (mSeqNumber > lastSeqNumberInPlaylist) {
                 mSeqNumber = lastSeqNumberInPlaylist;
             }
             ALOGV("Initial sequence number for live event %d from (%d .. %d)",
+=======
+            ALOGV("Initial sequence number for live event %ld from (%ld .. %ld)",
+>>>>>>> parent of 84333e0... warnings be gone.
                     mSeqNumber, firstSeqNumberInPlaylist,
                     lastSeqNumberInPlaylist);
         }
@@ -801,8 +811,12 @@ void PlaylistFetcher::onDownloadNext() {
                 if (delayUs > kMaxMonitorDelayUs) {
                     delayUs = kMaxMonitorDelayUs;
                 }
+<<<<<<< HEAD
                 ALOGV("sequence number high: %d from (%d .. %d), "
                       "monitor in %" PRId64 " (retry=%d)",
+=======
+                ALOGV("sequence number high: %ld from (%ld .. %ld), monitor in %lld (retry=%d)",
+>>>>>>> parent of 84333e0... warnings be gone.
                         mSeqNumber, firstSeqNumberInPlaylist,
                         lastSeqNumberInPlaylist, delayUs, mNumRetries);
                 postMonitorQueue(delayUs);

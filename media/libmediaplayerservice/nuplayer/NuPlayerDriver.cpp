@@ -482,8 +482,12 @@ status_t NuPlayerDriver::reset() {
 }
 
 status_t NuPlayerDriver::setLooping(int loop) {
+<<<<<<< HEAD
     mLooping = loop != 0;
     return OK;
+=======
+    return INVALID_OPERATION;
+>>>>>>> parent of 84333e0... warnings be gone.
 }
 
 player_type NuPlayerDriver::playerType() {
@@ -545,17 +549,16 @@ void NuPlayerDriver::setAudioSink(const sp<AudioSink> &audioSink) {
     mAudioSink = audioSink;
 }
 
-status_t NuPlayerDriver::setParameter(
-        int /* key */, const Parcel & /* request */) {
+status_t NuPlayerDriver::setParameter(int key, const Parcel &request) {
     return INVALID_OPERATION;
 }
 
-status_t NuPlayerDriver::getParameter(int /* key */, Parcel * /* reply */) {
+status_t NuPlayerDriver::getParameter(int key, Parcel *reply) {
     return INVALID_OPERATION;
 }
 
 status_t NuPlayerDriver::getMetadata(
-        const media::Metadata::Filter& /* ids */, Parcel *records) {
+        const media::Metadata::Filter& ids, Parcel *records) {
     Mutex::Autolock autoLock(mLock);
 
     using media::Metadata;
@@ -643,8 +646,7 @@ void NuPlayerDriver::notifyFrameStats(
     mNumFramesDropped = numFramesDropped;
 }
 
-status_t NuPlayerDriver::dump(
-        int fd, const Vector<String16> & /* args */) const {
+status_t NuPlayerDriver::dump(int fd, const Vector<String16> &args) const {
     Mutex::Autolock autoLock(mLock);
 
     FILE *out = fdopen(dup(fd), "w");

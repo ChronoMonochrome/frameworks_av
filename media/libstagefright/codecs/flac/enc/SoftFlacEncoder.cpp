@@ -27,12 +27,6 @@
 #define FLAC_COMPRESSION_LEVEL_DEFAULT 5
 #define FLAC_COMPRESSION_LEVEL_MAX     8
 
-#if LOG_NDEBUG
-#define UNUSED_UNLESS_VERBOSE(x) (void)(x)
-#else
-#define UNUSED_UNLESS_VERBOSE(x)
-#endif
-
 namespace android {
 
 template<class T>
@@ -263,8 +257,13 @@ OMX_ERRORTYPE SoftFlacEncoder::internalSetParameter(
 }
 
 void SoftFlacEncoder::onQueueFilled(OMX_U32 portIndex) {
+<<<<<<< HEAD
     UNUSED_UNLESS_VERBOSE(portIndex);
     ALOGV("SoftFlacEncoder::onQueueFilled(portIndex=%d)", portIndex);
+=======
+
+    ALOGV("SoftFlacEncoder::onQueueFilled(portIndex=%ld)", portIndex);
+>>>>>>> parent of 84333e0... warnings be gone.
 
     if (mSignalledError) {
         return;
@@ -349,12 +348,18 @@ void SoftFlacEncoder::onQueueFilled(OMX_U32 portIndex) {
     }
 }
 
+
 FLAC__StreamEncoderWriteStatus SoftFlacEncoder::onEncodedFlacAvailable(
             const FLAC__byte buffer[],
+<<<<<<< HEAD
             size_t bytes, unsigned samples,
             unsigned current_frame) {
     UNUSED_UNLESS_VERBOSE(current_frame);
     ALOGV("SoftFlacEncoder::onEncodedFlacAvailable(bytes=%zu, samples=%u, curr_frame=%u)",
+=======
+            size_t bytes, unsigned samples, unsigned current_frame) {
+    ALOGV("SoftFlacEncoder::onEncodedFlacAvailable(bytes=%d, samples=%d, curr_frame=%d)",
+>>>>>>> parent of 84333e0... warnings be gone.
             bytes, samples, current_frame);
 
 #ifdef WRITE_FLAC_HEADER_IN_FIRST_BUFFER
@@ -451,12 +456,8 @@ return_result:
 
 // static
 FLAC__StreamEncoderWriteStatus SoftFlacEncoder::flacEncoderWriteCallback(
-            const FLAC__StreamEncoder * /* encoder */,
-            const FLAC__byte buffer[],
-            size_t bytes,
-            unsigned samples,
-            unsigned current_frame,
-            void *client_data) {
+            const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[],
+            size_t bytes, unsigned samples, unsigned current_frame, void *client_data) {
     return ((SoftFlacEncoder*) client_data)->onEncodedFlacAvailable(
             buffer, bytes, samples, current_frame);
 }

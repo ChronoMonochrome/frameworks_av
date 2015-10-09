@@ -242,7 +242,7 @@ MatroskaSource::~MatroskaSource() {
     clearPendingFrames();
 }
 
-status_t MatroskaSource::start(MetaData * /* params */) {
+status_t MatroskaSource::start(MetaData *params) {
     mBlockIter.reset();
 
     return OK;
@@ -472,6 +472,7 @@ void BlockIterator::seek(
 
         if (isAudio || block()->IsKey()) {
             // Accept the first key frame
+<<<<<<< HEAD
             int64_t frameTimeUs = (block()->GetTime(mCluster) + 500LL) / 1000LL;
             if (thisTrack->GetType() == 1 || frameTimeUs >= seekTimeUs) {
                 *actualFrameTimeUs = frameTimeUs;
@@ -479,6 +480,12 @@ void BlockIterator::seek(
                       seekTimeUs, *actualFrameTimeUs);
                 break;
             }
+=======
+            *actualFrameTimeUs = (block()->GetTime(mCluster) + 500LL) / 1000LL;
+            ALOGV("Requested seek point: %lld actual: %lld",
+                  seekTimeUs, actualFrameTimeUs);
+            break;
+>>>>>>> parent of 84333e0... warnings be gone.
         }
     }
 }

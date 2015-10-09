@@ -19,11 +19,7 @@
 #define MY_HANDLER_H_
 
 //#define LOG_NDEBUG 0
-
-#ifndef LOG_TAG
 #define LOG_TAG "MyHandler"
-#endif
-
 #include <utils/Log.h>
 
 #include "APacketSource.h"
@@ -45,12 +41,6 @@
 #include <netdb.h>
 
 #include "HTTPBase.h"
-
-#if LOG_NDEBUG
-#define UNUSED_UNLESS_VERBOSE(x) (void)(x)
-#else
-#define UNUSED_UNLESS_VERBOSE(x)
-#endif
 
 // If no access units are received within 5 secs, assume that the rtp
 // stream has ended and signal end of stream.
@@ -188,7 +178,7 @@ struct MyHandler : public AHandler {
         mConn->connect(mOriginalSessionURL.c_str(), reply);
     }
 
-    AString getControlURL() {
+    AString getControlURL(sp<ASessionDescription> desc) {
         AString sessionLevelControlURL;
         if (mSessionDesc->findAttribute(
                 0,
@@ -568,7 +558,7 @@ struct MyHandler : public AHandler {
                                 mBaseURL = tmp;
                             }
 
-                            mControlURL = getControlURL();
+                            mControlURL = getControlURL(mSessionDesc);
 
                             if (mSessionDesc->countTracks() < 2) {
                                 // There's no actual tracks in this session.
@@ -614,7 +604,7 @@ struct MyHandler : public AHandler {
 
                         mSeekable = !isLiveStream(mSessionDesc);
 
-                        mControlURL = getControlURL();
+                        mControlURL = getControlURL(mSessionDesc);
 
                         if (mSessionDesc->countTracks() < 2) {
                             // There's no actual tracks in this session.
@@ -1828,8 +1818,6 @@ private:
     bool addMediaTimestamp(
             int32_t trackIndex, const TrackInfo *track,
             const sp<ABuffer> &accessUnit) {
-        UNUSED_UNLESS_VERBOSE(trackIndex);
-
         uint32_t rtpTime;
         CHECK(accessUnit->meta()->findInt32(
                     "rtp-time", (int32_t *)&rtpTime));

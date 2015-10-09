@@ -81,10 +81,11 @@ struct NuPlayer::Source : public AHandler {
     virtual status_t dequeueAccessUnit(
             bool audio, sp<ABuffer> *accessUnit) = 0;
 
-    virtual status_t getDuration(int64_t * /* durationUs */) {
+    virtual status_t getDuration(int64_t *durationUs) {
         return INVALID_OPERATION;
     }
 
+<<<<<<< HEAD
     virtual size_t getTrackCount() const {
         return 0;
     }
@@ -94,14 +95,17 @@ struct NuPlayer::Source : public AHandler {
     }
 
     virtual ssize_t getSelectedTrack(media_track_type /* type */) const {
+=======
+    virtual status_t getTrackInfo(Parcel* reply) const {
+>>>>>>> parent of 84333e0... warnings be gone.
         return INVALID_OPERATION;
     }
 
-    virtual status_t selectTrack(size_t /* trackIndex */, bool /* select */) {
+    virtual status_t selectTrack(size_t trackIndex, bool select) {
         return INVALID_OPERATION;
     }
 
-    virtual status_t seekTo(int64_t /* seekTimeUs */) {
+    virtual status_t seekTo(int64_t seekTimeUs) {
         return INVALID_OPERATION;
     }
 
@@ -118,6 +122,11 @@ protected:
 
     virtual void onMessageReceived(const sp<AMessage> &msg);
 
+<<<<<<< HEAD
+=======
+    virtual sp<MetaData> getFormatMeta(bool audio) { return NULL; }
+
+>>>>>>> parent of 84333e0... warnings be gone.
     sp<AMessage> dupNotify() const { return mNotify->dup(); }
 
     void notifyFlagsChanged(uint32_t flags);

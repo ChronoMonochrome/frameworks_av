@@ -33,8 +33,6 @@ LOCAL_C_INCLUDES := \
     $(TOP)/frameworks/av/media/libstagefright/include \
     $(TOP)/frameworks/native/include/media/openmax
 
-LOCAL_CFLAGS += -Werror
-
 include $(BUILD_STATIC_LIBRARY)
 
 ################################################################################
@@ -73,7 +71,5 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_MODULE := libstagefright_soft_mpeg4enc
 LOCAL_MODULE_TAGS := optional
-
-LOCAL_CFLAGS += -Werror
 
 include $(BUILD_SHARED_LIBRARY)

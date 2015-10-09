@@ -199,6 +199,7 @@ status_t MediaCodec::init(const char *name, bool nameIsType, bool encoder) {
         const sp<IMediaCodecList> mcl = MediaCodecList::getInstance();
         ssize_t codecIdx = mcl->findCodecByName(tmp.c_str());
         if (codecIdx >= 0) {
+<<<<<<< HEAD
             const sp<MediaCodecInfo> info = mcl->getCodecInfo(codecIdx);
             Vector<AString> mimes;
             info->getSupportedMimes(&mimes);
@@ -206,6 +207,15 @@ status_t MediaCodec::init(const char *name, bool nameIsType, bool encoder) {
                 if (mimes[i].startsWith("video/")) {
                     needDedicatedLooper = true;
                     break;
+=======
+            Vector<AString> types;
+            if (mcl->getSupportedTypes(codecIdx, &types) == OK) {
+                for (int i = 0; i < types.size(); i++) {
+                    if (types[i].startsWith("video/")) {
+                        needDedicatedLooper = true;
+                        break;
+                    }
+>>>>>>> parent of 84333e0... warnings be gone.
                 }
             }
         }

@@ -2294,7 +2294,7 @@ void NuPlayer::Source::notifyPrepared(status_t err) {
     notify->post();
 }
 
-void NuPlayer::Source::onMessageReceived(const sp<AMessage> & /* msg */) {
+void NuPlayer::Source::onMessageReceived(const sp<AMessage> &msg) {
     TRESPASS();
 }
 
