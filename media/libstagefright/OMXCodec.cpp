@@ -994,6 +994,7 @@ static OMX_U32 setPFramesSpacing(int32_t iFramesInterval, int32_t frameRate) {
         return 0;
     }
     OMX_U32 ret = frameRate * iFramesInterval - 1;
+    CHECK(ret > 1);
     return ret;
 }
 
