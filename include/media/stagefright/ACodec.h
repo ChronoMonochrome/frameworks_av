@@ -204,7 +204,6 @@ private:
 
     int32_t mEncoderDelay;
     int32_t mEncoderPadding;
-    int32_t mRotationDegrees;
 
     bool mChannelMaskPresent;
     int32_t mChannelMask;

@@ -770,7 +770,44 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                     sp<AMessage> inputFormat =
                             mSource->getFormat(false /* audio */);
 
-                    updateVideoSize(inputFormat, format);
+                    int32_t width, height;
+                    CHECK(format->findInt32("width", &width));
+                    CHECK(format->findInt32("height", &height));
+
+                    int32_t cropLeft, cropTop, cropRight, cropBottom;
+                    CHECK(format->findRect(
+                                "crop",
+                                &cropLeft, &cropTop, &cropRight, &cropBottom));
+
+                    int32_t displayWidth = cropRight - cropLeft + 1;
+                    int32_t displayHeight = cropBottom - cropTop + 1;
+
+                    ALOGV("Video output format changed to %d x %d "
+                         "(crop: %d x %d @ (%d, %d))",
+                         width, height,
+                         displayWidth,
+                         displayHeight,
+                         cropLeft, cropTop);
+
+                    sp<AMessage> videoInputFormat =
+                        mSource->getFormat(false /* audio */);
+
+                    // Take into account sample aspect ratio if necessary:
+                    int32_t sarWidth, sarHeight;
+                    if (videoInputFormat->findInt32("sar-width", &sarWidth)
+                            && videoInputFormat->findInt32(
+                                "sar-height", &sarHeight)) {
+                        ALOGV("Sample aspect ratio %d : %d",
+                              sarWidth, sarHeight);
+
+                        displayWidth = (displayWidth * sarWidth) / sarHeight;
+
+                        ALOGV("display dimensions %d x %d",
+                              displayWidth, displayHeight);
+                    }
+
+                    notifyListener(
+                            MEDIA_SET_VIDEO_SIZE, displayWidth, displayHeight);
                 }
             } else if (what == Decoder::kWhatShutdownCompleted) {
                 ALOGV("%s shutdown completed", audio ? "audio" : "video");

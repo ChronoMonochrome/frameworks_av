@@ -366,7 +366,6 @@ ACodec::ACodec()
       mExplicitShutdown(false),
       mEncoderDelay(0),
       mEncoderPadding(0),
-      mRotationDegrees(0),
       mChannelMaskPresent(false),
       mChannelMask(0),
       mDequeueCounter(0),
@@ -588,27 +587,6 @@ status_t ACodec::configureOutputBuffersFromNativeWindow(
         ALOGE("native_window_set_buffers_geometry failed: %s (%d)",
                 strerror(-err), -err);
         return err;
-    }
-
-    if (mRotationDegrees != 0) {
-        uint32_t transform = 0;
-        switch (mRotationDegrees) {
-            case 0: transform = 0; break;
-            case 90: transform = HAL_TRANSFORM_ROT_90; break;
-            case 180: transform = HAL_TRANSFORM_ROT_180; break;
-            case 270: transform = HAL_TRANSFORM_ROT_270; break;
-            default: transform = 0; break;
-        }
-
-        if (transform > 0) {
-            err = native_window_set_buffers_transform(
-                    mNativeWindow.get(), transform);
-            if (err != 0) {
-                ALOGE("native_window_set_buffers_transform failed: %s (%d)",
-                        strerror(-err), -err);
-                return err;
-            }
-        }
     }
 
     // Set up the native window.
@@ -1215,19 +1193,6 @@ status_t ACodec::configureCodec(
             ALOGV("[%s] storeMetaDataInBuffers succeeded", mComponentName.c_str());
             mStoreMetaDataInOutputBuffers = true;
             inputFormat->setInt32("adaptive-playback", true);
-        }
-
-        int32_t push;
-        if (msg->findInt32("push-blank-buffers-on-shutdown", &push)
-                && push != 0) {
-            mFlags |= kFlagPushBlankBuffersToNativeWindowOnShutdown;
-        }
-
-        int32_t rotationDegrees;
-        if (msg->findInt32("rotation-degrees", &rotationDegrees)) {
-            mRotationDegrees = rotationDegrees;
-        } else {
-            mRotationDegrees = 0;
         }
 
         int32_t push;
