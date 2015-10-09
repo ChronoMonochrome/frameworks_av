@@ -84,8 +84,6 @@ class Camera3OutputStream :
 
     virtual status_t  setTransformLocked(int transform);
 
-    bool mTraceFirstBuffer;
-
     /**
      * Internal Camera3Stream interface
      */
