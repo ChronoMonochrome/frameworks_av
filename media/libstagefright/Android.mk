@@ -87,7 +87,6 @@ LOCAL_SHARED_LIBRARIES := \
         liblog \
         libmedia \
         libnetd_client \
-        libopus \
         libsonivox \
         libssl \
         libstagefright_omx \

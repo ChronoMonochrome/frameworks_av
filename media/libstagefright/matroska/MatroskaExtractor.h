@@ -72,7 +72,6 @@ private:
     bool mExtractedThumbnails;
     bool mIsLiveStreaming;
     bool mIsWebm;
-    int64_t mSeekPreRollNs;
 
     void addTracks();
     void findThumbnails();
