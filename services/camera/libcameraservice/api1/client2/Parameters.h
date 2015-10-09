@@ -25,7 +25,6 @@
 #include <utils/Vector.h>
 #include <utils/KeyedVector.h>
 #include <camera/CameraParameters.h>
-#include <camera/CameraParameters2.h>
 #include <camera/CameraMetadata.h>
 
 namespace android {
@@ -33,7 +32,7 @@ namespace camera2 {
 
 /**
  * Current camera state; this is the full state of the Camera under the old
- * camera API (contents of the CameraParameters2 object in a more-efficient
+ * camera API (contents of the CameraParameters object in a more-efficient
  * format, plus other state). The enum values are mostly based off the
  * corresponding camera2 enums, not the camera1 strings. A few are defined here
  * if they don't cleanly map to camera2 values.
@@ -137,7 +136,7 @@ struct Parameters {
         LIGHTFX_HDR
     } lightFx;
 
-    CameraParameters2 params;
+    CameraParameters params;
     String8 paramsFlattened;
 
     // These parameters are also part of the camera API-visible state, but not
