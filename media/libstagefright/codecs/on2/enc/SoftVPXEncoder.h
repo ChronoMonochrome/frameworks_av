@@ -196,36 +196,6 @@ private:
     // something else.
     OMX_VIDEO_VP8LEVELTYPE mLevel;
 
-    // Key frame interval in frames
-    uint32_t mKeyFrameInterval;
-
-    // Minimum (best quality) quantizer
-    uint32_t mMinQuantizer;
-
-    // Maximum (worst quality) quantizer
-    uint32_t mMaxQuantizer;
-
-    // Number of coding temporal layers to be used.
-    size_t mTemporalLayers;
-
-    // Temporal layer bitrare ratio in percentage
-    uint32_t mTemporalLayerBitrateRatio[OMX_VIDEO_ANDROID_MAXVP8TEMPORALLAYERS];
-
-    // Temporal pattern type
-    OMX_VIDEO_ANDROID_VPXTEMPORALLAYERPATTERNTYPE mTemporalPatternType;
-
-    // Temporal pattern length
-    size_t mTemporalPatternLength;
-
-    // Temporal pattern current index
-    size_t mTemporalPatternIdx;
-
-    // Frame type temporal pattern
-    TemporalReferences mTemporalPattern[kMaxTemporalPattern];
-
-    // Last input buffer timestamp
-    OMX_TICKS mLastTimestamp;
-
     // Conversion buffer is needed to convert semi
     // planar yuv420 to planar format
     // It is only allocated if input format is
@@ -251,9 +221,6 @@ private:
     // dtor.
     status_t releaseEncoder();
 
-    // Get current encode flags
-    vpx_enc_frame_flags_t getEncodeFlags();
-
     // Handles port changes with respect to color formats
     OMX_ERRORTYPE internalSetFormatParams(
         const OMX_VIDEO_PARAM_PORTFORMATTYPE* format);
@@ -274,10 +241,6 @@ private:
     // Handles vp8 specific parameters.
     OMX_ERRORTYPE internalSetVp8Params(
         const OMX_VIDEO_PARAM_VP8TYPE* vp8Params);
-
-    // Handles Android vp8 specific parameters.
-    OMX_ERRORTYPE internalSetAndroidVp8Params(
-        const OMX_VIDEO_PARAM_ANDROID_VP8ENCODERTYPE* vp8AndroidParams);
 
     // Updates encoder profile
     OMX_ERRORTYPE internalSetProfileLevel(
