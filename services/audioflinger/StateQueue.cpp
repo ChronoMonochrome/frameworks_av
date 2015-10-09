@@ -28,12 +28,12 @@ namespace android {
 #ifdef STATE_QUEUE_DUMP
 void StateQueueObserverDump::dump(int fd)
 {
-    dprintf(fd, "State queue observer: stateChanges=%u\n", mStateChanges);
+    fdprintf(fd, "State queue observer: stateChanges=%u\n", mStateChanges);
 }
 
 void StateQueueMutatorDump::dump(int fd)
 {
-    dprintf(fd, "State queue mutator: pushDirty=%u pushAck=%u blockedSequence=%u\n",
+    fdprintf(fd, "State queue mutator: pushDirty=%u pushAck=%u blockedSequence=%u\n",
             mPushDirty, mPushAck, mBlockedSequence);
 }
 #endif
