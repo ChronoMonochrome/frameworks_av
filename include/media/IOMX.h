@@ -38,8 +38,8 @@ class IOMX : public IInterface {
 public:
     DECLARE_META_INTERFACE(OMX);
 
-    typedef uint32_t buffer_id;
-    typedef uint32_t node_id;
+    typedef void *buffer_id;
+    typedef void *node_id;
 
     // Given a node_id and the calling process' pid, returns true iff
     // the implementation of the OMX interface lives in the same
