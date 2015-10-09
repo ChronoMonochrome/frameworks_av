@@ -172,7 +172,7 @@ protected:
                  const sp<IGraphicBufferProducer>& surface,
                  bool storeMetaDataInVideoBuffers);
 
-    virtual status_t startCameraRecording();
+    virtual void startCameraRecording();
     virtual void releaseRecordingFrame(const sp<IMemory>& frame);
 
     // Returns true if need to skip the current frame.
