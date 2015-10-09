@@ -120,7 +120,6 @@ private:
         kWhatSetParameters           = 'setP',
         kWhatSubmitOutputMetaDataBufferIfEOS = 'subm',
         kWhatOMXDied                 = 'OMXd',
-        kWhatReleaseCodecInstance    = 'relC',
     };
 
     enum {
