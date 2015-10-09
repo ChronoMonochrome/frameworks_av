@@ -3244,10 +3244,8 @@ void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
     sp<ABuffer> buffer;
     int32_t err = OK;
     bool eos = false;
-    PortMode mode = getPortMode(kPortIndexInput);
 
     if (!msg->findBuffer("buffer", &buffer)) {
-        /* these are unfilled buffers returned by client */
         CHECK(msg->findInt32("err", &err));
 
         if (err == OK) {
@@ -3260,6 +3258,8 @@ void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
         }
 
         buffer.clear();
+
+        eos = true;
     }
 
     int32_t tmp;
@@ -3272,6 +3272,8 @@ void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
     CHECK_EQ((int)info->mStatus, (int)BufferInfo::OWNED_BY_UPSTREAM);
 
     info->mStatus = BufferInfo::OWNED_BY_US;
+
+    PortMode mode = getPortMode(kPortIndexInput);
 
     switch (mode) {
         case KEEP_BUFFERS:
