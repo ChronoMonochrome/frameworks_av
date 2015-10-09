@@ -80,8 +80,6 @@ private:
     sp<ALooper> mCodecLooper;
     sp<ALooper> mDecoderLooper;
 
-    List<sp<AMessage> > mPendingInputMessages;
-
     Vector<sp<ABuffer> > mInputBuffers;
     Vector<sp<ABuffer> > mOutputBuffers;
     Vector<sp<ABuffer> > mCSDsForCurrentFormat;
@@ -100,7 +98,7 @@ private:
     void onConfigure(const sp<AMessage> &format);
     void onFlush();
     void onResume();
-    bool onInputBufferFilled(const sp<AMessage> &msg);
+    void onInputBufferFilled(const sp<AMessage> &msg);
     void onRenderBuffer(const sp<AMessage> &msg);
     void onShutdown();
 
