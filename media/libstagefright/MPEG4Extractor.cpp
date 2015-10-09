@@ -46,8 +46,7 @@ namespace android {
 class MPEG4Source : public MediaSource {
 public:
     // Caller retains ownership of both "dataSource" and "sampleTable".
-    MPEG4Source(const sp<MPEG4Extractor> &owner,
-                const sp<MetaData> &format,
+    MPEG4Source(const sp<MetaData> &format,
                 const sp<DataSource> &dataSource,
                 int32_t timeScale,
                 const sp<SampleTable> &sampleTable,
@@ -69,8 +68,6 @@ protected:
 private:
     Mutex mLock;
 
-    // keep the MPEG4Extractor around, since we're referencing its data
-    sp<MPEG4Extractor> mOwner;
     sp<MetaData> mFormat;
     sp<DataSource> mDataSource;
     int32_t mTimescale;
@@ -2573,7 +2570,7 @@ sp<MediaSource> MPEG4Extractor::getTrack(size_t index) {
 
     ALOGV("getTrack called, pssh: %d", mPssh.size());
 
-    return new MPEG4Source(this,
+    return new MPEG4Source(
             track->meta, mDataSource, track->timescale, track->sampleTable,
             mSidxEntries, trex, mMoofOffset);
 }
@@ -2915,7 +2912,6 @@ status_t MPEG4Extractor::updateAudioTrackInfoFromESDS_MPEG4Audio(
 ////////////////////////////////////////////////////////////////////////////////
 
 MPEG4Source::MPEG4Source(
-        const sp<MPEG4Extractor> &owner,
         const sp<MetaData> &format,
         const sp<DataSource> &dataSource,
         int32_t timeScale,
@@ -2923,8 +2919,7 @@ MPEG4Source::MPEG4Source(
         Vector<SidxEntry> &sidx,
         const Trex *trex,
         off64_t firstMoofOffset)
-    : mOwner(owner),
-      mFormat(format),
+    : mFormat(format),
       mDataSource(dataSource),
       mTimescale(timeScale),
       mSampleTable(sampleTable),
