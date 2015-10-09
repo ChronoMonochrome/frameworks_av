@@ -16,7 +16,6 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "DummyVideoSource"
-#include <inttypes.h>
 #include <stdlib.h>
 #include <utils/Log.h>
 #include <media/stagefright/foundation/ADebug.h>
@@ -147,7 +146,7 @@ status_t DummyVideoSource::read(
     if (mIsFirstImageFrame) {
         M4OSA_clockGetTime(&mImagePlayStartTime, kTimeScale);
         mFrameTimeUs =  (mImageSeekTime + 1);
-        ALOGV("read: jpg 1st frame timeUs = %lld, begin cut time = %" PRIu32,
+        ALOGV("read: jpg 1st frame timeUs = %lld, begin cut time = %ld",
             mFrameTimeUs, mImageSeekTime);
 
         mIsFirstImageFrame = false;
