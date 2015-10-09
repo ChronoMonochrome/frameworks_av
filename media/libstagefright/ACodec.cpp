@@ -3713,7 +3713,7 @@ void ACodec::BaseState::onOutputBufferDrained(const sp<AMessage> &msg) {
             // API 20.  Perhaps check for target SDK version.
 #if 0
             if (info->mData->meta()->findInt64("timeUs", &timestampNs)) {
-                ALOGV("using buffer PTS of %" PRId64, timestampNs);
+                ALOGI("using buffer PTS of %" PRId64, timestampNs);
                 timestampNs *= 1000;
             }
 #endif
@@ -3723,6 +3723,8 @@ void ACodec::BaseState::onOutputBufferDrained(const sp<AMessage> &msg) {
         err = native_window_set_buffers_timestamp(mCodec->mNativeWindow.get(), timestampNs);
         if (err != OK) {
             ALOGW("failed to set buffer timestamp: %d", err);
+        } else {
+            ALOGI("set PTS to %" PRId64, timestampNs);
         }
 
         if ((err = mCodec->mNativeWindow->queueBuffer(
