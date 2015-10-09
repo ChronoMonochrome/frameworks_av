@@ -82,9 +82,7 @@ NuPlayer::Renderer::Renderer(
       mAudioRenderingStartGeneration(0),
       mAudioOffloadPauseTimeoutGeneration(0),
       mAudioOffloadTornDown(false),
-      mCurrentOffloadInfo(AUDIO_INFO_INITIALIZER),
-      mTotalBuffersQueued(0),
-      mLastAudioBufferDrained(0) {
+      mCurrentOffloadInfo(AUDIO_INFO_INITIALIZER) {
     readProperties();
 }
 
@@ -363,19 +361,6 @@ void NuPlayer::Renderer::onMessageReceived(const sp<AMessage> &msg) {
             break;
         }
 
-        case kWhatPostDrainVideoQueue:
-        {
-            int32_t generation;
-            CHECK(msg->findInt32("generation", &generation));
-            if (generation != mVideoQueueGeneration) {
-                break;
-            }
-
-            mDrainVideoQueuePending = false;
-            postDrainVideoQueue();
-            break;
-        }
-
         case kWhatQueueBuffer:
         {
             onQueueBuffer(msg);
@@ -595,8 +580,6 @@ bool NuPlayer::Renderer::onDrainAudioQueue() {
     while (numBytesAvailableToWrite > 0 && !mAudioQueue.empty()) {
         QueueEntry *entry = &*mAudioQueue.begin();
 
-        mLastAudioBufferDrained = entry->mBufferOrdinal;
-
         if (entry->mBuffer == NULL) {
             // EOS
             int64_t postEOSDelayUs = 0;
@@ -732,25 +715,6 @@ void NuPlayer::Renderer::postDrainVideoQueue() {
             realTimeUs = nowUs;
         } else {
             realTimeUs = getRealTimeUs(mediaTimeUs, nowUs);
-        }
-
-        // Heuristics to handle situation when media time changed without a
-        // discontinuity. If we have not drained an audio buffer that was
-        // received after this buffer, repost in 10 msec. Otherwise repost
-        // in 500 msec.
-        delayUs = realTimeUs - nowUs;
-        if (delayUs > 500000) {
-            int64_t postDelayUs = 500000;
-            if (mHasAudio && (mLastAudioBufferDrained - entry.mBufferOrdinal) <= 0) {
-                postDelayUs = 10000;
-            }
-            msg->setWhat(kWhatPostDrainVideoQueue);
-            msg->post(postDelayUs);
-            mVideoScheduler->restart();
-            ALOGI("possible video time jump of %dms, retrying in %dms",
-                    (int)(delayUs / 1000), (int)(postDelayUs / 1000));
-            mDrainVideoQueuePending = true;
-            return;
         }
     }
 
@@ -891,7 +855,6 @@ void NuPlayer::Renderer::onQueueBuffer(const sp<AMessage> &msg) {
     entry.mNotifyConsumed = notifyConsumed;
     entry.mOffset = 0;
     entry.mFinalResult = OK;
-    entry.mBufferOrdinal = ++mTotalBuffersQueued;
 
     if (audio) {
         Mutex::Autolock autoLock(mLock);
