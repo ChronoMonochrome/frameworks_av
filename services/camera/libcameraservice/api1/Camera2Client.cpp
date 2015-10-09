@@ -419,20 +419,12 @@ void Camera2Client::disconnect() {
 
     ALOGV("Camera %d: Waiting for threads", mCameraId);
 
-    {
-        // Don't wait with lock held, in case the other threads need to
-        // complete callbacks that re-enter Camera2Client
-        mBinderSerializationLock.unlock();
-
-        mStreamingProcessor->join();
-        mFrameProcessor->join();
-        mCaptureSequencer->join();
-        mJpegProcessor->join();
-        mZslProcessorThread->join();
-        mCallbackProcessor->join();
-
-        mBinderSerializationLock.lock();
-    }
+    mStreamingProcessor->join();
+    mFrameProcessor->join();
+    mCaptureSequencer->join();
+    mJpegProcessor->join();
+    mZslProcessorThread->join();
+    mCallbackProcessor->join();
 
     ALOGV("Camera %d: Deleting streams", mCameraId);
 
