@@ -2500,10 +2500,6 @@ void ACodec::waitUntilAllPossibleNativeWindowBuffersAreReturnedToUs() {
 
     while (countBuffersOwnedByNativeWindow() > mNumUndequeuedBuffers
             && dequeueBufferFromNativeWindow() != NULL) {
-        // these buffers will be submitted as regular buffers; account for this
-        if (mStoreMetaDataInOutputBuffers && mMetaDataBuffersToSubmit > 0) {
-            --mMetaDataBuffersToSubmit;
-        }
     }
 }
 
@@ -4293,9 +4289,10 @@ void ACodec::ExecutingState::submitRegularOutputBuffers() {
 }
 
 void ACodec::ExecutingState::submitOutputBuffers() {
-    submitRegularOutputBuffers();
     if (mCodec->mStoreMetaDataInOutputBuffers) {
         submitOutputMetaBuffers();
+    } else {
+        submitRegularOutputBuffers();
     }
 }
 
