@@ -503,10 +503,6 @@ ATSParser::Stream::Stream(
                     ElementaryStreamQueue::MPEG4_VIDEO);
             break;
 
-        case STREAMTYPE_LPCM_AC3:
-        case STREAMTYPE_AC3:
-            mQueue = new ElementaryStreamQueue(
-                    ElementaryStreamQueue::AC3);
             break;
 
         default:
@@ -618,8 +614,6 @@ bool ATSParser::Stream::isAudio() const {
         case STREAMTYPE_MPEG1_AUDIO:
         case STREAMTYPE_MPEG2_AUDIO:
         case STREAMTYPE_MPEG2_AUDIO_ADTS:
-        case STREAMTYPE_LPCM_AC3:
-        case STREAMTYPE_AC3:
             return true;
 
         default:
@@ -1273,13 +1267,8 @@ bool ATSParser::PTSTimeDeltaEstablished() {
 }
 
 void ATSParser::updatePCR(
-<<<<<<< HEAD
-        unsigned /* PID */, uint64_t PCR, size_t byteOffsetFromStart) {
-    ALOGV("PCR 0x%016" PRIx64 " @ %zu", PCR, byteOffsetFromStart);
-=======
         unsigned PID, uint64_t PCR, size_t byteOffsetFromStart) {
     ALOGV("PCR 0x%016llx @ %d", PCR, byteOffsetFromStart);
->>>>>>> parent of 84333e0... warnings be gone.
 
     if (mNumPCRs == 2) {
         mPCR[0] = mPCR[1];
