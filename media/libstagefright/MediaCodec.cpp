@@ -17,6 +17,7 @@
 //#define LOG_NDEBUG 0
 #define LOG_TAG "MediaCodec"
 #include <inttypes.h>
+#include <utils/Log.h>
 
 #include "include/avc_utils.h"
 #include "include/SoftwareRenderer.h"
@@ -445,16 +446,6 @@ status_t MediaCodec::renderOutputBufferAndRelease(size_t index) {
     sp<AMessage> msg = new AMessage(kWhatReleaseOutputBuffer, id());
     msg->setSize("index", index);
     msg->setInt32("render", true);
-
-    sp<AMessage> response;
-    return PostAndAwaitResponse(msg, &response);
-}
-
-status_t MediaCodec::renderOutputBufferAndRelease(size_t index, int64_t timestampNs) {
-    sp<AMessage> msg = new AMessage(kWhatReleaseOutputBuffer, id());
-    msg->setSize("index", index);
-    msg->setInt32("render", true);
-    msg->setInt64("timestampNs", timestampNs);
 
     sp<AMessage> response;
     return PostAndAwaitResponse(msg, &response);
@@ -1900,22 +1891,6 @@ status_t MediaCodec::onReleaseOutputBuffer(const sp<AMessage> &msg) {
 
     if (render && info->mData != NULL && info->mData->size() != 0) {
         info->mNotify->setInt32("render", true);
-
-        int64_t timestampNs = 0;
-        if (msg->findInt64("timestampNs", &timestampNs)) {
-            info->mNotify->setInt64("timestampNs", timestampNs);
-        } else {
-            // TODO: it seems like we should use the timestamp
-            // in the (media)buffer as it potentially came from
-            // an input surface, but we did not propagate it prior to
-            // API 20.  Perhaps check for target SDK version.
-#if 0
-            if (info->mData->meta()->findInt64("timeUs", &timestampNs)) {
-                ALOGI("using buffer PTS of %" PRId64, timestampNs);
-                timestampNs *= 1000;
-            }
-#endif
-        }
 
         if (mSoftRenderer != NULL) {
             mSoftRenderer->render(
