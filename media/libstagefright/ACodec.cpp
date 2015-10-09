@@ -3200,20 +3200,12 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                                         sizeof(describeParams.sMediaImage)));
                     }
 
-                    if (portIndex != kPortIndexOutput) {
-                        // TODO: also get input crop
-                        break;
-                    }
-
                     OMX_CONFIG_RECTTYPE rect;
                     InitOMXParams(&rect);
-                    rect.nPortIndex = portIndex;
+                    rect.nPortIndex = kPortIndexOutput;
 
                     if (mOMX->getConfig(
-                                mNode,
-                                (portIndex == kPortIndexOutput ?
-                                        OMX_IndexConfigCommonOutputCrop :
-                                        OMX_IndexConfigCommonInputCrop),
+                                mNode, OMX_IndexConfigCommonOutputCrop,
                                 &rect, sizeof(rect)) != OK) {
                         rect.nLeft = 0;
                         rect.nTop = 0;
