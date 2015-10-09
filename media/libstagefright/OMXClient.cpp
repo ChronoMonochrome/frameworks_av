@@ -69,10 +69,6 @@ struct MuxOMX : public IOMX {
     virtual status_t storeMetaDataInBuffers(
             node_id node, OMX_U32 port_index, OMX_BOOL enable);
 
-    virtual status_t prepareForAdaptivePlayback(
-            node_id node, OMX_U32 port_index, OMX_BOOL enable,
-            OMX_U32 maxFrameWidth, OMX_U32 maxFrameHeight);
-
     virtual status_t enableGraphicBuffers(
             node_id node, OMX_U32 port_index, OMX_BOOL enable);
 
@@ -270,13 +266,6 @@ status_t MuxOMX::getState(
 status_t MuxOMX::storeMetaDataInBuffers(
         node_id node, OMX_U32 port_index, OMX_BOOL enable) {
     return getOMX(node)->storeMetaDataInBuffers(node, port_index, enable);
-}
-
-status_t MuxOMX::prepareForAdaptivePlayback(
-        node_id node, OMX_U32 port_index, OMX_BOOL enable,
-        OMX_U32 maxFrameWidth, OMX_U32 maxFrameHeight) {
-    return getOMX(node)->prepareForAdaptivePlayback(
-            node, port_index, enable, maxFrameWidth, maxFrameHeight);
 }
 
 status_t MuxOMX::enableGraphicBuffers(
