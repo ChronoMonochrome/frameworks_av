@@ -73,10 +73,11 @@ status_t JpegProcessor::updateStream(const Parameters &params) {
     }
 
     // Find out buffer size for JPEG
-    ssize_t maxJpegSize = device->getJpegBufferSize(params.pictureWidth, params.pictureHeight);
-    if (maxJpegSize <= 0) {
-        ALOGE("%s: Camera %d: Jpeg buffer size (%zu) is invalid ",
-                __FUNCTION__, mId, maxJpegSize);
+    camera_metadata_ro_entry_t maxJpegSize =
+            params.staticInfo(ANDROID_JPEG_MAX_SIZE);
+    if (maxJpegSize.count == 0) {
+        ALOGE("%s: Camera %d: Can't find ANDROID_JPEG_MAX_SIZE!",
+                __FUNCTION__, mId);
         return INVALID_OPERATION;
     }
 
@@ -90,7 +91,8 @@ status_t JpegProcessor::updateStream(const Parameters &params) {
         mCaptureConsumer->setName(String8("Camera2Client::CaptureConsumer"));
         mCaptureWindow = new Surface(producer);
         // Create memory for API consumption
-        mCaptureHeap = new MemoryHeapBase(maxJpegSize, 0, "Camera2Client::CaptureHeap");
+        mCaptureHeap = new MemoryHeapBase(maxJpegSize.data.i32[0], 0,
+                                       "Camera2Client::CaptureHeap");
         if (mCaptureHeap->getSize() == 0) {
             ALOGE("%s: Camera %d: Unable to allocate memory for capture",
                     __FUNCTION__, mId);
@@ -132,7 +134,8 @@ status_t JpegProcessor::updateStream(const Parameters &params) {
         // Create stream for HAL production
         res = device->createStream(mCaptureWindow,
                 params.pictureWidth, params.pictureHeight,
-                HAL_PIXEL_FORMAT_BLOB, &mCaptureStreamId);
+                HAL_PIXEL_FORMAT_BLOB, maxJpegSize.data.i32[0],
+                &mCaptureStreamId);
         if (res != OK) {
             ALOGE("%s: Camera %d: Can't create output stream for capture: "
                     "%s (%d)", __FUNCTION__, mId,
