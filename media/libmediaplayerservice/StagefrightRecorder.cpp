@@ -183,7 +183,11 @@ status_t StagefrightRecorder::setVideoEncoder(video_encoder ve) {
         return BAD_VALUE;
     }
 
-    mVideoEncoder = ve;
+    if (ve == VIDEO_ENCODER_DEFAULT) {
+        mVideoEncoder = VIDEO_ENCODER_H263;
+    } else {
+        mVideoEncoder = ve;
+    }
 
     return OK;
 }
@@ -1029,7 +1033,6 @@ status_t StagefrightRecorder::setupRTPRecording() {
     if (mAudioSource != AUDIO_SOURCE_CNT) {
         source = createAudioSource();
     } else {
-        setDefaultVideoEncoderIfNecessary();
 
         sp<MediaSource> mediaSource;
         status_t err = setupMediaSource(&mediaSource);
@@ -1071,7 +1074,6 @@ status_t StagefrightRecorder::setupMPEG2TSRecording() {
 
     if (mVideoSource < VIDEO_SOURCE_LIST_END) {
         if (mVideoEncoder != VIDEO_ENCODER_H264) {
-            ALOGE("MPEG2TS recording only supports H.264 encoding!");
             return ERROR_UNSUPPORTED;
         }
 
@@ -1106,12 +1108,6 @@ status_t StagefrightRecorder::setupMPEG2TSRecording() {
 
 void StagefrightRecorder::clipVideoFrameRate() {
     ALOGV("clipVideoFrameRate: encoder %d", mVideoEncoder);
-    if (mFrameRate == -1) {
-        mFrameRate = mEncoderProfiles->getCamcorderProfileParamByName(
-                "vid.fps", mCameraId, CAMCORDER_QUALITY_LOW);
-        ALOGW("Using default video fps %d", mFrameRate);
-    }
-
     int minFrameRate = mEncoderProfiles->getVideoEncoderParamByName(
                         "enc.vid.fps.min", mVideoEncoder);
     int maxFrameRate = mEncoderProfiles->getVideoEncoderParamByName(
@@ -1243,27 +1239,6 @@ void StagefrightRecorder::setDefaultProfileIfNecessary() {
         if (videoCodec == VIDEO_ENCODER_H264) {
             ALOGI("Force to use AVC baseline profile");
             setParamVideoEncoderProfile(OMX_VIDEO_AVCProfileBaseline);
-        }
-    }
-}
-
-void StagefrightRecorder::setDefaultVideoEncoderIfNecessary() {
-    if (mVideoEncoder == VIDEO_ENCODER_DEFAULT) {
-        if (mOutputFormat == OUTPUT_FORMAT_WEBM) {
-            // default to VP8 for WEBM recording
-            mVideoEncoder = VIDEO_ENCODER_VP8;
-        } else {
-            // pick the default encoder for CAMCORDER_QUALITY_LOW
-            int videoCodec = mEncoderProfiles->getCamcorderProfileParamByName(
-                    "vid.codec", mCameraId, CAMCORDER_QUALITY_LOW);
-
-            if (videoCodec > VIDEO_ENCODER_DEFAULT &&
-                videoCodec < VIDEO_ENCODER_LIST_END) {
-                mVideoEncoder = (video_encoder)videoCodec;
-            } else {
-                // default to H.264 if camcorder profile not available
-                mVideoEncoder = VIDEO_ENCODER_H264;
-            }
         }
     }
 }
@@ -1576,7 +1551,6 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
     }
 
     if (mVideoSource < VIDEO_SOURCE_LIST_END) {
-        setDefaultVideoEncoderIfNecessary();
 
         sp<MediaSource> mediaSource;
         err = setupMediaSource(&mediaSource);
@@ -1736,7 +1710,7 @@ status_t StagefrightRecorder::reset() {
     // Default parameters
     mOutputFormat  = OUTPUT_FORMAT_THREE_GPP;
     mAudioEncoder  = AUDIO_ENCODER_AMR_NB;
-    mVideoEncoder  = VIDEO_ENCODER_DEFAULT;
+    mVideoEncoder  = VIDEO_ENCODER_H263;
     mVideoWidth    = 176;
     mVideoHeight   = 144;
     mFrameRate     = -1;
