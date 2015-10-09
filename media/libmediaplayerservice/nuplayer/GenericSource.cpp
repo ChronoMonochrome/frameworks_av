@@ -36,7 +36,6 @@
 #include "../../libstagefright/include/DRMExtractor.h"
 #include "../../libstagefright/include/NuCachedSource2.h"
 #include "../../libstagefright/include/WVMExtractor.h"
-#include "../../libstagefright/include/HTTPBase.h"
 
 namespace android {
 
@@ -65,7 +64,6 @@ void NuPlayer::GenericSource::resetDataSource() {
     mAudioTimeUs = 0;
     mVideoTimeUs = 0;
     mHTTPService.clear();
-    mHttpSource.clear();
     mUri.clear();
     mUriHeaders.clear();
     mFd = -1;
@@ -287,23 +285,10 @@ void NuPlayer::GenericSource::onPrepareAsync() {
     // delayed data source creation
     if (mDataSource == NULL) {
         if (!mUri.empty()) {
-            const char* uri = mUri.c_str();
-            mIsWidevine = !strncasecmp(uri, "widevine://", 11);
-
-            if (!strncasecmp("http://", uri, 7)
-                    || !strncasecmp("https://", uri, 8)
-                    || mIsWidevine) {
-                mHttpSource = DataSource::CreateMediaHTTP(mHTTPService);
-                if (mHttpSource == NULL) {
-                    ALOGE("Failed to create http source!");
-                    notifyPreparedAndCleanup(UNKNOWN_ERROR);
-                    return;
-                }
-            }
+            mIsWidevine = !strncasecmp(mUri.c_str(), "widevine://", 11);
 
             mDataSource = DataSource::CreateFromURI(
-                   mHTTPService, uri, &mUriHeaders, &mContentType,
-                   static_cast<HTTPBase *>(mHttpSource.get()));
+                   mHTTPService, mUri.c_str(), &mUriHeaders, &mContentType);
         } else {
             // set to false first, if the extractor
             // comes back as secure, set it to true then.
@@ -376,7 +361,6 @@ void NuPlayer::GenericSource::notifyPreparedAndCleanup(status_t err) {
         mSniffedMIME = "";
         mDataSource.clear();
         mCachedSource.clear();
-        mHttpSource.clear();
 
         cancelPollBuffering();
     }
@@ -503,8 +487,6 @@ void NuPlayer::GenericSource::disconnect() {
         if (mDataSource->flags() & DataSource::kIsCachingDataSource) {
             static_cast<NuCachedSource2 *>(mDataSource.get())->disconnect();
         }
-    } else if (mHttpSource != NULL) {
-        static_cast<HTTPBase *>(mHttpSource.get())->disconnect();
     }
 }
 
