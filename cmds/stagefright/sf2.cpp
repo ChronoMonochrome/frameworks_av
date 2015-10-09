@@ -211,28 +211,28 @@ protected:
                 int32_t what;
                 CHECK(msg->findInt32("what", &what));
 
-                if (what == CodecBase::kWhatFillThisBuffer) {
+                if (what == ACodec::kWhatFillThisBuffer) {
                     onFillThisBuffer(msg);
-                } else if (what == CodecBase::kWhatDrainThisBuffer) {
+                } else if (what == ACodec::kWhatDrainThisBuffer) {
                     if ((mNumOutputBuffersReceived++ % 16) == 0) {
                         printf(".");
                         fflush(stdout);
                     }
 
                     onDrainThisBuffer(msg);
-                } else if (what == CodecBase::kWhatEOS
-                        || what == CodecBase::kWhatError) {
-                    printf((what == CodecBase::kWhatEOS) ? "$\n" : "E\n");
+                } else if (what == ACodec::kWhatEOS
+                        || what == ACodec::kWhatError) {
+                    printf((what == ACodec::kWhatEOS) ? "$\n" : "E\n");
 
                     printStatistics();
                     (new AMessage(kWhatStop, id()))->post();
-                } else if (what == CodecBase::kWhatFlushCompleted) {
+                } else if (what == ACodec::kWhatFlushCompleted) {
                     mSeekState = SEEK_FLUSH_COMPLETED;
                     mCodec->signalResume();
 
                     (new AMessage(kWhatSeek, id()))->post(5000000ll);
-                } else if (what == CodecBase::kWhatOutputFormatChanged) {
-                } else if (what == CodecBase::kWhatShutdownCompleted) {
+                } else if (what == ACodec::kWhatOutputFormatChanged) {
+                } else if (what == ACodec::kWhatShutdownCompleted) {
                     mDecodeLooper->unregisterHandler(mCodec->id());
 
                     if (mDecodeLooper != looper()) {
@@ -240,6 +240,12 @@ protected:
                     }
 
                     looper()->stop();
+                } else if (what == ACodec::kWhatError) {
+                    ALOGE("something went wrong, codec reported an error.");
+
+                    printf("E\n");
+
+                    (new AMessage(kWhatStop, id()))->post();
                 }
                 break;
             }
