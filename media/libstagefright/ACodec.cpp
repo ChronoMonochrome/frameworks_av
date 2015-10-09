@@ -813,10 +813,7 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
 
     for (OMX_U32 i = cancelStart; i < cancelEnd; i++) {
         BufferInfo *info = &mBuffers[kPortIndexOutput].editItemAt(i);
-        status_t error = cancelBufferToNativeWindow(info);
-        if (err == 0) {
-            err = error;
-        }
+        cancelBufferToNativeWindow(info);
     }
 
     return err;
@@ -891,12 +888,11 @@ status_t ACodec::cancelBufferToNativeWindow(BufferInfo *info) {
     int err = mNativeWindow->cancelBuffer(
         mNativeWindow.get(), info->mGraphicBuffer.get(), -1);
 
-    ALOGW_IF(err != 0, "[%s] can not return buffer %u to native window",
-            mComponentName.c_str(), info->mBufferID);
+    CHECK_EQ(err, 0);
 
     info->mStatus = BufferInfo::OWNED_BY_NATIVE_WINDOW;
 
-    return err;
+    return OK;
 }
 
 ACodec::BufferInfo *ACodec::dequeueBufferFromNativeWindow() {
@@ -996,7 +992,7 @@ status_t ACodec::freeBuffer(OMX_U32 portIndex, size_t i) {
 
     if (portIndex == kPortIndexOutput && mNativeWindow != NULL
             && info->mStatus == BufferInfo::OWNED_BY_US) {
-        cancelBufferToNativeWindow(info);
+        CHECK_EQ((status_t)OK, cancelBufferToNativeWindow(info));
     }
 
     CHECK_EQ(mOMX->freeBuffer(
