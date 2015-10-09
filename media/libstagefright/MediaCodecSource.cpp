@@ -51,7 +51,7 @@ struct MediaCodecSource::Puller : public AHandler {
     Puller(const sp<MediaSource> &source);
 
     status_t start(const sp<MetaData> &meta, const sp<AMessage> &notify);
-    void stop();
+    void stopAsync();
 
     void pause();
     void resume();
@@ -136,17 +136,8 @@ status_t MediaCodecSource::Puller::start(const sp<MetaData> &meta,
     return postSynchronouslyAndReturnError(msg);
 }
 
-void MediaCodecSource::Puller::stop() {
-    // Stop source from caller's thread instead of puller's looper.
-    // mSource->stop() is thread-safe, doing it outside the puller's
-    // looper allows us to at least stop if source gets stuck.
-    // If source gets stuck in read(), the looper would never
-    // be able to process the stop(), which could lead to ANR.
-
-    ALOGV("source (%s) stopping", mIsAudio ? "audio" : "video");
-    mSource->stop();
-    ALOGV("source (%s) stopped", mIsAudio ? "audio" : "video");
-
+void MediaCodecSource::Puller::stopAsync() {
+    ALOGV("puller (%s) stopAsync", mIsAudio ? "audio" : "video");
     (new AMessage(kWhatStop, id()))->post();
 }
 
@@ -200,6 +191,9 @@ void MediaCodecSource::Puller::onMessageReceived(const sp<AMessage> &msg) {
 
         case kWhatStop:
         {
+            ALOGV("source (%s) stopping", mIsAudio ? "audio" : "video");
+            mSource->stop();
+            ALOGV("source (%s) stopped", mIsAudio ? "audio" : "video");
             ++mPullGeneration;
 
             handleEOS();
@@ -286,21 +280,7 @@ status_t MediaCodecSource::start(MetaData* params) {
 
 status_t MediaCodecSource::stop() {
     sp<AMessage> msg = new AMessage(kWhatStop, mReflector->id());
-    status_t err = postSynchronouslyAndReturnError(msg);
-
-    // mPuller->stop() needs to be done outside MediaCodecSource's looper,
-    // as it contains a synchronous call to stop the underlying MediaSource,
-    // which often waits for all outstanding MediaBuffers to return, but
-    // MediaBuffers are only returned when MediaCodecSource looper gets
-    // to process them.
-
-    if (mPuller != NULL) {
-        ALOGI("puller (%s) stopping", mIsVideo ? "video" : "audio");
-        mPuller->stop();
-        ALOGI("puller (%s) stopped", mIsVideo ? "video" : "audio");
-    }
-
-    return err;
+    return postSynchronouslyAndReturnError(msg);
 }
 
 status_t MediaCodecSource::pause() {
@@ -318,10 +298,10 @@ status_t MediaCodecSource::read(
     Mutex::Autolock autolock(mOutputBufferLock);
 
     *buffer = NULL;
-    while (mOutputBufferQueue.size() == 0 && !mEncoderReachedEOS) {
+    while (mOutputBufferQueue.size() == 0 && !mEncodedReachedEOS) {
         mOutputBufferCond.wait(mOutputBufferLock);
     }
-    if (!mEncoderReachedEOS) {
+    if (!mEncodedReachedEOS) {
         *buffer = *mOutputBufferQueue.begin();
         mOutputBufferQueue.erase(mOutputBufferQueue.begin());
         return OK;
@@ -347,8 +327,9 @@ MediaCodecSource::MediaCodecSource(
       mStarted(false),
       mStopping(false),
       mDoMoreWorkPending(false),
+      mPullerReachedEOS(false),
       mFirstSampleTimeUs(-1ll),
-      mEncoderReachedEOS(false),
+      mEncodedReachedEOS(false),
       mErrorCode(OK) {
     CHECK(mLooper != NULL);
 
@@ -450,7 +431,7 @@ status_t MediaCodecSource::initEncoder() {
         return err;
     }
 
-    mEncoderReachedEOS = false;
+    mEncodedReachedEOS = false;
     mErrorCode = OK;
 
     return OK;
@@ -481,6 +462,10 @@ void MediaCodecSource::releaseEncoder() {
     mEncoderOutputBuffers.clear();
 }
 
+bool MediaCodecSource::reachedEOS() {
+    return mEncodedReachedEOS && ((mPuller == NULL) || mPullerReachedEOS);
+}
+
 status_t MediaCodecSource::postSynchronouslyAndReturnError(
         const sp<AMessage> &msg) {
     sp<AMessage> response;
@@ -498,8 +483,8 @@ status_t MediaCodecSource::postSynchronouslyAndReturnError(
 }
 
 void MediaCodecSource::signalEOS(status_t err) {
-    if (!mEncoderReachedEOS) {
-        ALOGV("encoder (%s) reached EOS", mIsVideo ? "video" : "audio");
+    if (!mEncodedReachedEOS) {
+        ALOGI("encoder (%s) reached EOS", mIsVideo ? "video" : "audio");
         {
             Mutex::Autolock autoLock(mOutputBufferLock);
             // release all unread media buffers
@@ -508,15 +493,16 @@ void MediaCodecSource::signalEOS(status_t err) {
                 (*it)->release();
             }
             mOutputBufferQueue.clear();
-            mEncoderReachedEOS = true;
+            mEncodedReachedEOS = true;
             mErrorCode = err;
             mOutputBufferCond.signal();
         }
 
         releaseEncoder();
     }
-    if (mStopping && mEncoderReachedEOS) {
-        ALOGI("encoder (%s) stopped", mIsVideo ? "video" : "audio");
+    if (mStopping && reachedEOS()) {
+        ALOGI("MediaCodecSource (%s) fully stopped",
+                mIsVideo ? "video" : "audio");
         // posting reply to everyone that's waiting
         List<uint32_t>::iterator it;
         for (it = mStopReplyIDQueue.begin();
@@ -766,6 +752,7 @@ status_t MediaCodecSource::onStart(MetaData *params) {
                 kWhatPullerNotify, mReflector->id());
         err = mPuller->start(params, notify);
         if (err != OK) {
+            mPullerReachedEOS = true;
             return err;
         }
     }
@@ -784,9 +771,9 @@ void MediaCodecSource::onMessageReceived(const sp<AMessage> &msg) {
         CHECK(msg->findPointer("accessUnit", (void**)&mbuf));
 
         if (mbuf == NULL) {
-            ALOGV("puller (%s) reached EOS",
+            ALOGI("puller (%s) reached EOS",
                     mIsVideo ? "video" : "audio");
-            signalEOS();
+            mPullerReachedEOS = true;
         }
 
         if (mEncoder == NULL) {
@@ -795,8 +782,9 @@ void MediaCodecSource::onMessageReceived(const sp<AMessage> &msg) {
 
             if (mbuf != NULL) {
                 mbuf->release();
+            } else {
+                signalEOS();
             }
-
             break;
         }
 
@@ -842,14 +830,14 @@ void MediaCodecSource::onMessageReceived(const sp<AMessage> &msg) {
     }
     case kWhatStop:
     {
-        ALOGI("encoder (%s) stopping", mIsVideo ? "video" : "audio");
+        ALOGI("MediaCodecSource (%s) stopping", mIsVideo ? "video" : "audio");
 
         uint32_t replyID;
         CHECK(msg->senderAwaitsResponse(&replyID));
 
-        if (mEncoderReachedEOS) {
+        if (reachedEOS()) {
             // if we already reached EOS, reply and return now
-            ALOGI("encoder (%s) already stopped",
+            ALOGI("MediaCodecSource (%s) already stopped",
                     mIsVideo ? "video" : "audio");
             (new AMessage)->postReply(replyID);
             break;
@@ -869,6 +857,8 @@ void MediaCodecSource::onMessageReceived(const sp<AMessage> &msg) {
         if (mFlags & FLAG_USE_SURFACE_INPUT) {
             mEncoder->signalEndOfInputStream();
         } else {
+            CHECK(mPuller != NULL);
+            mPuller->stopAsync();
             signalEOS();
         }
         break;
