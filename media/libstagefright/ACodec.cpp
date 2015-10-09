@@ -3946,7 +3946,8 @@ void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
                             (outputMode == FREE_BUFFERS ? "FREE" :
                              outputMode == KEEP_BUFFERS ? "KEEP" : "RESUBMIT"));
                     if (outputMode == RESUBMIT_BUFFERS) {
-                        mCodec->submitOutputMetaDataBuffer();
+                        CHECK_EQ(mCodec->submitOutputMetaDataBuffer(),
+                                (status_t)OK);
                     }
                 }
 
