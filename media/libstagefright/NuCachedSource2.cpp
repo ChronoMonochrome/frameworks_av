@@ -666,7 +666,7 @@ void NuCachedSource2::updateCacheParamsFromString(const char *s) {
     ssize_t lowwaterMarkKb, highwaterMarkKb;
     int keepAliveSecs;
 
-    if (sscanf(s, "%zd/%zd/%d",
+    if (sscanf(s, "%d/%d/%d",
                &lowwaterMarkKb, &highwaterMarkKb, &keepAliveSecs) != 3) {
         ALOGE("Failed to parse cache parameters from '%s'.", s);
         return;
