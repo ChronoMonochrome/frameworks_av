@@ -421,7 +421,7 @@ AwesomePlayer::AwesomePlayer()
       mAudioTearDown(false) {
     CHECK_EQ(mClient.connect(), (status_t)OK);
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     mVideoEvent = new AwesomeEvent(this, &AwesomePlayer::onVideoEvent);
     mVideoEventPending = false;
@@ -2521,16 +2521,7 @@ status_t AwesomePlayer::finishSetDataSource_l() {
                         String8 tmp;
                         float confidence;
                         sp<AMessage> meta;
-                        if (!dataSource->sniff(&tmp, &confidence, &meta)) {
-                            mLock.lock();
                             return UNKNOWN_ERROR;
-                        }
-
-                        // We successfully identified the file's extractor to
-                        // be, remember this mime type so we don't have to
-                        // sniff it again when we call MediaExtractor::Create()
-                        // below.
-                        sniffedMIME = tmp.string();
 
                         if (meta == NULL
                                 || !meta->findInt64("meta-data-size",

@@ -439,7 +439,7 @@ StagefrightMetadataRetriever::StagefrightMetadataRetriever()
       mAlbumArt(NULL) {
     ALOGV("StagefrightMetadataRetriever()");
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
     CHECK_EQ(mClient.connect(), (status_t)OK);
 }
 

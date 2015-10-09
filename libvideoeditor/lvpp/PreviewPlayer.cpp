@@ -92,7 +92,7 @@ PreviewPlayer::PreviewPlayer(NativeWindowRenderer* renderer)
       mFrameYUVBuffer(NULL) {
 
     CHECK_EQ(mClient.connect(), (status_t)OK);
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
 
     mVideoRenderer = NULL;

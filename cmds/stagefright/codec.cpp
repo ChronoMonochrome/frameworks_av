@@ -771,7 +771,7 @@ int main(int argc, char **argv) {
 
     ProcessState::self()->startThreadPool();
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     sp<ALooper> looper = new ALooper;
     looper->start();

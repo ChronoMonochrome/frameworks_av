@@ -40,7 +40,7 @@ NuPlayer::GenericSource::GenericSource(
     : Source(notify),
       mDurationUs(0ll),
       mAudioIsVorbis(false) {
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     sp<DataSource> dataSource =
         DataSource::CreateFromURI(url, headers);
@@ -55,7 +55,7 @@ NuPlayer::GenericSource::GenericSource(
     : Source(notify),
       mDurationUs(0ll),
       mAudioIsVorbis(false) {
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     sp<DataSource> dataSource = new FileSource(dup(fd), offset, length);
 
