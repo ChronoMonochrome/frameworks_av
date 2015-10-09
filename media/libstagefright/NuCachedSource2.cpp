@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
-
 //#define LOG_NDEBUG 0
 #define LOG_TAG "NuCachedSource2"
 #include <utils/Log.h>
@@ -137,7 +135,7 @@ size_t PageCache::releaseFromStart(size_t maxBytes) {
 }
 
 void PageCache::copy(size_t from, void *data, size_t size) {
-    ALOGV("copy from %zu size %zu", from, size);
+    ALOGV("copy from %d size %d", from, size);
 
     if (size == 0) {
         return;
@@ -368,7 +366,7 @@ void NuCachedSource2::fetchInternal() {
             mNumRetriesLeft = 0;
         }
 
-        ALOGE("source returned error %zd, %d retries left", n, mNumRetriesLeft);
+        ALOGE("source returned error %d, %d retries left", n, mNumRetriesLeft);
         mCache->releasePage(page);
     } else {
         if (mFinalStatus != OK) {
@@ -496,14 +494,14 @@ void NuCachedSource2::restartPrefetcherIfNecessary_l(
     size_t actualBytes = mCache->releaseFromStart(maxBytes);
     mCacheOffset += actualBytes;
 
-    ALOGI("restarting prefetcher, totalSize = %zu", mCache->totalSize());
+    ALOGI("restarting prefetcher, totalSize = %d", mCache->totalSize());
     mFetching = true;
 }
 
 ssize_t NuCachedSource2::readAt(off64_t offset, void *data, size_t size) {
     Mutex::Autolock autoSerializer(mSerializer);
 
-    ALOGV("readAt offset %lld, size %zu", offset, size);
+    ALOGV("readAt offset %lld, size %d", offset, size);
 
     Mutex::Autolock autoLock(mLock);
     if (mDisconnecting) {
@@ -579,7 +577,7 @@ size_t NuCachedSource2::approxDataRemaining_l(status_t *finalStatus) const {
 ssize_t NuCachedSource2::readInternal(off64_t offset, void *data, size_t size) {
     CHECK_LE(size, (size_t)mHighwaterThresholdBytes);
 
-    ALOGV("readInternal offset %lld size %zu", offset, size);
+    ALOGV("readInternal offset %lld size %d", offset, size);
 
     Mutex::Autolock autoLock(mLock);
 
@@ -719,7 +717,7 @@ void NuCachedSource2::updateCacheParamsFromString(const char *s) {
         mKeepAliveIntervalUs = kDefaultKeepAliveIntervalUs;
     }
 
-    ALOGV("lowwater = %zu bytes, highwater = %zu bytes, keepalive = %" PRId64 " us",
+    ALOGV("lowwater = %d bytes, highwater = %d bytes, keepalive = %lld us",
          mLowwaterThresholdBytes,
          mHighwaterThresholdBytes,
          mKeepAliveIntervalUs);

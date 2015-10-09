@@ -682,7 +682,7 @@ void MPEG2TSWriter::onMessageReceived(const sp<AMessage> &msg) {
                     break;
                 }
 
-                ALOGV("writing access unit at time %.2f secs (index %zu)",
+                ALOGV("writing access unit at time %.2f secs (index %d)",
                      minTimeUs / 1E6, minIndex);
 
                 source = mSources.editItemAt(minIndex);

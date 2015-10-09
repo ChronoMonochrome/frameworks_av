@@ -414,7 +414,7 @@ status_t WAVSource::read(
         } else {
             pos = (seekTimeUs * mSampleRate) / 1000000 * mNumChannels * (mBitsPerSample >> 3);
         }
-        if (pos > (off64_t)mSize) {
+        if (pos > mSize) {
             pos = mSize;
         }
         mCurrentPos = pos + mOffset;
