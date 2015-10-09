@@ -67,7 +67,6 @@ class ZslProcessor:
 
     status_t updateStream(const Parameters &params);
     status_t deleteStream();
-    status_t disconnect();
     int getStreamId() const;
 
     status_t pushToReprocess(int32_t requestId);
@@ -86,8 +85,6 @@ class ZslProcessor:
     wp<CameraDeviceBase> mDevice;
     wp<CaptureSequencer> mSequencer;
     int mId;
-
-    bool mDeleted;
 
     mutable Mutex mInputMutex;
     bool mZslBufferAvailable;

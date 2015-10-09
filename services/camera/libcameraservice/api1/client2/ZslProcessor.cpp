@@ -48,7 +48,6 @@ ZslProcessor::ZslProcessor(
         mDevice(client->getCameraDevice()),
         mSequencer(sequencer),
         mId(client->getCameraId()),
-        mDeleted(false),
         mZslBufferAvailable(false),
         mZslStreamId(NO_STREAM),
         mZslReprocessStreamId(NO_STREAM),
@@ -63,7 +62,7 @@ ZslProcessor::ZslProcessor(
 
 ZslProcessor::~ZslProcessor() {
     ALOGV("%s: Exit", __FUNCTION__);
-    disconnect();
+    deleteStream();
 }
 
 void ZslProcessor::onFrameAvailable() {
@@ -154,7 +153,7 @@ status_t ZslProcessor::updateStream(const Parameters &params) {
                     mId, strerror(-res), res);
             return res;
         }
-        if (mDeleted || currentWidth != (uint32_t)params.fastInfo.arrayWidth ||
+        if (currentWidth != (uint32_t)params.fastInfo.arrayWidth ||
                 currentHeight != (uint32_t)params.fastInfo.arrayHeight) {
             res = device->deleteReprocessStream(mZslReprocessStreamId);
             if (res != OK) {
@@ -175,8 +174,6 @@ status_t ZslProcessor::updateStream(const Parameters &params) {
             mZslStreamId = NO_STREAM;
         }
     }
-
-    mDeleted = false;
 
     if (mZslStreamId == NO_STREAM) {
         // Create stream for HAL production
@@ -211,14 +208,6 @@ status_t ZslProcessor::updateStream(const Parameters &params) {
 }
 
 status_t ZslProcessor::deleteStream() {
-    ATRACE_CALL();
-    Mutex::Autolock l(mInputMutex);
-    // WAR(b/15408128): do not delete stream unless client is being disconnected.
-    mDeleted = true;
-    return OK;
-}
-
-status_t ZslProcessor::disconnect() {
     ATRACE_CALL();
     status_t res;
 
