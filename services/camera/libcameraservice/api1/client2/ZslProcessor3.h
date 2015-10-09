@@ -132,8 +132,6 @@ class ZslProcessor3 :
     void dumpZslQueue(int id) const;
 
     nsecs_t getCandidateTimestampLocked(size_t* metadataIdx) const;
-
-    bool isFixedFocusMode(uint8_t afMode) const;
 };
 
 

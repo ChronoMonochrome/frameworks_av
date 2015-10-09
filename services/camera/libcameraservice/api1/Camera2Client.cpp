@@ -1288,9 +1288,6 @@ status_t Camera2Client::cancelAutoFocus() {
 
             return OK;
         }
-        if (l.mParameters.zslMode) {
-            mZslProcessor->clearZslQueue();
-        }
     }
     syncWithDevice();
 
@@ -1379,14 +1376,8 @@ status_t Camera2Client::setParameters(const String8& params) {
 
     SharedParameters::Lock l(mParameters);
 
-    Parameters::focusMode_t focusModeBefore = l.mParameters.focusMode;
     res = l.mParameters.set(params);
     if (res != OK) return res;
-    Parameters::focusMode_t focusModeAfter = l.mParameters.focusMode;
-
-    if (l.mParameters.zslMode && focusModeAfter != focusModeBefore) {
-        mZslProcessor->clearZslQueue();
-    }
 
     res = updateRequests(l.mParameters);
 
