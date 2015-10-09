@@ -586,7 +586,6 @@ void SoftAAC2::onQueueFilled(OMX_U32 /* portIndex */) {
             inHeader->nOffset += inBufferUsedLength;
 
             AAC_DECODER_ERROR decoderErr;
-            int numLoops = 0;
             do {
                 if (outputDelayRingBufferSpaceLeft() <
                         (mStreamInfo->frameSize * mStreamInfo->numChannels)) {
@@ -594,19 +593,20 @@ void SoftAAC2::onQueueFilled(OMX_U32 /* portIndex */) {
                     break;
                 }
 
-                int numConsumed = mStreamInfo->numTotalBytes;
+                int numconsumed = mStreamInfo->numTotalBytes + mStreamInfo->numBadBytes;
                 decoderErr = aacDecoder_DecodeFrame(mAACDecoder,
                                            tmpOutBuffer,
                                            2048 * MAX_CHANNEL_COUNT,
                                            0 /* flags */);
 
-                numConsumed = mStreamInfo->numTotalBytes - numConsumed;
-                numLoops++;
+                numconsumed = (mStreamInfo->numTotalBytes + mStreamInfo->numBadBytes) - numconsumed;
+                if (numconsumed != 0) {
+                    mDecodedSizes.add(numconsumed);
+                }
 
                 if (decoderErr == AAC_DEC_NOT_ENOUGH_BITS) {
                     break;
                 }
-                mDecodedSizes.add(numConsumed);
 
                 if (decoderErr != AAC_DEC_OK) {
                     ALOGW("aacDecoder_DecodeFrame decoderErr = 0x%4.4x", decoderErr);
@@ -647,15 +647,6 @@ void SoftAAC2::onQueueFilled(OMX_U32 /* portIndex */) {
                     }
 
                     aacDecoder_SetParam(mAACDecoder, AAC_TPDEC_CLEAR_BUFFER, 1);
-
-                    // After an error, replace the last entry in mBufferSizes with the sum of the
-                    // last <numLoops> entries from mDecodedSizes to resynchronize the in/out lists.
-                    mBufferSizes.pop();
-                    int n = 0;
-                    for (int i = 0; i < numLoops; i++) {
-                        n += mDecodedSizes.itemAt(mDecodedSizes.size() - numLoops + i);
-                    }
-                    mBufferSizes.add(n);
 
                     // fall through
                 }
