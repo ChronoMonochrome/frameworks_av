@@ -113,26 +113,24 @@ void MediaCodec::BatteryNotifier::noteStopAudio() {
 }
 // static
 sp<MediaCodec> MediaCodec::CreateByType(
-        const sp<ALooper> &looper, const char *mime, bool encoder, status_t *err) {
+        const sp<ALooper> &looper, const char *mime, bool encoder) {
     sp<MediaCodec> codec = new MediaCodec(looper);
-
-    const status_t ret = codec->init(mime, true /* nameIsType */, encoder);
-    if (err != NULL) {
-        *err = ret;
+    if (codec->init(mime, true /* nameIsType */, encoder) != OK) {
+        return NULL;
     }
-    return ret == OK ? codec : NULL; // NULL deallocates codec.
+
+    return codec;
 }
 
 // static
 sp<MediaCodec> MediaCodec::CreateByComponentName(
-        const sp<ALooper> &looper, const char *name, status_t *err) {
+        const sp<ALooper> &looper, const char *name) {
     sp<MediaCodec> codec = new MediaCodec(looper);
-
-    const status_t ret = codec->init(name, false /* nameIsType */, false /* encoder */);
-    if (err != NULL) {
-        *err = ret;
+    if (codec->init(name, false /* nameIsType */, false /* encoder */) != OK) {
+        return NULL;
     }
-    return ret == OK ? codec : NULL; // NULL deallocates codec.
+
+    return codec;
 }
 
 MediaCodec::MediaCodec(const sp<ALooper> &looper)
@@ -141,7 +139,6 @@ MediaCodec::MediaCodec(const sp<ALooper> &looper)
       mCodec(NULL),
       mReplyID(0),
       mFlags(0),
-      mStickyError(OK),
       mSoftRenderer(NULL),
       mBatteryStatNotified(false),
       mIsVideo(false),
@@ -333,7 +330,6 @@ status_t MediaCodec::reset() {
     mLooper->unregisterHandler(id());
 
     mFlags = 0;    // clear all flags
-    mStickyError = OK;
 
     // reset state not reset by setState(UNINITIALIZED)
     mReplyID = 0;
@@ -629,11 +625,9 @@ void MediaCodec::cancelPendingDequeueOperations() {
 
 bool MediaCodec::handleDequeueInputBuffer(uint32_t replyID, bool newRequest) {
     if (!isExecuting() || (mFlags & kFlagIsAsync)
+            || (mFlags & kFlagStickyError)
             || (newRequest && (mFlags & kFlagDequeueInputPending))) {
         PostReplyWithError(replyID, INVALID_OPERATION);
-        return true;
-    } else if (mFlags & kFlagStickyError) {
-        PostReplyWithError(replyID, getStickyError());
         return true;
     }
 
@@ -655,10 +649,9 @@ bool MediaCodec::handleDequeueOutputBuffer(uint32_t replyID, bool newRequest) {
     sp<AMessage> response = new AMessage;
 
     if (!isExecuting() || (mFlags & kFlagIsAsync)
+            || (mFlags & kFlagStickyError)
             || (newRequest && (mFlags & kFlagDequeueOutputPending))) {
         response->setInt32("err", INVALID_OPERATION);
-    } else if (mFlags & kFlagStickyError) {
-        response->setInt32("err", getStickyError());
     } else if (mFlags & kFlagOutputBuffersChanged) {
         response->setInt32("err", INFO_OUTPUT_BUFFERS_CHANGED);
         mFlags &= ~kFlagOutputBuffersChanged;
@@ -717,9 +710,9 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             switch (what) {
                 case CodecBase::kWhatError:
                 {
-                    int32_t err, actionCode;
-                    CHECK(msg->findInt32("err", &err));
-                    CHECK(msg->findInt32("actionCode", &actionCode));
+                    int32_t omxError, internalError;
+                    CHECK(msg->findInt32("omx-error", &omxError));
+                    CHECK(msg->findInt32("err", &internalError));
 
                     ALOGE("Codec reported err %#x, actionCode %d, while in state %d",
                             err, actionCode, mState);
@@ -790,24 +783,15 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                         {
                             sendErrorReponse = false;
 
-                            setStickyError(err);
+                            mFlags |= kFlagStickyError;
                             postActivityNotificationIfPossible();
 
                             cancelPendingDequeueOperations();
 
                             if (mFlags & kFlagIsAsync) {
-                                onError(err, actionCode);
+                                onError(omxError, 0);
                             }
-                            switch (actionCode) {
-                            case ACTION_CODE_TRANSIENT:
-                                break;
-                            case ACTION_CODE_RECOVERABLE:
-                                setState(INITIALIZED);
-                                break;
-                            default:
-                                setState(UNINITIALIZED);
-                                break;
-                            }
+                            setState(UNINITIALIZED);
                             break;
                         }
 
@@ -815,32 +799,19 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                         {
                             sendErrorReponse = false;
 
-                            setStickyError(err);
+                            mFlags |= kFlagStickyError;
                             postActivityNotificationIfPossible();
 
-                            // actionCode in an uninitialized state is always fatal.
-                            if (mState == UNINITIALIZED) {
-                                actionCode = ACTION_CODE_FATAL;
-                            }
                             if (mFlags & kFlagIsAsync) {
-                                onError(err, actionCode);
+                                onError(omxError, 0);
                             }
-                            switch (actionCode) {
-                            case ACTION_CODE_TRANSIENT:
-                                break;
-                            case ACTION_CODE_RECOVERABLE:
-                                setState(INITIALIZED);
-                                break;
-                            default:
-                                setState(UNINITIALIZED);
-                                break;
-                            }
+                            setState(UNINITIALIZED);
                             break;
                         }
                     }
 
                     if (sendErrorReponse) {
-                        PostReplyWithError(mReplyID, err);
+                        PostReplyWithError(mReplyID, UNKNOWN_ERROR);
                     }
                     break;
                 }
@@ -1026,7 +997,7 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                             ALOGE("queueCSDInputBuffer failed w/ error %d",
                                   err);
 
-                            setStickyError(err);
+                            mFlags |= kFlagStickyError;
                             postActivityNotificationIfPossible();
 
                             cancelPendingDequeueOperations();
@@ -1420,11 +1391,8 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
 
-            if (!isExecuting()) {
+            if (!isExecuting() || (mFlags & kFlagStickyError)) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
-                break;
-            } else if (mFlags & kFlagStickyError) {
-                PostReplyWithError(replyID, getStickyError());
                 break;
             }
 
@@ -1494,11 +1462,8 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
 
-            if (!isExecuting()) {
+            if (!isExecuting() || (mFlags & kFlagStickyError)) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
-                break;
-            } else if (mFlags & kFlagStickyError) {
-                PostReplyWithError(replyID, getStickyError());
                 break;
             }
 
@@ -1513,11 +1478,8 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
 
-            if (!isExecuting()) {
+            if (!isExecuting() || (mFlags & kFlagStickyError)) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
-                break;
-            } else if (mFlags & kFlagStickyError) {
-                PostReplyWithError(replyID, getStickyError());
                 break;
             }
 
@@ -1531,11 +1493,9 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
 
-            if (!isExecuting() || (mFlags & kFlagIsAsync)) {
+            if (!isExecuting() || (mFlags & kFlagIsAsync)
+                    || (mFlags & kFlagStickyError)) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
-                break;
-            } else if (mFlags & kFlagStickyError) {
-                PostReplyWithError(replyID, getStickyError());
                 break;
             }
 
@@ -1565,11 +1525,8 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
 
-            if (!isExecuting()) {
+            if (!isExecuting() || (mFlags & kFlagStickyError)) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
-                break;
-            } else if (mFlags & kFlagStickyError) {
-                PostReplyWithError(replyID, getStickyError());
                 break;
             }
 
@@ -1594,11 +1551,9 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
             if ((mState != CONFIGURED && mState != STARTING &&
                  mState != STARTED && mState != FLUSHING &&
                  mState != FLUSHED)
+                    || (mFlags & kFlagStickyError)
                     || format == NULL) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
-                break;
-            } else if (mFlags & kFlagStickyError) {
-                PostReplyWithError(replyID, getStickyError());
                 break;
             }
 
@@ -1722,7 +1677,6 @@ void MediaCodec::setState(State newState) {
         mFlags &= ~kFlagIsEncoder;
         mFlags &= ~kFlagGatherCodecSpecificData;
         mFlags &= ~kFlagIsAsync;
-        mStickyError = OK;
 
         mActivityNotify.clear();
         mCallback.clear();
