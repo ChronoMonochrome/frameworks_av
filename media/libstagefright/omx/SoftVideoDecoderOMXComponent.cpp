@@ -284,12 +284,12 @@ OMX_ERRORTYPE SoftVideoDecoderOMXComponent::internalGetParameter(
                 return OMX_ErrorUnsupportedIndex;
             }
 
-            if (profileLevel->nProfileIndex >= mNumProfileLevels) {
+            if (index >= mNumProfileLevels) {
                 return OMX_ErrorNoMore;
             }
 
-            profileLevel->eProfile = mProfileLevels[profileLevel->nProfileIndex].mProfile;
-            profileLevel->eLevel   = mProfileLevels[profileLevel->nProfileIndex].mLevel;
+            profileLevel->eProfile = mProfileLevels[index].mProfile;
+            profileLevel->eLevel   = mProfileLevels[index].mLevel;
             return OMX_ErrorNone;
         }
 
