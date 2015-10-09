@@ -37,7 +37,7 @@ using namespace android;
 int main(int argc, char **argv) {
     android::ProcessState::self()->startThreadPool();
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     const char *rtpFilename = NULL;
     const char *rtcpFilename = NULL;

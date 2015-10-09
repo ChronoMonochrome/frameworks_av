@@ -745,7 +745,7 @@ void WifiDisplaySource::PlaybackSession::onSinkFeedback(const sp<AMessage> &msg)
 
 status_t WifiDisplaySource::PlaybackSession::setupMediaPacketizer(
         bool enableAudio, bool enableVideo) {
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     mExtractor = new NuMediaExtractor;
 

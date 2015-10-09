@@ -154,7 +154,7 @@ void scan(const char *path) {
 int main(int argc, char **argv) {
     android::ProcessState::self()->startThreadPool();
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     for (int i = 1; i < argc; ++i) {
         scan(argv[i]);

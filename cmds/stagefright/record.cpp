@@ -168,7 +168,7 @@ static int translateColorToOmxEnumValue(int color) {
 int main(int argc, char **argv) {
     android::ProcessState::self()->startThreadPool();
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
 #if 1
     if (argc != 3) {

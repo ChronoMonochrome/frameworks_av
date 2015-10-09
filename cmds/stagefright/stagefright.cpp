@@ -1350,7 +1350,7 @@ int main(int argc, char **argv) {
                      gSurface.get(), NATIVE_WINDOW_API_MEDIA));
     }
 
-    DataSource::RegisterDefaultSniffers();
+    //DataSource::RegisterDefaultSniffers();
 
     OMXClient client;
     status_t err = client.connect();
