@@ -1100,31 +1100,23 @@ status_t Camera2Device::StreamAdapter::connectToDevice(
     }
 
     if (mFormat == HAL_PIXEL_FORMAT_BLOB) {
-        res = native_window_set_buffers_dimensions(mConsumerInterface.get(),
-                mSize, 1);
+        res = native_window_set_buffers_geometry(mConsumerInterface.get(),
+                mSize, 1, mFormat);
         if (res != OK) {
-            ALOGE("%s: Unable to configure compressed stream buffer dimensions"
+            ALOGE("%s: Unable to configure compressed stream buffer geometry"
                     " %d x %d, size %zu for stream %d",
                     __FUNCTION__, mWidth, mHeight, mSize, mId);
             return res;
         }
     } else {
-        res = native_window_set_buffers_dimensions(mConsumerInterface.get(),
-                mWidth, mHeight);
+        res = native_window_set_buffers_geometry(mConsumerInterface.get(),
+                mWidth, mHeight, mFormat);
         if (res != OK) {
-            ALOGE("%s: Unable to configure stream buffer dimensions"
-                    " %d x %d for stream %d",
-                    __FUNCTION__, mWidth, mHeight, mId);
+            ALOGE("%s: Unable to configure stream buffer geometry"
+                    " %d x %d, format 0x%x for stream %d",
+                    __FUNCTION__, mWidth, mHeight, mFormat, mId);
             return res;
         }
-    }
-
-    res = native_window_set_buffers_format(mConsumerInterface.get(), mFormat);
-    if (res != OK) {
-        ALOGE("%s: Unable to configure stream buffer format"
-                " %#x for stream %d",
-                __FUNCTION__, mFormat, mId);
-        return res;
     }
 
     int maxConsumerBuffers;

@@ -289,25 +289,20 @@ status_t Camera3OutputStream::configureQueueLocked() {
 
     if (mMaxSize == 0) {
         // For buffers of known size
-        res = native_window_set_buffers_dimensions(mConsumer.get(),
-                camera3_stream::width, camera3_stream::height);
+        res = native_window_set_buffers_geometry(mConsumer.get(),
+                camera3_stream::width, camera3_stream::height,
+                camera3_stream::format);
     } else {
         // For buffers with bounded size
-        res = native_window_set_buffers_dimensions(mConsumer.get(),
-                mMaxSize, 1);
+        res = native_window_set_buffers_geometry(mConsumer.get(),
+                mMaxSize, 1,
+                camera3_stream::format);
     }
     if (res != OK) {
-        ALOGE("%s: Unable to configure stream buffer dimensions"
-                " %d x %d (maxSize %zu) for stream %d",
+        ALOGE("%s: Unable to configure stream buffer geometry"
+                " %d x %d, format %x for stream %d",
                 __FUNCTION__, camera3_stream::width, camera3_stream::height,
-                mMaxSize, mId);
-        return res;
-    }
-    res = native_window_set_buffers_format(mConsumer.get(),
-            camera3_stream::format);
-    if (res != OK) {
-        ALOGE("%s: Unable to configure stream buffer format %#x for stream %d",
-                __FUNCTION__, camera3_stream::format, mId);
+                camera3_stream::format, mId);
         return res;
     }
 
