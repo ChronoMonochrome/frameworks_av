@@ -57,10 +57,8 @@ Camera2ClientBase<TClientBase>::Camera2ClientBase(
         mSharedCameraCallbacks(remoteCallback),
         mDeviceVersion(cameraService->getDeviceVersion(cameraId))
 {
-    ALOGI("Camera %d: Opened. Client: %s (PID %d, UID %d)", cameraId,
-            String8(clientPackageName).string(), clientPid, clientUid);
+    ALOGI("Camera %d: Opened", cameraId);
 
-    mInitialClientPid = clientPid;
     mDevice = CameraDeviceFactory::createDevice(cameraId);
     LOG_ALWAYS_FATAL_IF(mDevice == 0, "Device should never be NULL here.");
 }
@@ -118,10 +116,7 @@ Camera2ClientBase<TClientBase>::~Camera2ClientBase() {
 
     disconnect();
 
-    ALOGI("Closed Camera %d. Client was: %s (PID %d, UID %u)",
-            TClientBase::mCameraId,
-            String8(TClientBase::mClientPackageName).string(),
-            mInitialClientPid, TClientBase::mClientUid);
+    ALOGI("Closed Camera %d", TClientBase::mCameraId);
 }
 
 template <typename TClientBase>
