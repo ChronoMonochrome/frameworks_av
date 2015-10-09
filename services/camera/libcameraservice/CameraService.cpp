@@ -235,8 +235,7 @@ status_t CameraService::getCameraInfo(int cameraId,
     }
 
     struct camera_info info;
-    status_t rc = filterGetInfoErrorCode(
-        mModule->get_camera_info(cameraId, &info));
+    status_t rc = mModule->get_camera_info(cameraId, &info);
     cameraInfo->facing = info.facing;
     cameraInfo->orientation = info.orientation;
     return rc;
@@ -368,7 +367,7 @@ status_t CameraService::getCameraCharacteristics(int cameraId,
          * Normal HAL 2.1+ codepath.
          */
         struct camera_info info;
-        ret = filterGetInfoErrorCode(mModule->get_camera_info(cameraId, &info));
+        ret = mModule->get_camera_info(cameraId, &info);
         *cameraInfo = info.static_camera_characteristics;
     }
 
@@ -405,28 +404,23 @@ int CameraService::getDeviceVersion(int cameraId, int* facing) {
     return deviceVersion;
 }
 
-status_t CameraService::filterOpenErrorCode(status_t err) {
-    switch(err) {
-        case NO_ERROR:
-        case -EBUSY:
-        case -EINVAL:
-        case -EUSERS:
-            return err;
-        default:
-            break;
-    }
-    return -ENODEV;
-}
+bool CameraService::isValidCameraId(int cameraId) {
+    int facing;
+    int deviceVersion = getDeviceVersion(cameraId, &facing);
 
-status_t CameraService::filterGetInfoErrorCode(status_t err) {
-    switch(err) {
-        case NO_ERROR:
-        case -EINVAL:
-            return err;
-        default:
-            break;
+    switch(deviceVersion) {
+      case CAMERA_DEVICE_API_VERSION_1_0:
+      case CAMERA_DEVICE_API_VERSION_2_0:
+      case CAMERA_DEVICE_API_VERSION_2_1:
+      case CAMERA_DEVICE_API_VERSION_3_0:
+      case CAMERA_DEVICE_API_VERSION_3_1:
+      case CAMERA_DEVICE_API_VERSION_3_2:
+        return true;
+      default:
+        return false;
     }
-    return -ENODEV;
+
+    return false;
 }
 
 bool CameraService::setUpVendorTags() {
@@ -674,6 +668,14 @@ status_t CameraService::connectHelperLocked(
     int facing = -1;
     int deviceVersion = getDeviceVersion(cameraId, &facing);
 
+    // If there are other non-exclusive users of the camera,
+    //  this will tear them down before we can reuse the camera
+    if (isValidCameraId(cameraId)) {
+        // transition from PRESENT -> NOT_AVAILABLE
+        updateStatus(ICameraServiceListener::STATUS_NOT_AVAILABLE,
+                     cameraId);
+    }
+
     if (halVersion < 0 || halVersion == deviceVersion) {
         // Default path: HAL version is unspecified by caller, create CameraClient
         // based on device version reported by the HAL.
@@ -720,6 +722,8 @@ status_t CameraService::connectHelperLocked(
     status_t status = connectFinishUnsafe(client, client->getRemote());
     if (status != OK) {
         // this is probably not recoverable.. maybe the client can try again
+        // OK: we can only get here if we were originally in PRESENT state
+        updateStatus(ICameraServiceListener::STATUS_PRESENT, cameraId);
         return status;
     }
 
@@ -970,6 +974,14 @@ status_t CameraService::connectDevice(
         int facing = -1;
         int deviceVersion = getDeviceVersion(cameraId, &facing);
 
+        // If there are other non-exclusive users of the camera,
+        //  this will tear them down before we can reuse the camera
+        if (isValidCameraId(cameraId)) {
+            // transition from PRESENT -> NOT_AVAILABLE
+            updateStatus(ICameraServiceListener::STATUS_NOT_AVAILABLE,
+                         cameraId);
+        }
+
         switch(deviceVersion) {
           case CAMERA_DEVICE_API_VERSION_1_0:
             ALOGW("Camera using old HAL version: %d", deviceVersion);
@@ -994,6 +1006,8 @@ status_t CameraService::connectDevice(
         status_t status = connectFinishUnsafe(client, client->getRemote());
         if (status != OK) {
             // this is probably not recoverable.. maybe the client can try again
+            // OK: we can only get here if we were originally in PRESENT state
+            updateStatus(ICameraServiceListener::STATUS_PRESENT, cameraId);
             return status;
         }
 
@@ -1417,15 +1431,13 @@ CameraService::BasicClient::~BasicClient() {
 void CameraService::BasicClient::disconnect() {
     ALOGV("BasicClient::disconnect");
     mCameraService->removeClientByRemote(mRemoteBinder);
-
-    finishCameraOps();
     // client shouldn't be able to call into us anymore
     mClientPid = 0;
 }
 
 status_t CameraService::BasicClient::startCameraOps() {
     int32_t res;
-    // Notify app ops that the camera is not available
+
     mOpsCallback = new OpsCallback(this);
 
     {
@@ -1443,39 +1455,16 @@ status_t CameraService::BasicClient::startCameraOps() {
                 mCameraId, String8(mClientPackageName).string());
         return PERMISSION_DENIED;
     }
-
     mOpsActive = true;
-
-    // Transition device availability listeners from PRESENT -> NOT_AVAILABLE
-    mCameraService->updateStatus(ICameraServiceListener::STATUS_NOT_AVAILABLE,
-            mCameraId);
-
     return OK;
 }
 
 status_t CameraService::BasicClient::finishCameraOps() {
-    // Check if startCameraOps succeeded, and if so, finish the camera op
     if (mOpsActive) {
-        // Notify app ops that the camera is available again
         mAppOpsManager.finishOp(AppOpsManager::OP_CAMERA, mClientUid,
                 mClientPackageName);
         mOpsActive = false;
-
-        // Notify device availability listeners that this camera is available
-        // again
-
-        StatusVector rejectSourceStates;
-        rejectSourceStates.push_back(ICameraServiceListener::STATUS_NOT_PRESENT);
-        rejectSourceStates.push_back(ICameraServiceListener::STATUS_ENUMERATING);
-
-        // Transition to PRESENT if the camera is not in either of above 2
-        // states
-        mCameraService->updateStatus(ICameraServiceListener::STATUS_PRESENT,
-                mCameraId,
-                &rejectSourceStates);
-
     }
-    // Always stop watching, even if no camera op is active
     mAppOpsManager.stopWatchingMode(mOpsCallback);
     mOpsCallback.clear();
 
@@ -1546,6 +1535,15 @@ void CameraService::Client::disconnect() {
     ALOGV("Client::disconnect");
     BasicClient::disconnect();
     mCameraService->setCameraFree(mCameraId);
+
+    StatusVector rejectSourceStates;
+    rejectSourceStates.push_back(ICameraServiceListener::STATUS_NOT_PRESENT);
+    rejectSourceStates.push_back(ICameraServiceListener::STATUS_ENUMERATING);
+
+    // Transition to PRESENT if the camera is not in either of above 2 states
+    mCameraService->updateStatus(ICameraServiceListener::STATUS_PRESENT,
+                                 mCameraId,
+                                 &rejectSourceStates);
 }
 
 CameraService::Client::OpsCallback::OpsCallback(wp<BasicClient> client):
