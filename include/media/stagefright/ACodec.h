@@ -210,7 +210,6 @@ private:
     unsigned mDequeueCounter;
     bool mStoreMetaDataInOutputBuffers;
     int32_t mMetaDataBuffersToSubmit;
-    size_t mNumUndequeuedBuffers;
 
     int64_t mRepeatFrameDelayUs;
     int64_t mMaxPtsGapUs;
