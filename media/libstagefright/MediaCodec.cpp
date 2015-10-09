@@ -572,12 +572,7 @@ status_t MediaCodec::getBufferAndFormat(
     if (index < buffers->size()) {
         const BufferInfo &info = buffers->itemAt(index);
         if (info.mOwnedByClient) {
-            // by the time buffers array is initialized, crypto is set
-            if (portIndex == kPortIndexInput && mCrypto != NULL) {
-                *buffer = info.mEncryptedData;
-            } else {
-                *buffer = info.mData;
-            }
+            *buffer = info.mData;
             *format = info.mFormat;
         }
     }
