@@ -249,8 +249,7 @@ status_t VideoEditorPlayer::setAudioMixStoryBoardParam(
     M4OSA_UInt32 primaryTrackVolValue) {
 
     ALOGV("VideoEditorPlayer: loadAudioMixSettings");
-    return mPlayer->setAudioMixStoryBoardParam(audioMixStoryBoardTS,
-     currentMediaBeginCutTime, primaryTrackVolValue);
+    return NULL;
 }
 
 status_t VideoEditorPlayer::setPlaybackBeginTime(uint32_t msec) {

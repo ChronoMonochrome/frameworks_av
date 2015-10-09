@@ -70,10 +70,7 @@ status_t DummyVideoSource::start(MetaData *params) {
 
     // Get the frame buffer from the rgb file, mUri,
     // and store its content into a MediaBuffer
-    status_t err = LvGetImageThumbNail(
-                    (const char *)mUri,
-                    mFrameHeight, mFrameWidth,
-                    (M4OSA_Void **) &mImageBuffer);
+    status_t err = !OK;
     if (err != OK) {
         ALOGE("LvGetImageThumbNail failed: %d", err);
         return err;
