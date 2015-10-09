@@ -41,8 +41,7 @@ RingBufferConsumer::RingBufferConsumer(const sp<IGraphicBufferConsumer>& consume
         uint32_t consumerUsage,
         int bufferCount) :
     ConsumerBase(consumer),
-    mBufferCount(bufferCount),
-    mLatestTimestamp(0)
+    mBufferCount(bufferCount)
 {
     mConsumer->setConsumerUsageBits(consumerUsage);
     mConsumer->setMaxAcquiredBufferCount(bufferCount);
@@ -151,14 +150,6 @@ status_t RingBufferConsumer::clear() {
     } while(true);
 
     return OK;
-}
-
-nsecs_t RingBufferConsumer::getLatestTimestamp() {
-    Mutex::Autolock _l(mMutex);
-    if (mBufferItemList.size() == 0) {
-        return 0;
-    }
-    return mLatestTimestamp;
 }
 
 void RingBufferConsumer::pinBufferLocked(const BufferItem& item) {
@@ -310,13 +301,6 @@ void RingBufferConsumer::onFrameAvailable() {
                 "buffer items %zu out of %d",
                 item.mTimestamp,
                 mBufferItemList.size(), mBufferCount);
-
-        if (item.mTimestamp < mLatestTimestamp) {
-            BI_LOGE("Timestamp  decreases from %" PRId64 " to %" PRId64,
-                    mLatestTimestamp, item.mTimestamp);
-        }
-
-        mLatestTimestamp = item.mTimestamp;
 
         item.mGraphicBuffer = mSlots[item.mBuf].mGraphicBuffer;
     } // end of mMutex lock

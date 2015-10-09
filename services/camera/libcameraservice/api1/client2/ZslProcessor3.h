@@ -82,7 +82,6 @@ class ZslProcessor3 :
 
   private:
     static const nsecs_t kWaitDuration = 10000000; // 10 ms
-    nsecs_t mLatestClearedBufferTimestamp;
 
     enum {
         RUNNING,
