@@ -121,8 +121,6 @@ class ZslProcessor3 :
 
     CameraMetadata mLatestCapturedRequest;
 
-    bool mHasFocuser;
-
     virtual bool threadLoop();
 
     status_t clearZslQueueLocked();
