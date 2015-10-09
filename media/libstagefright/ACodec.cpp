@@ -363,6 +363,7 @@ ACodec::ACodec()
       mIsEncoder(false),
       mUseMetadataOnEncoderOutput(false),
       mShutdownInProgress(false),
+      mIsConfiguredForAdaptivePlayback(false),
       mEncoderDelay(0),
       mEncoderPadding(0),
       mChannelMaskPresent(false),
@@ -1034,9 +1035,6 @@ status_t ACodec::configureCodec(
         encoder = false;
     }
 
-    sp<AMessage> inputFormat = new AMessage();
-    sp<AMessage> outputFormat = new AMessage();
-
     mIsEncoder = encoder;
 
     status_t err = setComponentRole(encoder /* isEncoder */, mime);
@@ -1138,9 +1136,7 @@ status_t ACodec::configureCodec(
     int32_t haveNativeWindow = msg->findObject("native-window", &obj) &&
             obj != NULL;
     mStoreMetaDataInOutputBuffers = false;
-    if (video && !encoder) {
-        inputFormat->setInt32("adaptive-playback", false);
-    }
+    mIsConfiguredForAdaptivePlayback = false;
     if (!encoder && video && haveNativeWindow) {
         err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexOutput, OMX_TRUE);
         if (err != OK) {
@@ -1185,13 +1181,14 @@ status_t ACodec::configureCodec(
                 ALOGW_IF(err != OK,
                         "[%s] prepareForAdaptivePlayback failed w/ err %d",
                         mComponentName.c_str(), err);
+                mIsConfiguredForAdaptivePlayback = (err == OK);
             }
             // allow failure
             err = OK;
         } else {
             ALOGV("[%s] storeMetaDataInBuffers succeeded", mComponentName.c_str());
             mStoreMetaDataInOutputBuffers = true;
-            inputFormat->setInt32("adaptive-playback", true);
+            mIsConfiguredForAdaptivePlayback = true;
         }
 
         int32_t push;
@@ -1321,11 +1318,6 @@ status_t ACodec::configureCodec(
     } else if (!strcmp("OMX.Nvidia.aac.decoder", mComponentName.c_str())) {
         err = setMinBufferSize(kPortIndexInput, 8192);  // XXX
     }
-
-    CHECK_EQ(getPortFormat(kPortIndexInput, inputFormat), (status_t)OK);
-    CHECK_EQ(getPortFormat(kPortIndexOutput, outputFormat), (status_t)OK);
-    mInputFormat = inputFormat;
-    mOutputFormat = outputFormat;
 
     return err;
 }
@@ -2507,78 +2499,79 @@ void ACodec::processDeferredMessages() {
     }
 }
 
-status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
-    // TODO: catch errors an return them instead of using CHECK
+void ACodec::sendFormatChange(const sp<AMessage> &reply) {
+    sp<AMessage> notify = mNotify->dup();
+    notify->setInt32("what", kWhatOutputFormatChanged);
+
     OMX_PARAM_PORTDEFINITIONTYPE def;
     InitOMXParams(&def);
-    def.nPortIndex = portIndex;
+    def.nPortIndex = kPortIndexOutput;
 
     CHECK_EQ(mOMX->getParameter(
                 mNode, OMX_IndexParamPortDefinition, &def, sizeof(def)),
              (status_t)OK);
 
-    CHECK_EQ((int)def.eDir,
-            (int)(portIndex == kPortIndexOutput ? OMX_DirOutput : OMX_DirInput));
+    CHECK_EQ((int)def.eDir, (int)OMX_DirOutput);
 
     switch (def.eDomain) {
         case OMX_PortDomainVideo:
         {
             OMX_VIDEO_PORTDEFINITIONTYPE *videoDef = &def.format.video;
-            switch ((int)videoDef->eCompressionFormat) {
-                case OMX_VIDEO_CodingUnused:
-                {
-                    CHECK(mIsEncoder ^ (portIndex == kPortIndexOutput));
-                    notify->setString("mime", MEDIA_MIMETYPE_VIDEO_RAW);
 
-                    notify->setInt32("stride", videoDef->nStride);
-                    notify->setInt32("slice-height", videoDef->nSliceHeight);
-                    notify->setInt32("color-format", videoDef->eColorFormat);
-
-                    OMX_CONFIG_RECTTYPE rect;
-                    InitOMXParams(&rect);
-                    rect.nPortIndex = kPortIndexOutput;
-
-                    if (mOMX->getConfig(
-                                mNode, OMX_IndexConfigCommonOutputCrop,
-                                &rect, sizeof(rect)) != OK) {
-                        rect.nLeft = 0;
-                        rect.nTop = 0;
-                        rect.nWidth = videoDef->nFrameWidth;
-                        rect.nHeight = videoDef->nFrameHeight;
-                    }
-
-                    CHECK_GE(rect.nLeft, 0);
-                    CHECK_GE(rect.nTop, 0);
-                    CHECK_GE(rect.nWidth, 0u);
-                    CHECK_GE(rect.nHeight, 0u);
-                    CHECK_LE(rect.nLeft + rect.nWidth - 1, videoDef->nFrameWidth);
-                    CHECK_LE(rect.nTop + rect.nHeight - 1, videoDef->nFrameHeight);
-
-                    notify->setRect(
-                            "crop",
-                            rect.nLeft,
-                            rect.nTop,
-                            rect.nLeft + rect.nWidth - 1,
-                            rect.nTop + rect.nHeight - 1);
-
-                    break;
-                }
-                default:
-                {
-                    CHECK(mIsEncoder ^ (portIndex == kPortIndexInput));
-                    AString mime;
-                    if (GetMimeTypeForVideoCoding(
+            AString mime;
+            if (!mIsEncoder) {
+                notify->setString("mime", MEDIA_MIMETYPE_VIDEO_RAW);
+            } else if (GetMimeTypeForVideoCoding(
                         videoDef->eCompressionFormat, &mime) != OK) {
-                        notify->setString("mime", "application/octet-stream");
-                    } else {
-                        notify->setString("mime", mime.c_str());
-                    }
-                    break;
-                }
+                notify->setString("mime", "application/octet-stream");
+            } else {
+                notify->setString("mime", mime.c_str());
             }
 
             notify->setInt32("width", videoDef->nFrameWidth);
             notify->setInt32("height", videoDef->nFrameHeight);
+
+            if (!mIsEncoder) {
+                notify->setInt32("stride", videoDef->nStride);
+                notify->setInt32("slice-height", videoDef->nSliceHeight);
+                notify->setInt32("color-format", videoDef->eColorFormat);
+
+                OMX_CONFIG_RECTTYPE rect;
+                InitOMXParams(&rect);
+                rect.nPortIndex = kPortIndexOutput;
+
+                if (mOMX->getConfig(
+                            mNode, OMX_IndexConfigCommonOutputCrop,
+                            &rect, sizeof(rect)) != OK) {
+                    rect.nLeft = 0;
+                    rect.nTop = 0;
+                    rect.nWidth = videoDef->nFrameWidth;
+                    rect.nHeight = videoDef->nFrameHeight;
+                }
+
+                CHECK_GE(rect.nLeft, 0);
+                CHECK_GE(rect.nTop, 0);
+                CHECK_GE(rect.nWidth, 0u);
+                CHECK_GE(rect.nHeight, 0u);
+                CHECK_LE(rect.nLeft + rect.nWidth - 1, videoDef->nFrameWidth);
+                CHECK_LE(rect.nTop + rect.nHeight - 1, videoDef->nFrameHeight);
+
+                notify->setRect(
+                        "crop",
+                        rect.nLeft,
+                        rect.nTop,
+                        rect.nLeft + rect.nWidth - 1,
+                        rect.nTop + rect.nHeight - 1);
+
+                if (mNativeWindow != NULL) {
+                    reply->setRect(
+                            "crop",
+                            rect.nLeft,
+                            rect.nTop,
+                            rect.nLeft + rect.nWidth,
+                            rect.nTop + rect.nHeight);
+                }
+            }
             break;
         }
 
@@ -2591,7 +2584,7 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                 {
                     OMX_AUDIO_PARAM_PCMMODETYPE params;
                     InitOMXParams(&params);
-                    params.nPortIndex = portIndex;
+                    params.nPortIndex = kPortIndexOutput;
 
                     CHECK_EQ(mOMX->getParameter(
                                 mNode, OMX_IndexParamAudioPcm,
@@ -2611,6 +2604,20 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                     notify->setString("mime", MEDIA_MIMETYPE_AUDIO_RAW);
                     notify->setInt32("channel-count", params.nChannels);
                     notify->setInt32("sample-rate", params.nSamplingRate);
+                    if (mEncoderDelay + mEncoderPadding) {
+                        size_t frameSize = params.nChannels * sizeof(int16_t);
+                        if (mSkipCutBuffer != NULL) {
+                            size_t prevbufsize = mSkipCutBuffer->size();
+                            if (prevbufsize != 0) {
+                                ALOGW("Replacing SkipCutBuffer holding %d "
+                                      "bytes",
+                                      prevbufsize);
+                            }
+                        }
+                        mSkipCutBuffer = new SkipCutBuffer(
+                                mEncoderDelay * frameSize,
+                                mEncoderPadding * frameSize);
+                    }
 
                     if (mChannelMaskPresent) {
                         notify->setInt32("channel-mask", mChannelMask);
@@ -2622,7 +2629,7 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                 {
                     OMX_AUDIO_PARAM_AACPROFILETYPE params;
                     InitOMXParams(&params);
-                    params.nPortIndex = portIndex;
+                    params.nPortIndex = kPortIndexOutput;
 
                     CHECK_EQ(mOMX->getParameter(
                                 mNode, OMX_IndexParamAudioAac,
@@ -2639,7 +2646,7 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                 {
                     OMX_AUDIO_PARAM_AMRTYPE params;
                     InitOMXParams(&params);
-                    params.nPortIndex = portIndex;
+                    params.nPortIndex = kPortIndexOutput;
 
                     CHECK_EQ(mOMX->getParameter(
                                 mNode, OMX_IndexParamAudioAmr,
@@ -2665,7 +2672,7 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                 {
                     OMX_AUDIO_PARAM_FLACTYPE params;
                     InitOMXParams(&params);
-                    params.nPortIndex = portIndex;
+                    params.nPortIndex = kPortIndexOutput;
 
                     CHECK_EQ(mOMX->getParameter(
                                 mNode, OMX_IndexParamAudioFlac,
@@ -2694,8 +2701,8 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
                     notify->setInt32("sample-rate", params.nSampleRate);
                     break;
                 }
+
                 default:
-                    ALOGE("UNKNOWN AUDIO CODING: %d\n", audioDef->eEncoding);
                     TRESPASS();
             }
             break;
@@ -2703,43 +2710,6 @@ status_t ACodec::getPortFormat(OMX_U32 portIndex, sp<AMessage> &notify) {
 
         default:
             TRESPASS();
-    }
-
-    return OK;
-}
-
-void ACodec::sendFormatChange(const sp<AMessage> &reply) {
-    sp<AMessage> notify = mNotify->dup();
-    notify->setInt32("what", kWhatOutputFormatChanged);
-
-    CHECK_EQ(getPortFormat(kPortIndexOutput, notify), (status_t)OK);
-
-    AString mime;
-    CHECK(notify->findString("mime", &mime));
-
-    int32_t left, top, right, bottom;
-    if (mime == MEDIA_MIMETYPE_VIDEO_RAW &&
-        mNativeWindow != NULL &&
-        notify->findRect("crop", &left, &top, &right, &bottom)) {
-        // notify renderer of the crop change
-        // NOTE: native window uses extended right-bottom coordinate
-        reply->setRect("crop", left, top, right + 1, bottom + 1);
-    } else if (mime == MEDIA_MIMETYPE_AUDIO_RAW &&
-               (mEncoderDelay || mEncoderPadding)) {
-        int32_t channelCount;
-        CHECK(notify->findInt32("channel-count", &channelCount));
-        size_t frameSize = channelCount * sizeof(int16_t);
-        if (mSkipCutBuffer != NULL) {
-            size_t prevbufsize = mSkipCutBuffer->size();
-            if (prevbufsize != 0) {
-                ALOGW("Replacing SkipCutBuffer holding %d "
-                      "bytes",
-                      prevbufsize);
-            }
-        }
-        mSkipCutBuffer = new SkipCutBuffer(
-                mEncoderDelay * frameSize,
-                mEncoderPadding * frameSize);
     }
 
     notify->post();
@@ -3772,8 +3742,7 @@ void ACodec::LoadedState::stateEntered() {
     mCodec->mDequeueCounter = 0;
     mCodec->mMetaDataBuffersToSubmit = 0;
     mCodec->mRepeatFrameDelayUs = -1ll;
-    mCodec->mInputFormat.clear();
-    mCodec->mOutputFormat.clear();
+    mCodec->mIsConfiguredForAdaptivePlayback = false;
 
     if (mCodec->mShutdownInProgress) {
         bool keepComponentAllocated = mCodec->mKeepComponentAllocated;
@@ -3887,8 +3856,6 @@ bool ACodec::LoadedState::onConfigureComponent(
     {
         sp<AMessage> notify = mCodec->mNotify->dup();
         notify->setInt32("what", ACodec::kWhatComponentConfigured);
-        notify->setMessage("input-format", mCodec->mInputFormat);
-        notify->setMessage("output-format", mCodec->mOutputFormat);
         notify->post();
     }
 
