@@ -346,8 +346,6 @@ class Camera3Device :
                 sp<camera3::StatusTracker> statusTracker,
                 camera3_device_t *hal3Device);
 
-        void     setNotifyCallback(NotificationListener *listener);
-
         /**
          * Call after stream (re)-configuration is completed.
          */
@@ -371,8 +369,7 @@ class Camera3Device :
         /**
          * Remove all queued and repeating requests, and pending triggers
          */
-        status_t clear(NotificationListener *listener,
-                       /*out*/
+        status_t clear(/*out*/
                        int64_t *lastFrameNumber = NULL);
 
         /**
@@ -454,8 +451,6 @@ class Camera3Device :
         wp<Camera3Device>  mParent;
         wp<camera3::StatusTracker>  mStatusTracker;
         camera3_device_t  *mHal3Device;
-
-        NotificationListener *mListener;
 
         const int          mId;       // The camera ID
         int                mStatusId; // The RequestThread's component ID for
@@ -615,12 +610,6 @@ class Camera3Device :
     void processCaptureResult(const camera3_capture_result *result);
 
     void notify(const camera3_notify_msg *msg);
-
-    // Specific notify handlers
-    void notifyError(const camera3_error_msg_t &msg,
-            NotificationListener *listener);
-    void notifyShutter(const camera3_shutter_msg_t &msg,
-            NotificationListener *listener);
 
     /**
      * Static callback forwarding methods from HAL to instance
