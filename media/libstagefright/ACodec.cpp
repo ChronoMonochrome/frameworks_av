@@ -4535,14 +4535,11 @@ void ACodec::ExecutingState::resume() {
 
     submitOutputBuffers();
 
-    // Post all available input buffers
+    // Post the first input buffer.
     CHECK_GT(mCodec->mBuffers[kPortIndexInput].size(), 0u);
-    for (size_t i = 0; i < mCodec->mBuffers[kPortIndexInput].size(); i++) {
-        BufferInfo *info = &mCodec->mBuffers[kPortIndexInput].editItemAt(i);
-        if (info->mStatus == BufferInfo::OWNED_BY_US) {
-            postFillThisBuffer(info);
-        }
-    }
+    BufferInfo *info = &mCodec->mBuffers[kPortIndexInput].editItemAt(0);
+
+    postFillThisBuffer(info);
 
     mActive = true;
 }
