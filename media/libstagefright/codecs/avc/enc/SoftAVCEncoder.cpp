@@ -111,6 +111,36 @@ static status_t ConvertAvcSpecLevelToOmxAvcLevel(
     return BAD_VALUE;
 }
 
+inline static void ConvertYUV420SemiPlanarToYUV420Planar(
+        uint8_t *inyuv, uint8_t* outyuv,
+        int32_t width, int32_t height) {
+
+    int32_t outYsize = width * height;
+    uint32_t *outy =  (uint32_t *) outyuv;
+    uint16_t *outcb = (uint16_t *) (outyuv + outYsize);
+    uint16_t *outcr = (uint16_t *) (outyuv + outYsize + (outYsize >> 2));
+
+    /* Y copying */
+    memcpy(outy, inyuv, outYsize);
+
+    /* U & V copying */
+    uint32_t *inyuv_4 = (uint32_t *) (inyuv + outYsize);
+    for (int32_t i = height >> 1; i > 0; --i) {
+        for (int32_t j = width >> 2; j > 0; --j) {
+            uint32_t temp = *inyuv_4++;
+            uint32_t tempU = temp & 0xFF;
+            tempU = tempU | ((temp >> 8) & 0xFF00);
+
+            uint32_t tempV = (temp >> 8) & 0xFF;
+            tempV = tempV | ((temp >> 16) & 0xFF00);
+
+            // Flip U and V
+            *outcb++ = tempV;
+            *outcr++ = tempU;
+        }
+    }
+}
+
 static void* MallocWrapper(
         void * /* userData */, int32_t size, int32_t /* attrs */) {
     void *ptr = malloc(size);
@@ -148,7 +178,7 @@ SoftAVCEncoder::SoftAVCEncoder(
             const OMX_CALLBACKTYPE *callbacks,
             OMX_PTR appData,
             OMX_COMPONENTTYPE **component)
-    : SoftVideoEncoderOMXComponent(name, callbacks, appData, component),
+    : SimpleSoftOMXComponent(name, callbacks, appData, component),
       mVideoWidth(176),
       mVideoHeight(144),
       mVideoFrameRate(30),
@@ -230,10 +260,9 @@ OMX_ERRORTYPE SoftAVCEncoder::initEncParams() {
 
     mEncParams->use_overrun_buffer = AVC_OFF;
 
-    if (mVideoColorFormat != OMX_COLOR_FormatYUV420Planar
-            || mStoreMetaDataInBuffers) {
+    if (mVideoColorFormat == OMX_COLOR_FormatYUV420SemiPlanar) {
         // Color conversion is needed.
-        free(mInputFrameData);
+        CHECK(mInputFrameData == NULL);
         mInputFrameData =
             (uint8_t *) malloc((mVideoWidth * mVideoHeight * 3 ) >> 1);
         CHECK(mInputFrameData != NULL);
@@ -319,10 +348,10 @@ OMX_ERRORTYPE SoftAVCEncoder::releaseEncoder() {
     PVAVCCleanUpEncoder(mHandle);
     releaseOutputBuffers();
 
-    free(mInputFrameData);
+    delete mInputFrameData;
     mInputFrameData = NULL;
 
-    free(mSliceGroup);
+    delete mSliceGroup;
     mSliceGroup = NULL;
 
     delete mEncParams;
@@ -684,7 +713,11 @@ OMX_ERRORTYPE SoftAVCEncoder::internalSetParameter(
                     mStoreMetaDataInBuffers ? " true" : "false");
 
             if (mStoreMetaDataInBuffers) {
-                mVideoColorFormat = OMX_COLOR_FormatAndroidOpaque;
+                mVideoColorFormat == OMX_COLOR_FormatYUV420SemiPlanar;
+                if (mInputFrameData == NULL) {
+                    mInputFrameData =
+                            (uint8_t *) malloc((mVideoWidth * mVideoHeight * 3 ) >> 1);
+                }
             }
 
             return OMX_ErrorNone;
@@ -768,6 +801,8 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
             }
         }
 
+        buffer_handle_t srcBuffer = NULL; // for MetaDataMode only
+
         // Get next input video frame
         if (mReadyForNextFrame) {
             // Save the input buffer info so that it can be
@@ -788,7 +823,7 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
                 videoInput.height = ((mVideoHeight  + 15) >> 4) << 4;
                 videoInput.pitch = ((mVideoWidth + 15) >> 4) << 4;
                 videoInput.coding_timestamp = (inHeader->nTimeStamp + 500) / 1000;  // in ms
-                const uint8_t *inputData = NULL;
+                uint8_t *inputData = NULL;
                 if (mStoreMetaDataInBuffers) {
                     if (inHeader->nFilledLen != 8) {
                         ALOGE("MetaData buffer is wrong size! "
@@ -798,10 +833,8 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
                         return;
                     }
                     inputData =
-                        extractGraphicBuffer(
-                                mInputFrameData, (mVideoWidth * mVideoHeight * 3) >> 1,
-                                inHeader->pBuffer + inHeader->nOffset, inHeader->nFilledLen,
-                                mVideoWidth, mVideoHeight);
+                            extractGrallocData(inHeader->pBuffer + inHeader->nOffset,
+                                    &srcBuffer);
                     if (inputData == NULL) {
                         ALOGE("Unable to extract gralloc buffer in metadata mode");
                         mSignalledError = true;
@@ -810,16 +843,16 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
                     }
                     // TODO: Verify/convert pixel format enum
                 } else {
-                    inputData = (const uint8_t *)inHeader->pBuffer + inHeader->nOffset;
-                    if (mVideoColorFormat != OMX_COLOR_FormatYUV420Planar) {
-                        ConvertYUV420SemiPlanarToYUV420Planar(
-                            inputData, mInputFrameData, mVideoWidth, mVideoHeight);
-                        inputData = mInputFrameData;
-                    }
+                    inputData = (uint8_t *)inHeader->pBuffer + inHeader->nOffset;
                 }
 
+                if (mVideoColorFormat != OMX_COLOR_FormatYUV420Planar) {
+                    ConvertYUV420SemiPlanarToYUV420Planar(
+                        inputData, mInputFrameData, mVideoWidth, mVideoHeight);
+                    inputData = mInputFrameData;
+                }
                 CHECK(inputData != NULL);
-                videoInput.YCbCr[0] = (uint8_t *)inputData;
+                videoInput.YCbCr[0] = inputData;
                 videoInput.YCbCr[1] = videoInput.YCbCr[0] + videoInput.height * videoInput.pitch;
                 videoInput.YCbCr[2] = videoInput.YCbCr[1] +
                     ((videoInput.height * videoInput.pitch) >> 2);
@@ -836,12 +869,14 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
                     if (encoderStatus < AVCENC_SUCCESS) {
                         ALOGE("encoderStatus = %d at line %d", encoderStatus, __LINE__);
                         mSignalledError = true;
+                        releaseGrallocData(srcBuffer);
                         notify(OMX_EventError, OMX_ErrorUndefined, 0, 0);
                         return;
                     } else {
                         ALOGV("encoderStatus = %d at line %d", encoderStatus, __LINE__);
                         inQueue.erase(inQueue.begin());
                         inInfo->mOwnedByUs = false;
+                        releaseGrallocData(srcBuffer);
                         notifyEmptyBufferDone(inHeader);
                         return;
                     }
@@ -881,6 +916,7 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
             if (encoderStatus < AVCENC_SUCCESS) {
                 ALOGE("encoderStatus = %d at line %d", encoderStatus, __LINE__);
                 mSignalledError = true;
+                releaseGrallocData(srcBuffer);
                 notify(OMX_EventError, OMX_ErrorUndefined, 0, 0);
                 return;
             }
@@ -890,6 +926,7 @@ void SoftAVCEncoder::onQueueFilled(OMX_U32 /* portIndex */) {
 
         inQueue.erase(inQueue.begin());
         inInfo->mOwnedByUs = false;
+        releaseGrallocData(srcBuffer);
         notifyEmptyBufferDone(inHeader);
 
         outQueue.erase(outQueue.begin());
@@ -935,6 +972,47 @@ int32_t SoftAVCEncoder::bindOutputBuffer(int32_t index, uint8_t **yuv) {
 void SoftAVCEncoder::signalBufferReturned(MediaBuffer *buffer) {
     UNUSED_UNLESS_VERBOSE(buffer);
     ALOGV("signalBufferReturned: %p", buffer);
+}
+
+OMX_ERRORTYPE SoftAVCEncoder::getExtensionIndex(
+        const char *name, OMX_INDEXTYPE *index) {
+    if (!strcmp(name, "OMX.google.android.index.storeMetaDataInBuffers")) {
+        *(int32_t*)index = kStoreMetaDataExtensionIndex;
+        return OMX_ErrorNone;
+    }
+    return OMX_ErrorUndefined;
+}
+
+uint8_t *SoftAVCEncoder::extractGrallocData(void *data, buffer_handle_t *buffer) {
+    OMX_U32 type = *(OMX_U32*)data;
+    status_t res;
+    if (type != kMetadataBufferTypeGrallocSource) {
+        ALOGE("Data passed in with metadata mode does not have type "
+                "kMetadataBufferTypeGrallocSource (%d), has type %d instead",
+                kMetadataBufferTypeGrallocSource, type);
+        return NULL;
+    }
+    buffer_handle_t imgBuffer = *(buffer_handle_t*)((uint8_t*)data + 4);
+
+    const Rect rect(mVideoWidth, mVideoHeight);
+    uint8_t *img;
+    res = GraphicBufferMapper::get().lock(imgBuffer,
+            GRALLOC_USAGE_HW_VIDEO_ENCODER,
+            rect, (void**)&img);
+    if (res != OK) {
+        ALOGE("%s: Unable to lock image buffer %p for access", __FUNCTION__,
+                imgBuffer);
+        return NULL;
+    }
+
+    *buffer = imgBuffer;
+    return img;
+}
+
+void SoftAVCEncoder::releaseGrallocData(buffer_handle_t buffer) {
+    if (mStoreMetaDataInBuffers) {
+        GraphicBufferMapper::get().unlock(buffer);
+    }
 }
 
 }  // namespace android

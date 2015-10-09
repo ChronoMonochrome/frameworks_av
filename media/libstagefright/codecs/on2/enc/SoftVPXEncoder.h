@@ -18,7 +18,7 @@
 
 #define SOFT_VPX_ENCODER_H_
 
-#include "SoftVideoEncoderOMXComponent.h"
+#include "SimpleSoftOMXComponent.h"
 
 #include <OMX_VideoExt.h>
 #include <OMX_IndexExt.h>
@@ -59,7 +59,7 @@ namespace android {
 //    - OMX timestamps are in microseconds, therefore
 // encoder timebase is fixed to 1/1000000
 
-struct SoftVPXEncoder : public SoftVideoEncoderOMXComponent {
+struct SoftVPXEncoder : public SimpleSoftOMXComponent {
     SoftVPXEncoder(const char *name,
                    const OMX_CALLBACKTYPE *callbacks,
                    OMX_PTR appData,
@@ -86,6 +86,9 @@ protected:
     // is expected to be available to carry out
     // encoding of the frame
     virtual void onQueueFilled(OMX_U32 portIndex);
+
+    virtual OMX_ERRORTYPE getExtensionIndex(
+            const char *name, OMX_INDEXTYPE *index);
 
 private:
     enum TemporalReferences {
@@ -230,6 +233,7 @@ private:
     uint8_t* mConversionBuffer;
 
     bool mInputDataIsMeta;
+    const hw_module_t *mGrallocModule;
 
     bool mKeyFrameRequested;
 

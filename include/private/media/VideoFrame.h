@@ -63,11 +63,8 @@ public:
     uint32_t mDisplayWidth;
     uint32_t mDisplayHeight;
     uint32_t mSize;            // Number of bytes in mData
-    int32_t  mRotationAngle;   // rotation angle, clockwise, should be multiple of 90
-    // mData should be 64 bit aligned to prevent additional padding
     uint8_t* mData;            // Actual binary data
-    // pad structure so it's the same size on 64 bit and 32 bit
-    char     mPadding[8 - sizeof(mData)];
+    int32_t  mRotationAngle;   // rotation angle, clockwise
 };
 
 }; // namespace android
