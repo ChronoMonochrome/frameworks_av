@@ -132,8 +132,7 @@ private:
     };
 
     enum {
-        kFlagIsSecure                                 = 1,
-        kFlagPushBlankBuffersToNativeWindowOnShutdown = 2,
+        kFlagIsSecure   = 1,
     };
 
     struct BufferInfo {
