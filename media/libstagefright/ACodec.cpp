@@ -363,7 +363,6 @@ ACodec::ACodec()
       mIsEncoder(false),
       mUseMetadataOnEncoderOutput(false),
       mShutdownInProgress(false),
-      mExplicitShutdown(false),
       mEncoderDelay(0),
       mEncoderPadding(0),
       mChannelMaskPresent(false),
@@ -3619,8 +3618,7 @@ bool ACodec::UninitializedState::onMessageReceived(const sp<AMessage> &msg) {
             int32_t keepComponentAllocated;
             CHECK(msg->findInt32(
                         "keepComponentAllocated", &keepComponentAllocated));
-            ALOGW_IF(keepComponentAllocated,
-                     "cannot keep component allocated on shutdown in Uninitialized state");
+            CHECK(!keepComponentAllocated);
 
             sp<AMessage> notify = mCodec->mNotify->dup();
             notify->setInt32("what", ACodec::kWhatShutdownCompleted);
@@ -3793,7 +3791,6 @@ void ACodec::LoadedState::stateEntered() {
 
         onShutdown(keepComponentAllocated);
     }
-    mCodec->mExplicitShutdown = false;
 }
 
 void ACodec::LoadedState::onShutdown(bool keepComponentAllocated) {
@@ -3803,12 +3800,9 @@ void ACodec::LoadedState::onShutdown(bool keepComponentAllocated) {
         mCodec->changeState(mCodec->mUninitializedState);
     }
 
-    if (mCodec->mExplicitShutdown) {
-        sp<AMessage> notify = mCodec->mNotify->dup();
-        notify->setInt32("what", ACodec::kWhatShutdownCompleted);
-        notify->post();
-        mCodec->mExplicitShutdown = false;
-    }
+    sp<AMessage> notify = mCodec->mNotify->dup();
+    notify->setInt32("what", ACodec::kWhatShutdownCompleted);
+    notify->post();
 }
 
 bool ACodec::LoadedState::onMessageReceived(const sp<AMessage> &msg) {
@@ -3842,7 +3836,6 @@ bool ACodec::LoadedState::onMessageReceived(const sp<AMessage> &msg) {
             CHECK(msg->findInt32(
                         "keepComponentAllocated", &keepComponentAllocated));
 
-            mCodec->mExplicitShutdown = true;
             onShutdown(keepComponentAllocated);
 
             handled = true;
@@ -4263,7 +4256,6 @@ bool ACodec::ExecutingState::onMessageReceived(const sp<AMessage> &msg) {
                         "keepComponentAllocated", &keepComponentAllocated));
 
             mCodec->mShutdownInProgress = true;
-            mCodec->mExplicitShutdown = true;
             mCodec->mKeepComponentAllocated = keepComponentAllocated;
 
             mActive = false;
