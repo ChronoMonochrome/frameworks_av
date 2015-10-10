@@ -1334,8 +1334,6 @@ void AudioFlinger::PlaybackThread::dumpInternals(int fd, const Vector<String16>&
     result.append(buffer);
     snprintf(buffer, SIZE, "suspend count: %d\n", mSuspended);
     result.append(buffer);
-    snprintf(buffer, SIZE, "mix buffer : %p\n", mMixBuffer);
-    result.append(buffer);
     write(fd, result.string(), result.size());
     dprintf(fd, "Fast track availMask=%#x\n", mFastTrackAvailMask);
 

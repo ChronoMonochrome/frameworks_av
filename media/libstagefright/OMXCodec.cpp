@@ -2234,9 +2234,11 @@ void OMXCodec::on_message(const omx_message &msg) {
                     buffer->meta_data()->setInt32(kKeyIsUnreadable, true);
                 }
 
+/*
                 buffer->meta_data()->setInt32(
                         kKeyPlatformPrivate,
                         msg.u.extended_buffer_data.platform_private);
+*/
 
                 buffer->meta_data()->setInt32(
                         kKeyBufferID,
