@@ -762,7 +762,6 @@ status_t CameraService::connect(
     return OK;
 }
 
-<<<<<<< HEAD
 status_t CameraService::connectLegacy(
         const sp<ICameraClient>& cameraClient,
         int cameraId, int halVersion,
@@ -827,8 +826,6 @@ status_t CameraService::connectLegacy(
     return OK;
 }
 
-=======
->>>>>>> parent of b10cdad... cameraservice: Implement HAL1 and higher HAL API coexistence
 status_t CameraService::connectFinishUnsafe(const sp<BasicClient>& client,
                                             const sp<IBinder>& remoteCallback) {
     status_t status = client->initialize(mModule);

@@ -30,13 +30,7 @@ ifeq ($(TARGET_ARCH),arm)
     LOCAL_CFLAGS += -Wno-psabi
 endif
 
-<<<<<<< HEAD
-LOCAL_CFLAGS += -Werror
-
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
-
-=======
->>>>>>> parent of 84333e0... warnings be gone.
 include $(BUILD_STATIC_LIBRARY)
 
 ################################################################################

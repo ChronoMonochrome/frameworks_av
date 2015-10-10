@@ -482,12 +482,7 @@ status_t NuPlayerDriver::reset() {
 }
 
 status_t NuPlayerDriver::setLooping(int loop) {
-<<<<<<< HEAD
-    mLooping = loop != 0;
-    return OK;
-=======
     return INVALID_OPERATION;
->>>>>>> parent of 84333e0... warnings be gone.
 }
 
 player_type NuPlayerDriver::playerType() {
