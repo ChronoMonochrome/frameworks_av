@@ -118,8 +118,6 @@ protected:
 
     virtual void onMessageReceived(const sp<AMessage> &msg);
 
-    virtual sp<MetaData> getFormatMeta(bool audio) { return NULL; }
-
     sp<AMessage> dupNotify() const { return mNotify->dup(); }
 
     void notifyFlagsChanged(uint32_t flags);
