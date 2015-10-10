@@ -481,12 +481,12 @@ status_t CameraService::initializeShimMetadata(int cameraId) {
         }
         if (client == NULL) {
             needsNewClient = true;
-            ret = connectHelperLocked(/*cameraClient*/NULL, // Empty binder callbacks
+            ret = connectHelperLocked(/*out*/client,
+                                      /*cameraClient*/NULL, // Empty binder callbacks
                                       cameraId,
                                       internalPackageName,
                                       uid,
-                                      pid,
-                                      client);
+                                      pid);
 
             if (ret != OK) {
                 // Error already logged by callee
@@ -653,14 +653,17 @@ bool CameraService::canConnectUnsafe(int cameraId,
     return true;
 }
 
-status_t CameraService::connectHelperLocked(const sp<ICameraClient>& cameraClient,
-                                      int cameraId,
-                                      const String16& clientPackageName,
-                                      int clientUid,
-                                      int callingPid,
-                                      /*out*/
-                                      sp<Client>& client,
-                                      int halVersion) {
+status_t CameraService::connectHelperLocked(
+        /*out*/
+        sp<Client>& client,
+        /*in*/
+        const sp<ICameraClient>& cameraClient,
+        int cameraId,
+        const String16& clientPackageName,
+        int clientUid,
+        int callingPid,
+        int halVersion,
+        bool legacyMode) {
 
     int facing = -1;
     int deviceVersion = getDeviceVersion(cameraId, &facing);
@@ -680,7 +683,7 @@ status_t CameraService::connectHelperLocked(const sp<ICameraClient>& cameraClien
           case CAMERA_DEVICE_API_VERSION_1_0:
             client = new CameraClient(this, cameraClient,
                     clientPackageName, cameraId,
-                    facing, callingPid, clientUid, getpid());
+                    facing, callingPid, clientUid, getpid(), legacyMode);
             break;
           case CAMERA_DEVICE_API_VERSION_2_0:
           case CAMERA_DEVICE_API_VERSION_2_1:
@@ -689,8 +692,7 @@ status_t CameraService::connectHelperLocked(const sp<ICameraClient>& cameraClien
           case CAMERA_DEVICE_API_VERSION_3_2:
             client = new Camera2Client(this, cameraClient,
                     clientPackageName, cameraId,
-                    facing, callingPid, clientUid, getpid(),
-                    deviceVersion);
+                    facing, callingPid, clientUid, getpid(), legacyMode);
             break;
           case -1:
             ALOGE("Invalid camera id %d", cameraId);
@@ -707,7 +709,7 @@ status_t CameraService::connectHelperLocked(const sp<ICameraClient>& cameraClien
             // Only support higher HAL version device opened as HAL1.0 device.
             client = new CameraClient(this, cameraClient,
                     clientPackageName, cameraId,
-                    facing, callingPid, clientUid, getpid());
+                    facing, callingPid, clientUid, getpid(), legacyMode);
         } else {
             // Other combinations (e.g. HAL3.x open as HAL2.x) are not supported yet.
             ALOGE("Invalid camera HAL version %x: HAL %x device can only be"
@@ -765,12 +767,12 @@ status_t CameraService::connect(
             return OK;
         }
 
-        status = connectHelperLocked(cameraClient,
+        status = connectHelperLocked(/*out*/client,
+                                     cameraClient,
                                      cameraId,
                                      clientPackageName,
                                      clientUid,
-                                     callingPid,
-                                     client);
+                                     callingPid);
         if (status != OK) {
             return status;
         }
@@ -821,13 +823,14 @@ status_t CameraService::connectLegacy(
             return OK;
         }
 
-        status = connectHelperLocked(cameraClient,
+        status = connectHelperLocked(/*out*/client,
+                                     cameraClient,
                                      cameraId,
                                      clientPackageName,
                                      clientUid,
                                      callingPid,
-                                     client,
-                                     halVersion);
+                                     halVersion,
+                                     /*legacyMode*/true);
         if (status != OK) {
             return status;
         }
