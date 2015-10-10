@@ -83,13 +83,11 @@ status_t JpegProcessor::updateStream(const Parameters &params) {
 
     if (mCaptureConsumer == 0) {
         // Create CPU buffer queue endpoint
-        sp<IGraphicBufferProducer> producer;
-        sp<IGraphicBufferConsumer> consumer;
-        BufferQueue::createBufferQueue(&producer, &consumer);
-        mCaptureConsumer = new CpuConsumer(consumer, 1);
+        sp<BufferQueue> bq = new BufferQueue();
+        mCaptureConsumer = new CpuConsumer(bq, 1);
         mCaptureConsumer->setFrameAvailableListener(this);
         mCaptureConsumer->setName(String8("Camera2Client::CaptureConsumer"));
-        mCaptureWindow = new Surface(producer);
+        mCaptureWindow = new Surface(bq);
         // Create memory for API consumption
         mCaptureHeap = new MemoryHeapBase(maxJpegSize.data.i32[0], 0,
                                        "Camera2Client::CaptureHeap");

@@ -131,15 +131,13 @@ status_t ZslProcessor::updateStream(const Parameters &params) {
 
     if (mZslConsumer == 0) {
         // Create CPU buffer queue endpoint
-        sp<IGraphicBufferProducer> producer;
-        sp<IGraphicBufferConsumer> consumer;
-        BufferQueue::createBufferQueue(&producer, &consumer);
-        mZslConsumer = new BufferItemConsumer(consumer,
+        sp<BufferQueue> bq = new BufferQueue();
+        mZslConsumer = new BufferItemConsumer(bq,
             GRALLOC_USAGE_HW_CAMERA_ZSL,
             kZslBufferDepth);
         mZslConsumer->setFrameAvailableListener(this);
         mZslConsumer->setName(String8("Camera2Client::ZslConsumer"));
-        mZslWindow = new Surface(producer);
+        mZslWindow = new Surface(bq);
     }
 
     if (mZslStreamId != NO_STREAM) {
