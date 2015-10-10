@@ -1552,8 +1552,7 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
 
             if ((mState != CONFIGURED && mState != STARTING &&
                  mState != STARTED && mState != FLUSHING &&
-                 mState != FLUSHED)
-                    || format == NULL) {
+                 mState != FLUSHED)) {
                 PostReplyWithError(replyID, INVALID_OPERATION);
                 break;
             } else if (mFlags & kFlagStickyError) {
