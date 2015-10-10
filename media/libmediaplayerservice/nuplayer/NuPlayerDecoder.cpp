@@ -149,7 +149,7 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
 
     // the following should work in configured state
     CHECK_EQ((status_t)OK, mCodec->getOutputFormat(&mOutputFormat));
-    CHECK_EQ((status_t)OK, mCodec->getInputFormat(&mInputFormat));
+/*    CHECK_EQ((status_t)OK, mCodec->getInputFormat(&mInputFormat));*/
 
     err = mCodec->start();
     if (err != OK) {
