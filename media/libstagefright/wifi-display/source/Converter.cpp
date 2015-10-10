@@ -169,14 +169,7 @@ status_t Converter::initEncoder() {
 
     bool isAudio = !strncasecmp(outputMIME.c_str(), "audio/", 6);
 
-    if (!mIsPCMAudio) {
-        mEncoder = MediaCodec::CreateByType(
-                mCodecLooper, outputMIME.c_str(), true /* encoder */);
-
-        if (mEncoder == NULL) {
-            return ERROR_UNSUPPORTED;
-        }
-    }
+    return ERROR_UNSUPPORTED;
 
     if (mIsPCMAudio) {
         return OK;
