@@ -3840,7 +3840,6 @@ status_t OMXCodec::read(
             return UNKNOWN_ERROR;
         }
 
-        CODEC_LOGV("seeking to %" PRId64 " us (%.2f secs)", seekTimeUs, seekTimeUs / 1E6);
 
         mSignalledEOS = false;
 
