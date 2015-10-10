@@ -715,7 +715,7 @@ void GraphicBufferSource::onBuffersReleased() {
     uint32_t slotMask;
     if (mBufferQueue->getReleasedBuffers(&slotMask) != NO_ERROR) {
         ALOGW("onBuffersReleased: unable to get released buffer set");
-        slotMask = 0xffffffffffffffffULL;
+        slotMask = 0xffffffffULL;
     }
 
     ALOGV("onBuffersReleased: 0x%016" PRIx64, slotMask);
