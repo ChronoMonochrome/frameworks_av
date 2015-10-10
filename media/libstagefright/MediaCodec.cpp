@@ -1917,7 +1917,7 @@ status_t MediaCodec::onReleaseOutputBuffer(const sp<AMessage> &msg) {
         if (mSoftRenderer != NULL) {
             mSoftRenderer->render(
                     info->mData->data(), info->mData->size(),
-                    timestampNs, NULL, info->mFormat);
+                    NULL, NULL, info->mFormat);
         }
     }
 

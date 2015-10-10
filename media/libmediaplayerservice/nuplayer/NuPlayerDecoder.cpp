@@ -496,9 +496,7 @@ void NuPlayer::Decoder::onRenderBuffer(const sp<AMessage> &msg) {
     size_t bufferIx;
     CHECK(msg->findSize("buffer-ix", &bufferIx));
     if (msg->findInt32("render", &render) && render) {
-        int64_t timestampNs;
-        CHECK(msg->findInt64("timestampNs", &timestampNs));
-        err = mCodec->renderOutputBufferAndRelease(bufferIx, timestampNs);
+        err = mCodec->renderOutputBufferAndRelease(bufferIx);
     } else {
         err = mCodec->releaseOutputBuffer(bufferIx);
     }
