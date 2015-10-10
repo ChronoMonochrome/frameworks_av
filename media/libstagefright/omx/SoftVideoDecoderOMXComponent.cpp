@@ -131,8 +131,8 @@ void SoftVideoDecoderOMXComponent::updatePortDefinitions(bool updateCrop) {
     def->nBufferSize = def->format.video.nFrameWidth * def->format.video.nFrameHeight * 3 / 2;
 
     def = &editPortInfo(kOutputPortIndex)->mDef;
-    def->format.video.nFrameWidth = outputBufferWidth();
-    def->format.video.nFrameHeight = outputBufferHeight();
+    def->format.video.nFrameWidth = mIsAdaptive ? mAdaptiveMaxWidth : mWidth;
+    def->format.video.nFrameHeight = mIsAdaptive ? mAdaptiveMaxHeight : mHeight;
     def->format.video.nStride = def->format.video.nFrameWidth;
     def->format.video.nSliceHeight = def->format.video.nFrameHeight;
 
@@ -146,15 +146,6 @@ void SoftVideoDecoderOMXComponent::updatePortDefinitions(bool updateCrop) {
         mCropWidth = mWidth;
         mCropHeight = mHeight;
     }
-}
-
-
-uint32_t SoftVideoDecoderOMXComponent::outputBufferWidth() {
-    return mIsAdaptive ? mAdaptiveMaxWidth : mWidth;
-}
-
-uint32_t SoftVideoDecoderOMXComponent::outputBufferHeight() {
-    return mIsAdaptive ? mAdaptiveMaxHeight : mHeight;
 }
 
 void SoftVideoDecoderOMXComponent::handlePortSettingsChange(
@@ -208,9 +199,9 @@ void SoftVideoDecoderOMXComponent::handlePortSettingsChange(
 void SoftVideoDecoderOMXComponent::copyYV12FrameToOutputBuffer(
         uint8_t *dst, const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV,
         size_t srcYStride, size_t srcUStride, size_t srcVStride) {
-    size_t dstYStride = outputBufferWidth();
+    size_t dstYStride = mIsAdaptive ? mAdaptiveMaxWidth : mWidth;
     size_t dstUVStride = dstYStride / 2;
-    size_t dstHeight = outputBufferHeight();
+    size_t dstHeight = mIsAdaptive ? mAdaptiveMaxHeight : mHeight;
     uint8_t *dstStart = dst;
 
     for (size_t i = 0; i < mHeight; ++i) {
