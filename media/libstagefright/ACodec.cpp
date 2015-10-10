@@ -2718,7 +2718,7 @@ void ACodec::sendFormatChange(const sp<AMessage> &reply) {
                 {
                     OMX_AUDIO_PARAM_VORBISTYPE params;
                     InitOMXParams(&params);
-                    params.nPortIndex = portIndex;
+                    params.nPortIndex = kPortIndexOutput;
 
                     CHECK_EQ(mOMX->getParameter(
                                 mNode, OMX_IndexParamAudioVorbis,
