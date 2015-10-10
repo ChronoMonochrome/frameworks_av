@@ -1126,8 +1126,6 @@ MtpResponseCode MtpServer::doSendPartialObject() {
 
     // can't start writing past the end of the file
     if (offset > edit->mSize) {
-        ALOGD("writing past end of object, offset: %" PRIu64 ", edit->mSize: %" PRIu64,
-            offset, edit->mSize);
         return MTP_RESPONSE_GENERAL_ERROR;
     }
 
