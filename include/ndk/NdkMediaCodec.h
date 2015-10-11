@@ -161,7 +161,7 @@ media_status_t AMediaCodec_releaseOutputBuffer(AMediaCodec*, size_t idx, bool re
  * For more details, see the Java documentation for MediaCodec.releaseOutputBuffer.
  */
 media_status_t AMediaCodec_releaseOutputBufferAtTime(
-        AMediaCodec *mData, size_t idx);
+        AMediaCodec *mData, size_t idx, int64_t timestampNs);
 
 
 typedef enum {
