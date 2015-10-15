@@ -59,67 +59,58 @@ namespace {
 
 AudioPolicyService::AudioPolicyService()
     : BnAudioPolicyService(), mpAudioPolicyDev(NULL), mpAudioPolicy(NULL),
-      mAudioPolicyManager(NULL), mAudioPolicyClient(NULL), mPhoneState(AUDIO_MODE_INVALID)
-{
-}
-
-void AudioPolicyService::onFirstRef()
+      mAudioPolicyManager(NULL), mAudioPolicyClient(NULL)
 {
     char value[PROPERTY_VALUE_MAX];
     const struct hw_module_t *module;
     int forced_val;
     int rc;
 
-    {
-        Mutex::Autolock _l(mLock);
+    Mutex::Autolock _l(mLock);
 
-        // start tone playback thread
-        mTonePlaybackThread = new AudioCommandThread(String8("ApmTone"), this);
-        // start audio commands thread
-        mAudioCommandThread = new AudioCommandThread(String8("ApmAudio"), this);
-        // start output activity command thread
-        mOutputCommandThread = new AudioCommandThread(String8("ApmOutput"), this);
+    // start tone playback thread
+    mTonePlaybackThread = new AudioCommandThread(String8("ApmTone"), this);
+    // start audio commands thread
+    mAudioCommandThread = new AudioCommandThread(String8("ApmAudio"), this);
+    // start output activity command thread
+    mOutputCommandThread = new AudioCommandThread(String8("ApmOutput"), this);
 
 #ifdef USE_LEGACY_AUDIO_POLICY
-        ALOGI("AudioPolicyService CSTOR in legacy mode");
+    ALOGI("AudioPolicyService CSTOR in legacy mode");
 
-        /* instantiate the audio policy manager */
-        rc = hw_get_module(AUDIO_POLICY_HARDWARE_MODULE_ID, &module);
-        if (rc) {
-            return;
-        }
-        rc = audio_policy_dev_open(module, &mpAudioPolicyDev);
-        ALOGE_IF(rc, "couldn't open audio policy device (%s)", strerror(-rc));
-        if (rc) {
-            return;
-        }
+    /* instantiate the audio policy manager */
+    rc = hw_get_module(AUDIO_POLICY_HARDWARE_MODULE_ID, &module);
+    if (rc) {
+        return;
+    }
+    rc = audio_policy_dev_open(module, &mpAudioPolicyDev);
+    ALOGE_IF(rc, "couldn't open audio policy device (%s)", strerror(-rc));
+    if (rc) {
+        return;
+    }
 
-        rc = mpAudioPolicyDev->create_audio_policy(mpAudioPolicyDev, &aps_ops, this,
-                                                   &mpAudioPolicy);
-        ALOGE_IF(rc, "couldn't create audio policy (%s)", strerror(-rc));
-        if (rc) {
-            return;
-        }
+    rc = mpAudioPolicyDev->create_audio_policy(mpAudioPolicyDev, &aps_ops, this,
+                                               &mpAudioPolicy);
+    ALOGE_IF(rc, "couldn't create audio policy (%s)", strerror(-rc));
+    if (rc) {
+        return;
+    }
 
-        rc = mpAudioPolicy->init_check(mpAudioPolicy);
-        ALOGE_IF(rc, "couldn't init_check the audio policy (%s)", strerror(-rc));
-        if (rc) {
-            return;
-        }
-        ALOGI("Loaded audio policy from %s (%s)", module->name, module->id);
+    rc = mpAudioPolicy->init_check(mpAudioPolicy);
+    ALOGE_IF(rc, "couldn't init_check the audio policy (%s)", strerror(-rc));
+    if (rc) {
+        return;
+    }
+    ALOGI("Loaded audio policy from %s (%s)", module->name, module->id);
 #else
-        ALOGI("AudioPolicyService CSTOR in new mode");
+    ALOGI("AudioPolicyService CSTOR in new mode");
 
-        mAudioPolicyClient = new AudioPolicyClient(this);
-        mAudioPolicyManager = createAudioPolicyManager(mAudioPolicyClient);
+    mAudioPolicyClient = new AudioPolicyClient(this);
+    mAudioPolicyManager = createAudioPolicyManager(mAudioPolicyClient);
 #endif
-    }
+
     // load audio processing modules
-    sp<AudioPolicyEffects>audioPolicyEffects = new AudioPolicyEffects();
-    {
-        Mutex::Autolock _l(mLock);
-        mAudioPolicyEffects = audioPolicyEffects;
-    }
+    mAudioPolicyEffects = new AudioPolicyEffects();
 }
 
 AudioPolicyService::~AudioPolicyService()
@@ -839,38 +830,18 @@ void AudioPolicyService::AudioCommandThread::insertCommand_l(sp<AudioCommand>& c
         case CREATE_AUDIO_PATCH:
         case RELEASE_AUDIO_PATCH: {
             audio_patch_handle_t handle;
-            struct audio_patch patch;
             if (command->mCommand == CREATE_AUDIO_PATCH) {
                 handle = ((CreateAudioPatchData *)command->mParam.get())->mHandle;
-                patch = ((CreateAudioPatchData *)command->mParam.get())->mPatch;
             } else {
                 handle = ((ReleaseAudioPatchData *)command->mParam.get())->mHandle;
             }
             audio_patch_handle_t handle2;
-            struct audio_patch patch2;
             if (command2->mCommand == CREATE_AUDIO_PATCH) {
                 handle2 = ((CreateAudioPatchData *)command2->mParam.get())->mHandle;
-                patch2 = ((CreateAudioPatchData *)command2->mParam.get())->mPatch;
             } else {
                 handle2 = ((ReleaseAudioPatchData *)command2->mParam.get())->mHandle;
             }
             if (handle != handle2) break;
-            /* Filter CREATE_AUDIO_PATCH commands only when they are issued for
-               same output. */
-            if( (command->mCommand == CREATE_AUDIO_PATCH) &&
-                (command2->mCommand == CREATE_AUDIO_PATCH) ) {
-                bool isOutputDiff = false;
-                if (patch.num_sources == patch2.num_sources) {
-                    for (unsigned count = 0; count < patch.num_sources; count++) {
-                        if (patch.sources[count].id != patch2.sources[count].id) {
-                            isOutputDiff = true;
-                            break;
-                        }
-                    }
-                    if (isOutputDiff)
-                       break;
-                }
-            }
             ALOGV("Filtering out %s audio patch command for handle %d",
                   (command->mCommand == CREATE_AUDIO_PATCH) ? "create" : "release", handle);
             removedCommands.add(command2);

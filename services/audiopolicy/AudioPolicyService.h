@@ -134,9 +134,6 @@ public:
     // IBinder::DeathRecipient
     virtual     void        binderDied(const wp<IBinder>& who);
 
-    // RefBase
-    virtual     void        onFirstRef();
-
     //
     // Helpers for the struct audio_policy_service_ops implementation.
     // This is used by the audio policy manager for certain operations that
@@ -176,8 +173,6 @@ public:
                                            audio_devices_t *device);
 
     virtual status_t releaseSoundTriggerSession(audio_session_t session);
-
-    virtual audio_mode_t getPhoneState();
 
             status_t doStopOutput(audio_io_handle_t output,
                                   audio_stream_type_t stream,
@@ -498,7 +493,6 @@ private:
 
     // Manage all effects configured in audio_effects.conf
     sp<AudioPolicyEffects> mAudioPolicyEffects;
-    audio_mode_t mPhoneState;
 };
 
 }; // namespace android
