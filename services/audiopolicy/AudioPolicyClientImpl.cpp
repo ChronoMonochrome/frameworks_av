@@ -213,9 +213,4 @@ void AudioPolicyService::AudioPolicyClient::onAudioPatchListUpdate()
     mAudioPolicyService->onAudioPatchListUpdate();
 }
 
-audio_unique_id_t AudioPolicyService::AudioPolicyClient::newAudioUniqueId()
-{
-    return AudioSystem::newAudioUniqueId();
-}
-
 }; // namespace android

@@ -214,7 +214,7 @@ status_t AudioRecord::set(
     // mNotificationFramesAct is initialized in openRecord_l
 
     if (sessionId == AUDIO_SESSION_ALLOCATE) {
-        mSessionId = AudioSystem::newAudioUniqueId();
+        mSessionId = AudioSystem::newAudioSessionId();
     } else {
         mSessionId = sessionId;
     }

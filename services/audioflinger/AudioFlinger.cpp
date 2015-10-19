@@ -2065,7 +2065,7 @@ status_t AudioFlinger::invalidateStream(audio_stream_type_t stream)
 }
 
 
-audio_unique_id_t AudioFlinger::newAudioUniqueId()
+int AudioFlinger::newAudioSessionId()
 {
     return nextUniqueId();
 }
