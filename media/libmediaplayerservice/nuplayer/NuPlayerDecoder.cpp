@@ -88,7 +88,7 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
     mComponentName.append(" decoder");
     ALOGV("[%s] onConfigure (surface=%p)", mComponentName.c_str(), surface.get());
 
-    mCodec = MediaCodec::CreateByType(mCodecLooper, mime.c_str(), false /* encoder */);
+    mCodec = MediaCodec::CreateByType(mCodecLooper, mime.c_str(), false, NULL);
     int32_t secure = 0;
     if (format->findInt32("secure", &secure) && secure != 0) {
         if (mCodec != NULL) {
@@ -97,7 +97,7 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
             mCodec->release();
             ALOGI("[%s] creating", mComponentName.c_str());
             mCodec = MediaCodec::CreateByComponentName(
-                    mCodecLooper, mComponentName.c_str());
+                    mCodecLooper, mComponentName.c_str(), NULL);
         }
     }
     if (mCodec == NULL) {

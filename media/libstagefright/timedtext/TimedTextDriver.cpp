@@ -203,15 +203,7 @@ status_t TimedTextDriver::addInBandTextSource(
 status_t TimedTextDriver::addOutOfBandTextSource(
         size_t trackIndex, const char *uri, const char *mimeType) {
 
-    // To support local subtitle file only for now
-    if (strncasecmp("file://", uri, 7)) {
-        ALOGE("uri('%s') is not a file", uri);
         return ERROR_UNSUPPORTED;
-    }
-
-    sp<DataSource> dataSource =
-            DataSource::CreateFromURI(mHTTPService, uri);
-    return createOutOfBandTextSource(trackIndex, mimeType, dataSource);
 }
 
 status_t TimedTextDriver::addOutOfBandTextSource(

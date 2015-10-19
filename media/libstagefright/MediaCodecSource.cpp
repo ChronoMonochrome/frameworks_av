@@ -404,7 +404,7 @@ status_t MediaCodecSource::initEncoder() {
     CHECK(mOutputFormat->findString("mime", &outputMIME));
 
     mEncoder = MediaCodec::CreateByType(
-            mCodecLooper, outputMIME.c_str(), true /* encoder */);
+            mCodecLooper, outputMIME.c_str(), true, NULL);
 
     if (mEncoder == NULL) {
         return NO_INIT;
