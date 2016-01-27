@@ -40,7 +40,6 @@
 #include <media/stagefright/Utils.h>
 
 #include <ctype.h>
-#include <inttypes.h>
 #include <openssl/aes.h>
 #include <openssl/md5.h>
 
@@ -797,7 +796,7 @@ void PlaylistFetcher::onDownloadNext() {
             ALOGE("Cannot find sequence number %d in playlist "
                  "(contains %d - %d)",
                  mSeqNumber, firstSeqNumberInPlaylist,
-                  firstSeqNumberInPlaylist + (int32_t)mPlaylist->size() - 1);
+                 firstSeqNumberInPlaylist + mPlaylist->size() - 1);
 
             notifyError(ERROR_END_OF_STREAM);
             return;

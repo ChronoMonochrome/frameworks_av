@@ -33,8 +33,6 @@
 
 #include "SoftMPEG4Encoder.h"
 
-#include <inttypes.h>
-
 namespace android {
 
 template<class T>
@@ -727,7 +725,7 @@ void SoftMPEG4Encoder::onQueueFilled(OMX_U32 /* portIndex */) {
             if (!PVEncodeVideoFrame(mHandle, &vin, &vout,
                     &modTimeMs, outPtr, &dataLength, &nLayer) ||
                 !PVGetHintTrack(mHandle, &hintTrack)) {
-                ALOGE("Failed to encode frame or get hink track at frame %" PRId64,
+                ALOGE("Failed to encode frame or get hink track at frame %lld",
                     mNumInputFrames);
                 mSignalledError = true;
                 notify(OMX_EventError, OMX_ErrorUndefined, 0, 0);

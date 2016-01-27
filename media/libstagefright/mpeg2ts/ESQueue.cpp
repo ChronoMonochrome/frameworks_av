@@ -31,7 +31,6 @@
 
 #include "include/avc_utils.h"
 
-#include <inttypes.h>
 #include <netinet/in.h>
 
 namespace android {
@@ -182,7 +181,7 @@ status_t ElementaryStreamQueue::appendData(
 
                 if (startOffset > 0) {
                     ALOGI("found something resembling an H.264/MPEG syncword "
-                          "at offset %zd",
+                          "at offset %d",
                           startOffset);
                 }
 
@@ -215,7 +214,7 @@ status_t ElementaryStreamQueue::appendData(
 
                 if (startOffset > 0) {
                     ALOGI("found something resembling an AAC syncword at "
-                          "offset %zd",
+                          "offset %d",
                           startOffset);
                 }
 
@@ -243,7 +242,7 @@ status_t ElementaryStreamQueue::appendData(
 
                 if (startOffset > 0) {
                     ALOGI("found something resembling an MPEG audio "
-                          "syncword at offset %zd",
+                          "syncword at offset %d",
                           startOffset);
                 }
 
@@ -267,7 +266,7 @@ status_t ElementaryStreamQueue::appendData(
     if (mBuffer == NULL || neededSize > mBuffer->capacity()) {
         neededSize = (neededSize + 65535) & ~65535;
 
-        ALOGV("resizing buffer to size %zu", neededSize);
+        ALOGV("resizing buffer to size %d", neededSize);
 
         sp<ABuffer> buffer = new ABuffer(neededSize);
         if (mBuffer != NULL) {
@@ -290,7 +289,7 @@ status_t ElementaryStreamQueue::appendData(
 
 #if 0
     if (mMode == AAC) {
-        ALOGI("size = %zu, timeUs = %.2f secs", size, timeUs / 1E6);
+        ALOGI("size = %d, timeUs = %.2f secs", size, timeUs / 1E6);
         hexdump(data, size);
     }
 #endif
@@ -838,7 +837,7 @@ sp<ABuffer> ElementaryStreamQueue::dequeueAccessUnitMPEGVideo() {
 
                 accessUnit->meta()->setInt64("timeUs", timeUs);
 
-                ALOGV("returning MPEG video access unit at time %" PRId64 " us",
+                ALOGV("returning MPEG video access unit at time %lld us",
                       timeUs);
 
                 // hexdump(accessUnit->data(), accessUnit->size());
@@ -997,7 +996,7 @@ sp<ABuffer> ElementaryStreamQueue::dequeueAccessUnitMPEG4Video() {
 
                     accessUnit->meta()->setInt64("timeUs", timeUs);
 
-                    ALOGV("returning MPEG4 video access unit at time %" PRId64 " us",
+                    ALOGV("returning MPEG4 video access unit at time %lld us",
                          timeUs);
 
                     // hexdump(accessUnit->data(), accessUnit->size());
