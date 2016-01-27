@@ -481,7 +481,7 @@ OMX_ERRORTYPE OMX::OnFillBufferDone(
 OMX::node_id OMX::makeNodeID(OMXNodeInstance *instance) {
     // mLock is already held.
 
-    node_id node = (node_id)(uintptr_t)++mNodeCounter;
+    node_id node = (node_id)++mNodeCounter;
     mNodeIDToInstance.add(node, instance);
 
     return node;

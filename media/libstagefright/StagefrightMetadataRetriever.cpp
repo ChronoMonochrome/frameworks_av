@@ -16,7 +16,6 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "StagefrightMetadataRetriever"
-#include <inttypes.h>
 #include <utils/Log.h>
 
 #include "include/StagefrightMetadataRetriever.h"
@@ -483,7 +482,7 @@ void StagefrightMetadataRetriever::parseMetaData() {
     size_t numTracks = mExtractor->countTracks();
 
     char tmp[32];
-    sprintf(tmp, "%zu", numTracks);
+    sprintf(tmp, "%d", numTracks);
 
     mMetaData.add(METADATA_KEY_NUM_TRACKS, String8(tmp));
 
@@ -540,7 +539,7 @@ void StagefrightMetadataRetriever::parseMetaData() {
     }
 
     // The duration value is a string representing the duration in ms.
-    sprintf(tmp, "%" PRId64, (maxDurationUs + 500) / 1000);
+    sprintf(tmp, "%lld", (maxDurationUs + 500) / 1000);
     mMetaData.add(METADATA_KEY_DURATION, String8(tmp));
 
     if (hasAudio) {
@@ -568,7 +567,7 @@ void StagefrightMetadataRetriever::parseMetaData() {
         if (mSource->getSize(&sourceSize) == OK) {
             int64_t avgBitRate = (int64_t)(sourceSize * 8E6 / maxDurationUs);
 
-            sprintf(tmp, "%" PRId64, avgBitRate);
+            sprintf(tmp, "%lld", avgBitRate);
             mMetaData.add(METADATA_KEY_BITRATE, String8(tmp));
         }
     }

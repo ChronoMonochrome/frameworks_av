@@ -1052,13 +1052,13 @@ void CameraService::BasicClient::opChanged(int32_t op, const String16& packageNa
 // ----------------------------------------------------------------------------
 
 Mutex* CameraService::Client::getClientLockFromCookie(void* user) {
-    return gCameraService->getClientLockById((int)(intptr_t) user);
+    return gCameraService->getClientLockById((int) user);
 }
 
 // Provide client pointer for callbacks. Client lock returned from getClientLockFromCookie should
 // be acquired for this to be safe
 CameraService::Client* CameraService::Client::getClientFromCookie(void* user) {
-    BasicClient *basicClient = gCameraService->getClientByIdUnsafe((int)(intptr_t) user);
+    BasicClient *basicClient = gCameraService->getClientByIdUnsafe((int) user);
     // OK: only CameraClient calls this, and they already cast anyway.
     Client* client = static_cast<Client*>(basicClient);
 
