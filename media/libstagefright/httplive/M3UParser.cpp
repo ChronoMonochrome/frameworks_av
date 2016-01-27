@@ -24,7 +24,6 @@
 #include <media/stagefright/foundation/ADebug.h>
 #include <media/stagefright/foundation/AMessage.h>
 #include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/Utils.h>
 #include <media/mediaplayer.h>
 
 namespace android {
@@ -126,7 +125,7 @@ void M3UParser::MediaGroup::pickRandomMediaItems() {
                 mSelectedIndex = strtoul(value, &end, 10);
                 CHECK(end > value && *end == '\0');
 
-                if (mSelectedIndex >= (ssize_t)mMediaItems.size()) {
+                if (mSelectedIndex >= mMediaItems.size()) {
                     mSelectedIndex = mMediaItems.size() - 1;
                 }
             } else {
@@ -163,17 +162,17 @@ status_t M3UParser::MediaGroup::selectTrack(size_t index, bool select) {
 
     if (select) {
         if (index >= mMediaItems.size()) {
-            ALOGE("track %zu does not exist", index);
+            ALOGE("track %d does not exist", index);
             return INVALID_OPERATION;
         }
-        if (mSelectedIndex == (ssize_t)index) {
+        if (mSelectedIndex == index) {
             ALOGE("track %d already selected", index);
             return BAD_VALUE;
         }
         ALOGV("selected track %d", index);
         mSelectedIndex = index;
     } else {
-        if (mSelectedIndex != (ssize_t)index) {
+        if (mSelectedIndex != index) {
             ALOGE("track %d is not selected", index);
             return BAD_VALUE;
         }
@@ -353,28 +352,9 @@ bool M3UParser::getTypeURI(size_t index, const char *key, AString *uri) const {
     if (!meta->findString(key, &groupID)) {
         *uri = mItems.itemAt(index).mURI;
 
-        AString codecs;
-        if (!meta->findString("codecs", &codecs)) {
-            // Assume media without any more specific attribute contains
-            // audio and video, but no subtitles.
-            return !strcmp("audio", key) || !strcmp("video", key);
-        } else {
-            // Split the comma separated list of codecs.
-            size_t offset = 0;
-            ssize_t commaPos = -1;
-            codecs.append(',');
-            while ((commaPos = codecs.find(",", offset)) >= 0) {
-                AString codec(codecs, offset, commaPos - offset);
-                codec.trim();
-                // return true only if a codec of type `key` ("audio"/"video")
-                // is found.
-                if (codecIsType(codec, key)) {
-                    return true;
-                }
-                offset = commaPos + 1;
-            }
-            return false;
-        }
+        // Assume media without any more specific attribute contains
+        // audio and video, but no subtitles.
+        return !strcmp("audio", key) || !strcmp("video", key);
     }
 
     sp<MediaGroup> group = mMediaGroups.valueFor(groupID);
@@ -389,6 +369,18 @@ bool M3UParser::getTypeURI(size_t index, const char *key, AString *uri) const {
     return true;
 }
 
+bool M3UParser::getAudioURI(size_t index, AString *uri) const {
+    return getTypeURI(index, "audio", uri);
+}
+
+bool M3UParser::getVideoURI(size_t index, AString *uri) const {
+    return getTypeURI(index, "video", uri);
+}
+
+bool M3UParser::getSubtitleURI(size_t index, AString *uri) const {
+    return getTypeURI(index, "subtitles", uri);
+}
+
 static bool MakeURL(const char *baseURL, const char *url, AString *out) {
     out->clear();
 
@@ -398,8 +390,6 @@ static bool MakeURL(const char *baseURL, const char *url, AString *out) {
         // Base URL must be absolute
         return false;
     }
-    const size_t schemeEnd = (strstr(baseURL, "//") - baseURL) + 2;
-    CHECK(schemeEnd == 7 || schemeEnd == 8);
 
     if (!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8)) {
         // "url" is already an absolute URL, ignore base URL.
@@ -426,32 +416,22 @@ static bool MakeURL(const char *baseURL, const char *url, AString *out) {
     } else {
         // URL is a relative path
 
-        // Check for a possible query string
-        const char *qsPos = strchr(baseURL, '?');
-        size_t end;
-        if (qsPos != NULL) {
-            end = qsPos - baseURL;
-        } else {
-            end = strlen(baseURL);
-        }
-        // Check for the last slash before a potential query string
-        for (ssize_t pos = end - 1; pos >= 0; pos--) {
-            if (baseURL[pos] == '/') {
-                end = pos;
-                break;
-            }
-        }
-
-        // Check whether the found slash actually is part of the path
-        // and not part of the "http://".
-        if (end >= schemeEnd) {
-            out->setTo(baseURL, end);
-        } else {
+        size_t n = strlen(baseURL);
+        if (baseURL[n - 1] == '/') {
             out->setTo(baseURL);
-        }
+            out->append(url);
+        } else {
+            const char *slashPos = strrchr(baseURL, '/');
 
-        out->append("/");
-        out->append(url);
+            if (slashPos > &baseURL[6]) {
+                out->setTo(baseURL, slashPos - baseURL);
+            } else {
+                out->setTo(baseURL);
+            }
+
+            out->append("/");
+            out->append(url);
+        }
     }
 
     ALOGV("base:'%s', url:'%s' => '%s'", baseURL, url, out->c_str());
@@ -704,25 +684,12 @@ status_t M3UParser::parseStreamInf(
                 *meta = new AMessage;
             }
             (*meta)->setInt32("bandwidth", x);
-        } else if (!strcasecmp("codecs", key.c_str())) {
-            if (!isQuotedString(val)) {
-                ALOGE("Expected quoted string for %s attribute, "
-                      "got '%s' instead.",
-                      key.c_str(), val.c_str());;
-
-                return ERROR_MALFORMED;
-            }
-
-            key.tolower();
-            const AString &codecs = unquoteString(val);
-            if (meta->get() == NULL) {
-                *meta = new AMessage;
-            }
-            (*meta)->setString(key.c_str(), codecs.c_str());
         } else if (!strcasecmp("audio", key.c_str())
                 || !strcasecmp("video", key.c_str())
                 || !strcasecmp("subtitles", key.c_str())) {
-            if (!isQuotedString(val)) {
+            if (val.size() < 2
+                    || val.c_str()[0] != '"'
+                    || val.c_str()[val.size() - 1] != '"') {
                 ALOGE("Expected quoted string for %s attribute, "
                       "got '%s' instead.",
                       key.c_str(), val.c_str());
@@ -730,7 +697,7 @@ status_t M3UParser::parseStreamInf(
                 return ERROR_MALFORMED;
             }
 
-            const AString &groupID = unquoteString(val);
+            AString groupID(val, 1, val.size() - 2);
             ssize_t groupIndex = mMediaGroups.indexOfKey(groupID);
 
             if (groupIndex < 0) {
@@ -741,9 +708,6 @@ status_t M3UParser::parseStreamInf(
             }
 
             key.tolower();
-            if (meta->get() == NULL) {
-                *meta = new AMessage;
-            }
             (*meta)->setString(key.c_str(), groupID.c_str());
         }
     }
@@ -806,7 +770,8 @@ status_t M3UParser::parseCipherInfo(
                 if (MakeURL(baseURI.c_str(), val.c_str(), &absURI)) {
                     val = absURI;
                 } else {
-                    ALOGE("failed to make absolute url for <URL suppressed>.");
+                    ALOGE("failed to make absolute url for '%s'.",
+                         val.c_str());
                 }
             }
 
@@ -1119,123 +1084,6 @@ status_t M3UParser::ParseDouble(const char *s, double *x) {
     *x = dval;
 
     return OK;
-}
-
-// static
-bool M3UParser::isQuotedString(const AString &str) {
-    if (str.size() < 2
-            || str.c_str()[0] != '"'
-            || str.c_str()[str.size() - 1] != '"') {
-        return false;
-    }
-    return true;
-}
-
-// static
-AString M3UParser::unquoteString(const AString &str) {
-     if (!isQuotedString(str)) {
-         return str;
-     }
-     return AString(str, 1, str.size() - 2);
-}
-
-// static
-bool M3UParser::codecIsType(const AString &codec, const char *type) {
-    if (codec.size() < 4) {
-        return false;
-    }
-    const char *c = codec.c_str();
-    switch (FOURCC(c[0], c[1], c[2], c[3])) {
-        // List extracted from http://www.mp4ra.org/codecs.html
-        case 'ac-3':
-        case 'alac':
-        case 'dra1':
-        case 'dtsc':
-        case 'dtse':
-        case 'dtsh':
-        case 'dtsl':
-        case 'ec-3':
-        case 'enca':
-        case 'g719':
-        case 'g726':
-        case 'm4ae':
-        case 'mlpa':
-        case 'mp4a':
-        case 'raw ':
-        case 'samr':
-        case 'sawb':
-        case 'sawp':
-        case 'sevc':
-        case 'sqcp':
-        case 'ssmv':
-        case 'twos':
-        case 'agsm':
-        case 'alaw':
-        case 'dvi ':
-        case 'fl32':
-        case 'fl64':
-        case 'ima4':
-        case 'in24':
-        case 'in32':
-        case 'lpcm':
-        case 'Qclp':
-        case 'QDM2':
-        case 'QDMC':
-        case 'ulaw':
-        case 'vdva':
-            return !strcmp("audio", type);
-
-        case 'avc1':
-        case 'avc2':
-        case 'avcp':
-        case 'drac':
-        case 'encv':
-        case 'mjp2':
-        case 'mp4v':
-        case 'mvc1':
-        case 'mvc2':
-        case 'resv':
-        case 's263':
-        case 'svc1':
-        case 'vc-1':
-        case 'CFHD':
-        case 'civd':
-        case 'DV10':
-        case 'dvh5':
-        case 'dvh6':
-        case 'dvhp':
-        case 'DVOO':
-        case 'DVOR':
-        case 'DVTV':
-        case 'DVVT':
-        case 'flic':
-        case 'gif ':
-        case 'h261':
-        case 'h263':
-        case 'HD10':
-        case 'jpeg':
-        case 'M105':
-        case 'mjpa':
-        case 'mjpb':
-        case 'png ':
-        case 'PNTG':
-        case 'rle ':
-        case 'rpza':
-        case 'Shr0':
-        case 'Shr1':
-        case 'Shr2':
-        case 'Shr3':
-        case 'Shr4':
-        case 'SVQ1':
-        case 'SVQ3':
-        case 'tga ':
-        case 'tiff':
-        case 'WRLE':
-            return !strcmp("video", type);
-
-        default:
-            return false;
-    }
 }
 
 }  // namespace android
