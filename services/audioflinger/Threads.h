@@ -830,6 +830,7 @@ public:
     virtual void        onFirstRef();
 
     virtual status_t    initCheck() const { return (mInput == NULL) ? NO_INIT : NO_ERROR; }
+
             sp<AudioFlinger::RecordThread::RecordTrack>  createRecordTrack_l(
                     const sp<AudioFlinger::Client>& client,
                     uint32_t sampleRate,
@@ -837,7 +838,7 @@ public:
                     audio_channel_mask_t channelMask,
                     size_t frameCount,
                     int sessionId,
-                    IAudioFlinger::track_flags_t flags,
+                    IAudioFlinger::track_flags_t *flags,
                     pid_t tid,
                     status_t *status /*non-NULL*/);
 
@@ -879,15 +880,16 @@ public:
            void handleSyncStartEvent(const sp<SyncEvent>& event);
 
     virtual size_t      frameCount() const { return mFrameCount; }
+            bool        hasFastRecorder() const { return false; }
 
 private:
-            void clearSyncStartEvent();
+            void    clearSyncStartEvent();
 
             // Enter standby if not already in standby, and set mStandby flag
-            void standby();
+            void    standby();
 
             // Call the HAL standby method unconditionally, and don't change mStandby flag
-            void inputStandBy();
+            void    inputStandBy();
 
             AudioStreamIn                       *mInput;
             SortedVector < sp<RecordTrack> >    mTracks;

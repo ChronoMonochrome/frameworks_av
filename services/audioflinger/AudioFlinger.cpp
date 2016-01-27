@@ -502,10 +502,12 @@ sp<IAudioTrack> AudioFlinger::createTrack(
 
         track = thread->createTrack_l(client, streamType, sampleRate, format,
                 channelMask, frameCount, sharedBuffer, lSessionId, flags, tid, &lStatus);
+        // we don't abort yet if lStatus != NO_ERROR; there is still work to be done regardless
 
         // move effect chain to this output thread if an effect on same session was waiting
         // for a track to be created
         if (lStatus == NO_ERROR && effectThread != NULL) {
+            // no risk of deadlock because AudioFlinger::mLock is held
             Mutex::Autolock _dl(thread->mLock);
             Mutex::Autolock _sl(effectThread->mLock);
             moveEffectChain_l(lSessionId, effectThread, thread, true);
@@ -525,7 +527,9 @@ sp<IAudioTrack> AudioFlinger::createTrack(
                 }
             }
         }
+
     }
+
     if (lStatus == NO_ERROR) {
         // s for server's pid, n for normal mixer name, f for fast index
         name = String8::format("s:%d;n:%d;f:%d", getpid_cached, track->name() - AudioMixer::TRACK0,
@@ -1218,7 +1222,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
         audio_format_t format,
         audio_channel_mask_t channelMask,
         size_t frameCount,
-        IAudioFlinger::track_flags_t flags,
+        IAudioFlinger::track_flags_t *flags,
         pid_t tid,
         int *sessionId,
         status_t *status)
@@ -1269,6 +1273,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
         recordTrack = thread->createRecordTrack_l(client, sampleRate, format, channelMask,
                                                   frameCount, lSessionId, flags, tid, &lStatus);
     }
+
     if (lStatus != NO_ERROR) {
         // remove local strong reference to Client before deleting the RecordTrack so that the
         // Client destructor is called by the TrackBase destructor with mLock held
@@ -1277,7 +1282,7 @@ sp<IAudioRecord> AudioFlinger::openRecord(
         goto Exit;
     }
 
-    // return to handle to client
+    // return handle to client
     recordHandle = new RecordHandle(recordTrack);
 
 Exit:
@@ -1971,7 +1976,7 @@ void AudioFlinger::purgeStaleEffects_l() {
             }
         }
         if (!found) {
-            Mutex::Autolock _l (t->mLock);
+            Mutex::Autolock _l(t->mLock);
             // remove all effects from the chain
             while (ec->mEffects.size()) {
                 sp<EffectModule> effect = ec->mEffects[0];

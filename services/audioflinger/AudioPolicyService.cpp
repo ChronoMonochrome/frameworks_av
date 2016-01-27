@@ -999,6 +999,7 @@ void AudioPolicyService::AudioCommandThread::insertCommand_l(AudioCommand *comma
 {
     ssize_t i;  // not size_t because i will count down to -1
     Vector <AudioCommand *> removedCommands;
+    nsecs_t time = 0;
     command->mTime = systemTime() + milliseconds(delayMs);
 
     // acquire wake lock to make sure delayed commands are processed
@@ -1044,10 +1045,7 @@ void AudioPolicyService::AudioCommandThread::insertCommand_l(AudioCommand *comma
             } else {
                 data2->mKeyValuePairs = param2.toString();
             }
-            command->mTime = command2->mTime;
-            // force delayMs to non 0 so that code below does not request to wait for
-            // command status as the command is now delayed
-            delayMs = 1;
+            time = command2->mTime;
         } break;
 
         case SET_VOLUME: {
@@ -1058,10 +1056,7 @@ void AudioPolicyService::AudioCommandThread::insertCommand_l(AudioCommand *comma
             ALOGV("Filtering out volume command on output %d for stream %d",
                     data->mIO, data->mStream);
             removedCommands.add(command2);
-            command->mTime = command2->mTime;
-            // force delayMs to non 0 so that code below does not request to wait for
-            // command status as the command is now delayed
-            delayMs = 1;
+            time = command2->mTime;
         } break;
         case START_TONE:
         case STOP_TONE:
@@ -1083,11 +1078,15 @@ void AudioPolicyService::AudioCommandThread::insertCommand_l(AudioCommand *comma
     }
     removedCommands.clear();
 
-    // wait for status only if delay is 0
-    if (delayMs == 0) {
+    // wait for status only if delay is 0 and command time was not modified above
+    if (delayMs == 0 && time == 0) {
         command->mWaitStatus = true;
     } else {
         command->mWaitStatus = false;
+    }
+    // update command time if modified above
+    if (time != 0) {
+        command->mTime = time;
     }
 
     // insert command at the right place according to its time stamp

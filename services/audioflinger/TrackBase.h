@@ -45,7 +45,6 @@ public:
                                 size_t frameCount,
                                 const sp<IMemory>& sharedBuffer,
                                 int sessionId,
-                                int uid,
                                 bool isOut);
     virtual             ~TrackBase();
     virtual status_t    initCheck() const { return getCblk() != 0 ? NO_ERROR : NO_MEMORY; }
@@ -56,7 +55,6 @@ public:
             sp<IMemory> getCblk() const { return mCblkMemory; }
             audio_track_cblk_t* cblk() const { return mCblk; }
             int         sessionId() const { return mSessionId; }
-            int         uid() const { return mUid; }
     virtual status_t    setSyncEvent(const sp<SyncEvent>& event);
 
 protected:
@@ -78,15 +76,6 @@ protected:
     audio_channel_mask_t channelMask() const { return mChannelMask; }
 
     virtual uint32_t sampleRate() const { return mSampleRate; }
-
-    // Return a pointer to the start of a contiguous slice of the track buffer.
-    // Parameter 'offset' is the requested start position, expressed in
-    // monotonically increasing frame units relative to the track epoch.
-    // Parameter 'frames' is the requested length, also in frame units.
-    // Always returns non-NULL.  It is the caller's responsibility to
-    // verify that this will be successful; the result of calling this
-    // function with invalid 'offset' or 'frames' is undefined.
-    void* getBuffer(uint32_t offset, uint32_t frames) const;
 
     bool isStopped() const {
         return (mState == STOPPED || mState == FLUSHED);
@@ -135,7 +124,6 @@ protected:
                                     // openRecord(), and then adjusted as needed
 
     const int           mSessionId;
-    int                 mUid;
     Vector < sp<SyncEvent> >mSyncEvents;
     const bool          mIsOut;
     ServerProxy*        mServerProxy;

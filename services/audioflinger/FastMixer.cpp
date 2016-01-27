@@ -45,6 +45,8 @@
 #define MIN_WARMUP_CYCLES          2    // minimum number of loop cycles to wait for warmup
 #define MAX_WARMUP_CYCLES         10    // maximum number of loop cycles to wait for warmup
 
+#define FCC_2                       2   // fixed channel count assumption
+
 namespace android {
 
 // Fast mixer thread
@@ -83,7 +85,7 @@ bool FastMixer::threadLoop()
     struct timespec oldLoad = {0, 0};    // previous value of clock_gettime(CLOCK_THREAD_CPUTIME_ID)
     bool oldLoadValid = false;  // whether oldLoad is valid
     uint32_t bounds = 0;
-    bool full = false;      // whether we have collected at least kSamplingN samples
+    bool full = false;      // whether we have collected at least mSamplingN samples
 #ifdef CPU_FREQUENCY_STATISTICS
     ThreadCpuUsage tcu;     // for reading the current CPU clock frequency in kHz
 #endif
@@ -173,6 +175,10 @@ bool FastMixer::threadLoop()
                 if (old <= 0) {
                     __futex_syscall4(coldFutexAddr, FUTEX_WAIT_PRIVATE, old - 1, NULL);
                 }
+                int policy = sched_getscheduler(0);
+                if (!(policy == SCHED_FIFO || policy == SCHED_RR)) {
+                    ALOGE("did not receive expected priority boost");
+                }
                 // This may be overly conservative; there could be times that the normal mixer
                 // requests such a brief cold idle that it doesn't require resetting this flag.
                 isWarm = false;
@@ -221,7 +227,7 @@ bool FastMixer::threadLoop()
                 } else {
                     format = outputSink->format();
                     sampleRate = Format_sampleRate(format);
-                    ALOG_ASSERT(Format_channelCount(format) == 2);
+                    ALOG_ASSERT(Format_channelCount(format) == FCC_2);
                 }
                 dumpState->mSampleRate = sampleRate;
             }
@@ -237,7 +243,7 @@ bool FastMixer::threadLoop()
                     //       implementation; it would be better to have normal mixer allocate for us
                     //       to avoid blocking here and to prevent possible priority inversion
                     mixer = new AudioMixer(frameCount, sampleRate, FastMixerState::kMaxFastTracks);
-                    mixBuffer = new short[frameCount * 2];
+                    mixBuffer = new short[frameCount * FCC_2];
                     periodNs = (frameCount * 1000000000LL) / sampleRate;    // 1.00
                     underrunNs = (frameCount * 1750000000LL) / sampleRate;  // 1.75
                     overrunNs = (frameCount * 500000000LL) / sampleRate;    // 0.50
@@ -393,9 +399,9 @@ bool FastMixer::threadLoop()
                 if (ATRACE_ENABLED()) {
                     // I wish we had formatted trace names
                     char traceName[16];
-                    strcpy(traceName, "framesReady");
-                    traceName[11] = i + (i < 10 ? '0' : 'A' - 10);
-                    traceName[12] = '\0';
+                    strcpy(traceName, "fRdy");
+                    traceName[4] = i + (i < 10 ? '0' : 'A' - 10);
+                    traceName[5] = '\0';
                     ATRACE_INT(traceName, framesReady);
                 }
                 FastTrackDump *ftDump = &dumpState->mTracks[i];
@@ -434,7 +440,7 @@ bool FastMixer::threadLoop()
         //bool didFullWrite = false;    // dumpsys could display a count of partial writes
         if ((command & FastMixerState::WRITE) && (outputSink != NULL) && (mixBuffer != NULL)) {
             if (mixBufferState == UNDEFINED) {
-                memset(mixBuffer, 0, frameCount * 2 * sizeof(short));
+                memset(mixBuffer, 0, frameCount * FCC_2 * sizeof(short));
                 mixBufferState = ZEROED;
             }
             if (teeSink != NULL) {
@@ -499,91 +505,91 @@ bool FastMixer::threadLoop()
                     }
                 }
                 sleepNs = -1;
-              if (isWarm) {
-                if (sec > 0 || nsec > underrunNs) {
-                    ATRACE_NAME("underrun");
-                    // FIXME only log occasionally
-                    ALOGV("underrun: time since last cycle %d.%03ld sec",
-                            (int) sec, nsec / 1000000L);
-                    dumpState->mUnderruns++;
-                    ignoreNextOverrun = true;
-                } else if (nsec < overrunNs) {
-                    if (ignoreNextOverrun) {
-                        ignoreNextOverrun = false;
-                    } else {
+                if (isWarm) {
+                    if (sec > 0 || nsec > underrunNs) {
+                        ATRACE_NAME("underrun");
                         // FIXME only log occasionally
-                        ALOGV("overrun: time since last cycle %d.%03ld sec",
+                        ALOGV("underrun: time since last cycle %d.%03ld sec",
                                 (int) sec, nsec / 1000000L);
-                        dumpState->mOverruns++;
-                    }
-                    // This forces a minimum cycle time. It:
-                    //   - compensates for an audio HAL with jitter due to sample rate conversion
-                    //   - works with a variable buffer depth audio HAL that never pulls at a rate
-                    //     < than overrunNs per buffer.
-                    //   - recovers from overrun immediately after underrun
-                    // It doesn't work with a non-blocking audio HAL.
-                    sleepNs = forceNs - nsec;
-                } else {
-                    ignoreNextOverrun = false;
-                }
-              }
-#ifdef FAST_MIXER_STATISTICS
-              if (isWarm) {
-                // advance the FIFO queue bounds
-                size_t i = bounds & (FastMixerDumpState::kSamplingN - 1);
-                bounds = (bounds & 0xFFFF0000) | ((bounds + 1) & 0xFFFF);
-                if (full) {
-                    bounds += 0x10000;
-                } else if (!(bounds & (FastMixerDumpState::kSamplingN - 1))) {
-                    full = true;
-                }
-                // compute the delta value of clock_gettime(CLOCK_MONOTONIC)
-                uint32_t monotonicNs = nsec;
-                if (sec > 0 && sec < 4) {
-                    monotonicNs += sec * 1000000000;
-                }
-                // compute the raw CPU load = delta value of clock_gettime(CLOCK_THREAD_CPUTIME_ID)
-                uint32_t loadNs = 0;
-                struct timespec newLoad;
-                rc = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &newLoad);
-                if (rc == 0) {
-                    if (oldLoadValid) {
-                        sec = newLoad.tv_sec - oldLoad.tv_sec;
-                        nsec = newLoad.tv_nsec - oldLoad.tv_nsec;
-                        if (nsec < 0) {
-                            --sec;
-                            nsec += 1000000000;
+                        dumpState->mUnderruns++;
+                        ignoreNextOverrun = true;
+                    } else if (nsec < overrunNs) {
+                        if (ignoreNextOverrun) {
+                            ignoreNextOverrun = false;
+                        } else {
+                            // FIXME only log occasionally
+                            ALOGV("overrun: time since last cycle %d.%03ld sec",
+                                    (int) sec, nsec / 1000000L);
+                            dumpState->mOverruns++;
                         }
-                        loadNs = nsec;
-                        if (sec > 0 && sec < 4) {
-                            loadNs += sec * 1000000000;
-                        }
+                        // This forces a minimum cycle time. It:
+                        //  - compensates for an audio HAL with jitter due to sample rate conversion
+                        //  - works with a variable buffer depth audio HAL that never pulls at a
+                        //    rate < than overrunNs per buffer.
+                        //  - recovers from overrun immediately after underrun
+                        // It doesn't work with a non-blocking audio HAL.
+                        sleepNs = forceNs - nsec;
                     } else {
-                        // first time through the loop
-                        oldLoadValid = true;
+                        ignoreNextOverrun = false;
                     }
-                    oldLoad = newLoad;
                 }
+#ifdef FAST_MIXER_STATISTICS
+                if (isWarm) {
+                    // advance the FIFO queue bounds
+                    size_t i = bounds & (dumpState->mSamplingN - 1);
+                    bounds = (bounds & 0xFFFF0000) | ((bounds + 1) & 0xFFFF);
+                    if (full) {
+                        bounds += 0x10000;
+                    } else if (!(bounds & (dumpState->mSamplingN - 1))) {
+                        full = true;
+                    }
+                    // compute the delta value of clock_gettime(CLOCK_MONOTONIC)
+                    uint32_t monotonicNs = nsec;
+                    if (sec > 0 && sec < 4) {
+                        monotonicNs += sec * 1000000000;
+                    }
+                    // compute raw CPU load = delta value of clock_gettime(CLOCK_THREAD_CPUTIME_ID)
+                    uint32_t loadNs = 0;
+                    struct timespec newLoad;
+                    rc = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &newLoad);
+                    if (rc == 0) {
+                        if (oldLoadValid) {
+                            sec = newLoad.tv_sec - oldLoad.tv_sec;
+                            nsec = newLoad.tv_nsec - oldLoad.tv_nsec;
+                            if (nsec < 0) {
+                                --sec;
+                                nsec += 1000000000;
+                            }
+                            loadNs = nsec;
+                            if (sec > 0 && sec < 4) {
+                                loadNs += sec * 1000000000;
+                            }
+                        } else {
+                            // first time through the loop
+                            oldLoadValid = true;
+                        }
+                        oldLoad = newLoad;
+                    }
 #ifdef CPU_FREQUENCY_STATISTICS
-                // get the absolute value of CPU clock frequency in kHz
-                int cpuNum = sched_getcpu();
-                uint32_t kHz = tcu.getCpukHz(cpuNum);
-                kHz = (kHz << 4) | (cpuNum & 0xF);
+                    // get the absolute value of CPU clock frequency in kHz
+                    int cpuNum = sched_getcpu();
+                    uint32_t kHz = tcu.getCpukHz(cpuNum);
+                    kHz = (kHz << 4) | (cpuNum & 0xF);
 #endif
-                // save values in FIFO queues for dumpsys
-                // these stores #1, #2, #3 are not atomic with respect to each other,
-                // or with respect to store #4 below
-                dumpState->mMonotonicNs[i] = monotonicNs;
-                dumpState->mLoadNs[i] = loadNs;
+                    // save values in FIFO queues for dumpsys
+                    // these stores #1, #2, #3 are not atomic with respect to each other,
+                    // or with respect to store #4 below
+                    dumpState->mMonotonicNs[i] = monotonicNs;
+                    dumpState->mLoadNs[i] = loadNs;
 #ifdef CPU_FREQUENCY_STATISTICS
-                dumpState->mCpukHz[i] = kHz;
+                    dumpState->mCpukHz[i] = kHz;
 #endif
-                // this store #4 is not atomic with respect to stores #1, #2, #3 above, but
-                // the newest open and oldest closed halves are atomic with respect to each other
-                dumpState->mBounds = bounds;
-                ATRACE_INT("cycle_ms", monotonicNs / 1000000);
-                ATRACE_INT("load_us", loadNs / 1000);
-              }
+                    // this store #4 is not atomic with respect to stores #1, #2, #3 above, but
+                    // the newest open & oldest closed halves are atomic with respect to each other
+                    dumpState->mBounds = bounds;
+                    ATRACE_INT("cycle_ms", monotonicNs / 1000000);
+                    ATRACE_INT("load_us", loadNs / 1000);
+                }
 #endif
             } else {
                 // first time through the loop
@@ -604,27 +610,43 @@ bool FastMixer::threadLoop()
     // never return 'true'; Thread::_threadLoop() locks mutex which can result in priority inversion
 }
 
-FastMixerDumpState::FastMixerDumpState() :
+FastMixerDumpState::FastMixerDumpState(
+#ifdef FAST_MIXER_STATISTICS
+        uint32_t samplingN
+#endif
+        ) :
     mCommand(FastMixerState::INITIAL), mWriteSequence(0), mFramesWritten(0),
     mNumTracks(0), mWriteErrors(0), mUnderruns(0), mOverruns(0),
     mSampleRate(0), mFrameCount(0), /* mMeasuredWarmupTs({0, 0}), */ mWarmupCycles(0),
     mTrackMask(0)
 #ifdef FAST_MIXER_STATISTICS
-    , mBounds(0)
+    , mSamplingN(0), mBounds(0)
 #endif
 {
     mMeasuredWarmupTs.tv_sec = 0;
     mMeasuredWarmupTs.tv_nsec = 0;
 #ifdef FAST_MIXER_STATISTICS
-    // sample arrays aren't accessed atomically with respect to the bounds,
-    // so clearing reduces chance for dumpsys to read random uninitialized samples
-    memset(&mMonotonicNs, 0, sizeof(mMonotonicNs));
-    memset(&mLoadNs, 0, sizeof(mLoadNs));
-#ifdef CPU_FREQUENCY_STATISTICS
-    memset(&mCpukHz, 0, sizeof(mCpukHz));
-#endif
+    increaseSamplingN(samplingN);
 #endif
 }
+
+#ifdef FAST_MIXER_STATISTICS
+void FastMixerDumpState::increaseSamplingN(uint32_t samplingN)
+{
+    if (samplingN <= mSamplingN || samplingN > kSamplingN || roundup(samplingN) != samplingN) {
+        return;
+    }
+    uint32_t additional = samplingN - mSamplingN;
+    // sample arrays aren't accessed atomically with respect to the bounds,
+    // so clearing reduces chance for dumpsys to read random uninitialized samples
+    memset(&mMonotonicNs[mSamplingN], 0, sizeof(mMonotonicNs[0]) * additional);
+    memset(&mLoadNs[mSamplingN], 0, sizeof(mLoadNs[0]) * additional);
+#ifdef CPU_FREQUENCY_STATISTICS
+    memset(&mCpukHz[mSamplingN], 0, sizeof(mCpukHz[0]) * additional);
+#endif
+    mSamplingN = samplingN;
+}
+#endif
 
 FastMixerDumpState::~FastMixerDumpState()
 {
@@ -644,7 +666,7 @@ static int compare_uint32_t(const void *pa, const void *pb)
     }
 }
 
-void FastMixerDumpState::dump(int fd)
+void FastMixerDumpState::dump(int fd) const
 {
     if (mCommand == FastMixerState::INITIAL) {
         fdprintf(fd, "FastMixer not initialized\n");
@@ -695,9 +717,9 @@ void FastMixerDumpState::dump(int fd)
     uint32_t newestOpen = bounds & 0xFFFF;
     uint32_t oldestClosed = bounds >> 16;
     uint32_t n = (newestOpen - oldestClosed) & 0xFFFF;
-    if (n > kSamplingN) {
+    if (n > mSamplingN) {
         ALOGE("too many samples %u", n);
-        n = kSamplingN;
+        n = mSamplingN;
     }
     // statistics for monotonic (wall clock) time, thread raw CPU load in time, CPU clock frequency,
     // and adjusted CPU load in MHz normalized for CPU clock frequency
@@ -713,7 +735,7 @@ void FastMixerDumpState::dump(int fd)
     uint32_t *tail = n >= kTailDenominator ? new uint32_t[n] : NULL;
     // loop over all the samples
     for (uint32_t j = 0; j < n; ++j) {
-        size_t i = oldestClosed++ & (kSamplingN - 1);
+        size_t i = oldestClosed++ & (mSamplingN - 1);
         uint32_t wallNs = mMonotonicNs[i];
         if (tail != NULL) {
             tail[j] = wallNs;
