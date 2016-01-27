@@ -607,14 +607,7 @@ uint32_t AudioTrack::getSampleRate() const
 
 status_t AudioTrack::setLoop(uint32_t loopStart, uint32_t loopEnd, int loopCount)
 {
-    AutoMutex lock(mLock);
-    return setLoop_l(loopStart, loopEnd, loopCount);
-}
-
-// must be called with mLock held
-status_t AudioTrack::setLoop_l(uint32_t loopStart, uint32_t loopEnd, int loopCount)
-{
-    if (mSharedBuffer == 0 || mIsTimed) {
+    if (mSharedBuffer == 0 || mIsTimed || isOffloaded()) {
         return INVALID_OPERATION;
     }
 
