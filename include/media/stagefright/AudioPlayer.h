@@ -129,7 +129,7 @@ private:
     void reset();
 
     uint32_t getNumFramesPendingPlayout() const;
-    int64_t getOutputPlayPositionUs_l();
+    int64_t getOutputPlayPositionUs_l() const;
 
     bool allowDeepBuffering() const { return (mCreateFlags & ALLOW_DEEP_BUFFERING) != 0; }
     bool useOffload() const { return (mCreateFlags & USE_OFFLOAD) != 0; }

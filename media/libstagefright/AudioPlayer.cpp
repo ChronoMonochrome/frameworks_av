@@ -721,27 +721,16 @@ int64_t AudioPlayer::getRealTimeUsLocked() const {
     return result + diffUs;
 }
 
-int64_t AudioPlayer::getOutputPlayPositionUs_l()
+int64_t AudioPlayer::getOutputPlayPositionUs_l() const
 {
     uint32_t playedSamples = 0;
-    uint32_t sampleRate;
     if (mAudioSink != NULL) {
         mAudioSink->getPosition(&playedSamples);
-        sampleRate = mAudioSink->getSampleRate();
     } else {
         mAudioTrack->getPosition(&playedSamples);
-        sampleRate = mAudioTrack->getSampleRate();
-    }
-    if (sampleRate != 0) {
-        mSampleRate = sampleRate;
     }
 
-    int64_t playedUs;
-    if (mSampleRate != 0) {
-        playedUs = (static_cast<int64_t>(playedSamples) * 1000000 ) / mSampleRate;
-    } else {
-        playedUs = 0;
-    }
+    const int64_t playedUs = (static_cast<int64_t>(playedSamples) * 1000000 ) / mSampleRate;
 
     // HAL position is relative to the first buffer we sent at mStartPosUs
     const int64_t renderedDuration = mStartPosUs + playedUs;
