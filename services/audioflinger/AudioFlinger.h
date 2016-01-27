@@ -109,6 +109,7 @@ public:
                                 pid_t tid,
                                 int *sessionId,
                                 String8& name,
+                                int clientUid,
                                 status_t *status /*non-NULL*/);
 
     virtual sp<IAudioRecord> openRecord(
@@ -421,6 +422,8 @@ private:
         virtual status_t    setMediaTimeTransform(const LinearTransform& xform,
                                                   int target);
         virtual status_t    setParameters(const String8& keyValuePairs);
+        virtual status_t    getTimestamp(AudioTimestamp& timestamp);
+        virtual void        signal(); // signal playback thread for a change in control block
 
         virtual status_t onTransact(
             uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags);
@@ -474,6 +477,9 @@ private:
 
                 void        removeClient_l(pid_t pid);
                 void        removeNotificationClient(pid_t pid);
+
+                bool isNonOffloadableGlobalEffectEnabled_l();
+                void onNonOffloadableGlobalEffectEnable();
 
     class AudioHwDevice {
     public:
@@ -650,6 +656,7 @@ public:
 private:
     bool    mIsLowRamDevice;
     bool    mIsDeviceTypeKnown;
+    nsecs_t mGlobalEffectEnableTime;  // when a global effect was last enabled
 };
 
 #undef INCLUDING_FROM_AUDIOFLINGER_H

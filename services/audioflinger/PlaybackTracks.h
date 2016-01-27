@@ -31,6 +31,7 @@ public:
                                 size_t frameCount,
                                 const sp<IMemory>& sharedBuffer,
                                 int sessionId,
+                                int uid,
                                 IAudioFlinger::track_flags_t flags);
     virtual             ~Track();
     virtual status_t    initCheck() const;
@@ -60,6 +61,8 @@ public:
             void        setMainBuffer(int16_t *buffer) { mMainBuffer = buffer; }
             int16_t     *mainBuffer() const { return mMainBuffer; }
             int         auxEffectId() const { return mAuxEffectId; }
+    virtual status_t    getTimestamp(AudioTimestamp& timestamp);
+            void        signal();
 
 // implement FastMixerState::VolumeProvider interface
     virtual uint32_t    getVolumeLR();
@@ -81,7 +84,9 @@ protected:
                                    int64_t pts = kInvalidPTS);
     // releaseBuffer() not overridden
 
+    // ExtendedAudioBufferProvider interface
     virtual size_t framesReady() const;
+    virtual size_t framesReleased() const;
 
     bool isPausing() const { return mState == PAUSING; }
     bool isPaused() const { return mState == PAUSED; }
@@ -115,7 +120,10 @@ protected:
     enum {FS_INVALID, FS_FILLING, FS_FILLED, FS_ACTIVE};
     mutable uint8_t     mFillingUpStatus;
     int8_t              mRetryCount;
-    const sp<IMemory>   mSharedBuffer;
+
+    // see comment at AudioFlinger::PlaybackThread::Track::~Track for why this can't be const
+    sp<IMemory>         mSharedBuffer;
+
     bool                mResetDone;
     const audio_stream_type_t mStreamType;
     int                 mName;      // track name on the normal mixer,
@@ -159,7 +167,8 @@ class TimedTrack : public Track {
                                  audio_channel_mask_t channelMask,
                                  size_t frameCount,
                                  const sp<IMemory>& sharedBuffer,
-                                 int sessionId);
+                                 int sessionId,
+                                 int uid);
     virtual ~TimedTrack();
 
     class TimedBuffer {
@@ -202,7 +211,8 @@ class TimedTrack : public Track {
                audio_channel_mask_t channelMask,
                size_t frameCount,
                const sp<IMemory>& sharedBuffer,
-               int sessionId);
+               int sessionId,
+               int uid);
 
     void timedYieldSamples_l(AudioBufferProvider::Buffer* buffer);
     void timedYieldSilence_l(uint32_t numFrames,
@@ -249,7 +259,8 @@ public:
                                 uint32_t sampleRate,
                                 audio_format_t format,
                                 audio_channel_mask_t channelMask,
-                                size_t frameCount);
+                                size_t frameCount,
+                                int uid);
     virtual             ~OutputTrack();
 
     virtual status_t    start(AudioSystem::sync_event_t event =

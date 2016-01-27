@@ -240,10 +240,13 @@ protected:
                     effect_uuid_t mType;    // effect type UUID
                 };
 
-                void        acquireWakeLock();
-                void        acquireWakeLock_l();
+                void        acquireWakeLock(int uid = -1);
+                void        acquireWakeLock_l(int uid = -1);
                 void        releaseWakeLock();
                 void        releaseWakeLock_l();
+                void        updateWakeLockUids(const SortedVector<int> &uids);
+                void        updateWakeLockUids_l(const SortedVector<int> &uids);
+                void        getPowerManager_l();
                 void setEffectSuspended_l(const effect_uuid_t *type,
                                           bool suspend,
                                           int sessionId);
@@ -253,6 +256,8 @@ protected:
                                                       int sessionId);
                 // check if some effects must be suspended when an effect chain is added
                 void checkSuspendOnAddEffectChain_l(const sp<EffectChain>& chain);
+
+                String16 getWakeLockTag();
 
     virtual     void        preExit() { }
 
@@ -380,9 +385,9 @@ protected:
                 void        removeTracks_l(const Vector< sp<Track> >& tracksToRemove);
 
                 void        writeCallback();
-                void        setWriteBlocked(bool value);
+                void        resetWriteBlocked(uint32_t sequence);
                 void        drainCallback();
-                void        setDraining(bool value);
+                void        resetDraining(uint32_t sequence);
 
     static      int         asyncCallback(stream_callback_event_t event, void *param, void *cookie);
 
@@ -422,6 +427,7 @@ public:
                                 int sessionId,
                                 IAudioFlinger::track_flags_t *flags,
                                 pid_t tid,
+                                int uid,
                                 status_t *status /*non-NULL*/);
 
                 AudioStreamOut* getOutput() const;
@@ -469,6 +475,8 @@ public:
                 // Return's the HAL's frame count i.e. fast mixer buffer size.
                 size_t      frameCountHAL() const { return mFrameCount; }
 
+                status_t         getTimestamp_l(AudioTimestamp& timestamp);
+
 protected:
     // updated by readOutputParameters()
     size_t                          mNormalFrameCount;  // normal mixer and effects
@@ -493,6 +501,8 @@ private:
                 void        setMasterMute_l(bool muted) { mMasterMute = muted; }
 protected:
     SortedVector< wp<Track> >       mActiveTracks;  // FIXME check if this could be sp<>
+    SortedVector<int>               mWakeLockUids;
+    int                             mActiveTracksGeneration;
 
     // Allocate a track name for a given channel mask.
     //   Returns name >= 0 if successful, -1 on failure.
@@ -528,7 +538,7 @@ private:
     status_t    addTrack_l(const sp<Track>& track);
     bool        destroyTrack_l(const sp<Track>& track);
     void        removeTrack_l(const sp<Track>& track);
-    void        signal_l();
+    void        broadcast_l();
 
     void        readOutputParameters();
 
@@ -579,8 +589,21 @@ private:
     size_t                          mBytesRemaining;
     size_t                          mCurrentWriteLength;
     bool                            mUseAsyncWrite;
-    bool                            mWriteBlocked;
-    bool                            mDraining;
+    // mWriteAckSequence contains current write sequence on bits 31-1. The write sequence is
+    // incremented each time a write(), a flush() or a standby() occurs.
+    // Bit 0 is set when a write blocks and indicates a callback is expected.
+    // Bit 0 is reset by the async callback thread calling resetWriteBlocked(). Out of sequence
+    // callbacks are ignored.
+    uint32_t                        mWriteAckSequence;
+    // mDrainSequence contains current drain sequence on bits 31-1. The drain sequence is
+    // incremented each time a drain is requested or a flush() or standby() occurs.
+    // Bit 0 is set when the drain() command is called at the HAL and indicates a callback is
+    // expected.
+    // Bit 0 is reset by the async callback thread calling resetDraining(). Out of sequence
+    // callbacks are ignored.
+    uint32_t                        mDrainSequence;
+    // A condition that must be evaluated by prepareTrack_l() has changed and we must not wait
+    // for async write callback in the thread loop before evaluating it
     bool                            mSignalPending;
     sp<AsyncCallbackThread>         mCallbackThread;
 
@@ -608,6 +631,17 @@ protected:
                 // accessed by both binder threads and within threadLoop(), lock on mutex needed
                 unsigned    mFastTrackAvailMask;    // bit i set if fast track [i] is available
     virtual     void        flushOutput_l();
+
+private:
+    // timestamp latch:
+    //  D input is written by threadLoop_write while mutex is unlocked, and read while locked
+    //  Q output is written while locked, and read while locked
+    struct {
+        AudioTimestamp  mTimestamp;
+        uint32_t        mUnpresentedFrames;
+    } mLatchD, mLatchQ;
+    bool mLatchDValid;  // true means mLatchD is valid, and clock it into latch at next opportunity
+    bool mLatchQValid;  // true means mLatchQ is valid
 };
 
 class MixerThread : public PlaybackThread {
@@ -709,7 +743,7 @@ public:
 
     OffloadThread(const sp<AudioFlinger>& audioFlinger, AudioStreamOut* output,
                         audio_io_handle_t id, uint32_t device);
-    virtual                 ~OffloadThread();
+    virtual                 ~OffloadThread() {};
 
 protected:
     // threadLoop snippets
@@ -729,13 +763,13 @@ private:
     bool        mFlushPending;
     size_t      mPausedWriteLength;     // length in bytes of write interrupted by pause
     size_t      mPausedBytesRemaining;  // bytes still waiting in mixbuffer after resume
-    sp<Track>   mPreviousTrack;         // used to detect track switch
+    Track       *mPreviousTrack;         // used to detect track switch
 };
 
 class AsyncCallbackThread : public Thread {
 public:
 
-    AsyncCallbackThread(const sp<OffloadThread>& offloadThread);
+    AsyncCallbackThread(const wp<PlaybackThread>& playbackThread);
 
     virtual             ~AsyncCallbackThread();
 
@@ -746,15 +780,23 @@ public:
     virtual void        onFirstRef();
 
             void        exit();
-            void        setWriteBlocked(bool value);
-            void        setDraining(bool value);
+            void        setWriteBlocked(uint32_t sequence);
+            void        resetWriteBlocked();
+            void        setDraining(uint32_t sequence);
+            void        resetDraining();
 
 private:
-    wp<OffloadThread>   mOffloadThread;
-    bool                mWriteBlocked;
-    bool                mDraining;
-    Condition           mWaitWorkCV;
-    Mutex               mLock;
+    const wp<PlaybackThread>   mPlaybackThread;
+    // mWriteAckSequence corresponds to the last write sequence passed by the offload thread via
+    // setWriteBlocked(). The sequence is shifted one bit to the left and the lsb is used
+    // to indicate that the callback has been received via resetWriteBlocked()
+    uint32_t                   mWriteAckSequence;
+    // mDrainSequence corresponds to the last drain sequence passed by the offload thread via
+    // setDraining(). The sequence is shifted one bit to the left and the lsb is used
+    // to indicate that the callback has been received via resetDraining()
+    uint32_t                   mDrainSequence;
+    Condition                  mWaitWorkCV;
+    Mutex                      mLock;
 };
 
 class DuplicatingThread : public MixerThread {
@@ -839,6 +881,7 @@ public:
                     audio_channel_mask_t channelMask,
                     size_t frameCount,
                     int sessionId,
+                    int uid,
                     IAudioFlinger::track_flags_t *flags,
                     pid_t tid,
                     status_t *status /*non-NULL*/);
