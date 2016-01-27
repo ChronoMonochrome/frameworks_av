@@ -33,7 +33,7 @@ namespace android {
 struct AMessage;
 class String8;
 class DataSource;
-
+/*
 class Sniffer : public RefBase {
 public:
     ////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ private:
     List<SnifferFunc> mExtraSniffers;
     List<SnifferFunc>::iterator extendedSnifferPosition;
 };
-
+*/
 class DataSource : public RefBase {
 public:
     enum Flags {
@@ -97,14 +97,14 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////
 
-    bool sniff(String8 *mimeType, float *confidence, sp<AMessage> *meta);
+//    bool sniff(String8 *mimeType, float *confidence, sp<AMessage> *meta);
 
     // The sniffer can optionally fill in "meta" with an AMessage containing
     // a dictionary of values that helps the corresponding extractor initialize
     // its state without duplicating effort already exerted by the sniffer.
-    typedef bool (*SnifferFunc)(
-            const sp<DataSource> &source, String8 *mimeType,
-            float *confidence, sp<AMessage> *meta);
+//    typedef bool (*SnifferFunc)(
+ //           const sp<DataSource> &source, String8 *mimeType,
+   //         float *confidence, sp<AMessage> *meta);
 
     // for DRM
     virtual sp<DecryptHandle> DrmInitialization(const char *mime = NULL) {

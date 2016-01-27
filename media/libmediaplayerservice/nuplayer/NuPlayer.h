@@ -189,7 +189,7 @@ private:
     void queueDecoderShutdown(
             bool audio, bool video, const sp<AMessage> &reply);
 
-    DISALLOW_EVIL_CONSTRUCTORS(NuPlayer);
+  //  DISALLOW_EVIL_CONSTRUCTORS(NuPlayer);
 };
 
 }  // namespace android
