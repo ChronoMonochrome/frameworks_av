@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
-
 #define LOG_NDEBUG 1
 #define LOG_TAG "VideoEditorAudioPlayer"
 #include <utils/Log.h>
@@ -374,7 +372,7 @@ status_t VideoEditorAudioPlayer::start(bool sourceAlreadyStarted) {
 
         // Get the duration in time of the audio BT
         if ( result == M4NO_ERROR ) {
-         ALOGV("VEAP: channels = %" PRIu32 " freq = %" PRIu32,
+         ALOGV("VEAP: channels = %d freq = %d",
          mAudioMixSettings->uiNbChannels,  mAudioMixSettings->uiSamplingFrequency);
 
             // No trim
@@ -442,7 +440,7 @@ status_t VideoEditorAudioPlayer::start(bool sourceAlreadyStarted) {
                 // do nothing
             }
 
-            ALOGV("VideoEditorAudioPlayer::startTime %" PRIu32, startTime);
+            ALOGV("VideoEditorAudioPlayer::startTime %d", startTime);
             seekTimeStamp = 0;
             if (startTime) {
                 if (startTime >= mBGAudioPCMFileDuration) {

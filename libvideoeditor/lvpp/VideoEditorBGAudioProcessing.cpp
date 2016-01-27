@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
-
 //#define LOG_NDEBUG 0
 #define LOG_TAG "VideoEditorBGAudioProcessing"
 #include <utils/Log.h>
@@ -52,8 +50,8 @@ M4OSA_Int32 VideoEditorBGAudioProcessing::mixAndDuck(
         void *backgroundTrackBuffer,
         void *outBuffer) {
 
-    ALOGV("mixAndDuck: track buffers (primary: %p and background: %p) "
-            "and out buffer %p",
+    ALOGV("mixAndDuck: track buffers (primary: 0x%x and background: 0x%x) "
+            "and out buffer 0x%x",
             primaryTrackBuffer, backgroundTrackBuffer, outBuffer);
 
     M4AM_Buffer16* pPrimaryTrack   = (M4AM_Buffer16*)primaryTrackBuffer;
@@ -219,7 +217,7 @@ void VideoEditorBGAudioProcessing::setMixParams(
     mDoDucking            = 0;
     mDuckingFactor        = 1.0;
 
-    ALOGV("ducking enable 0x%x lowVolume %f threshold %" PRIu32 " "
+    ALOGV("ducking enable 0x%x lowVolume %f threshold %d "
             "fPTVolLevel %f BTVolLevel %f",
             mDucking_enable, mDucking_lowVolume, mDucking_threshold,
             mPTVolLevel, mPTVolLevel);

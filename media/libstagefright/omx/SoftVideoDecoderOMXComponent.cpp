@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
-
 //#define LOG_NDEBUG 0
 #define LOG_TAG "SoftVideoDecoderOMXComponent"
 #include <utils/Log.h>
@@ -180,7 +178,7 @@ OMX_ERRORTYPE SoftVideoDecoderOMXComponent::internalGetParameter(
             OMX_U32 profileIndex = profileLevel->nProfileIndex;
 
             if (profileLevel->nPortIndex != kInputPortIndex) {
-                ALOGE("Invalid port index: %" PRIu32, profileLevel->nPortIndex);
+                ALOGE("Invalid port index: %ld", profileLevel->nPortIndex);
                 return OMX_ErrorUnsupportedIndex;
             }
 
