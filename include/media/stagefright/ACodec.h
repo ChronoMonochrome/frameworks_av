@@ -208,8 +208,8 @@ private:
     int64_t mRepeatFrameDelayUs;
     int64_t mMaxPtsGapUs;
 
-    int64_t mTimePerFrameUs;
     int64_t mTimePerCaptureUs;
+    int64_t mTimePerFrameUs;
 
     bool mCreateInputBuffersSuspended;
 
