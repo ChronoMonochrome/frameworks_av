@@ -146,7 +146,7 @@ private:
     const sp<IOMX> &getOMX(node_id node) const;
     const sp<IOMX> &getOMX_l(node_id node) const;
 
-    static bool CanLiveLocally(const char *name);
+    static bool IsSoftwareComponent(const char *name);
 
     DISALLOW_EVIL_CONSTRUCTORS(MuxOMX);
 };
@@ -169,7 +169,7 @@ bool MuxOMX::isLocalNode_l(node_id node) const {
 }
 
 // static
-bool MuxOMX::CanLiveLocally(const char *name) {
+bool MuxOMX::IsSoftwareComponent(const char *name) {
     return !strncasecmp(name, "OMX.google.", 11);
 }
 
@@ -202,7 +202,7 @@ status_t MuxOMX::allocateNode(
 
     sp<IOMX> omx;
 
-    if (CanLiveLocally(name)) {
+    if (IsSoftwareComponent(name)) {
         if (mLocalOMX == NULL) {
             mLocalOMX = new OMX;
         }
@@ -402,7 +402,7 @@ status_t OMXClient::connect() {
     mOMX = service->getOMX();
     CHECK(mOMX.get() != NULL);
 
-    if (!mOMX->livesLocally(0 /* node */, getpid())) {
+    if (!mOMX->livesLocally(NULL /* node */, getpid())) {
         ALOGI("Using client-side OMX mux.");
         mOMX = new MuxOMX(mOMX);
     }

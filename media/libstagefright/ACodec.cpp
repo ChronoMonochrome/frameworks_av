@@ -17,7 +17,6 @@
 //#define LOG_NDEBUG 0
 #define LOG_TAG "ACodec"
 
-#include <inttypes.h>
 #include <utils/Trace.h>
 
 #include <media/stagefright/ACodec.h>
@@ -65,7 +64,7 @@ struct CodecObserver : public BnOMXObserver {
         sp<AMessage> msg = mNotify->dup();
 
         msg->setInt32("type", omx_msg.type);
-        msg->setInt32("node", omx_msg.node);
+        msg->setPointer("node", omx_msg.node);
 
         switch (omx_msg.type) {
             case omx_message::EVENT:
@@ -78,13 +77,13 @@ struct CodecObserver : public BnOMXObserver {
 
             case omx_message::EMPTY_BUFFER_DONE:
             {
-                msg->setInt32("buffer", omx_msg.u.buffer_data.buffer);
+                msg->setPointer("buffer", omx_msg.u.buffer_data.buffer);
                 break;
             }
 
             case omx_message::FILL_BUFFER_DONE:
             {
-                msg->setInt32(
+                msg->setPointer(
                         "buffer", omx_msg.u.extended_buffer_data.buffer);
                 msg->setInt32(
                         "range_offset",
@@ -361,7 +360,7 @@ private:
 
 ACodec::ACodec()
     : mQuirks(0),
-      mNode(0),
+      mNode(NULL),
       mSentFormat(false),
       mIsEncoder(false),
       mUseMetadataOnEncoderOutput(false),
@@ -375,7 +374,7 @@ ACodec::ACodec()
       mStoreMetaDataInOutputBuffers(false),
       mMetaDataBuffersToSubmit(0),
       mRepeatFrameDelayUs(-1ll),
-      mMaxPtsGapUs(-1ll) {
+      mMaxPtsGapUs(-1l) {
     mUninitializedState = new UninitializedState(this);
     mLoadedState = new LoadedState(this);
     mLoadedToIdleState = new LoadedToIdleState(this);
@@ -495,7 +494,7 @@ status_t ACodec::allocateBuffersOnPort(OMX_U32 portIndex) {
                 mNode, OMX_IndexParamPortDefinition, &def, sizeof(def));
 
         if (err == OK) {
-            ALOGV("[%s] Allocating %u buffers of size %u on %s port",
+            ALOGV("[%s] Allocating %lu buffers of size %lu on %s port",
                     mComponentName.c_str(),
                     def.nBufferCountActual, def.nBufferSize,
                     portIndex == kPortIndexInput ? "input" : "output");
@@ -686,7 +685,7 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
     if (err != 0)
         return err;
 
-    ALOGV("[%s] Allocating %u buffers from a native window of size %u on "
+    ALOGV("[%s] Allocating %lu buffers from a native window of size %lu on "
          "output port",
          mComponentName.c_str(), bufferCount, bufferSize);
 
@@ -710,14 +709,14 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
         err = mOMX->useGraphicBuffer(mNode, kPortIndexOutput, graphicBuffer,
                 &bufferId);
         if (err != 0) {
-            ALOGE("registering GraphicBuffer %u with OMX IL component failed: "
+            ALOGE("registering GraphicBuffer %lu with OMX IL component failed: "
                  "%d", i, err);
             break;
         }
 
         mBuffers[kPortIndexOutput].editItemAt(i).mBufferID = bufferId;
 
-        ALOGV("[%s] Registered graphic buffer with ID %u (pointer = %p)",
+        ALOGV("[%s] Registered graphic buffer with ID %p (pointer = %p)",
              mComponentName.c_str(),
              bufferId, graphicBuffer.get());
     }
@@ -751,7 +750,7 @@ status_t ACodec::allocateOutputMetaDataBuffers() {
     if (err != 0)
         return err;
 
-    ALOGV("[%s] Allocating %u meta buffers on output port",
+    ALOGV("[%s] Allocating %lu meta buffers on output port",
          mComponentName.c_str(), bufferCount);
 
     size_t totalSize = bufferCount * 8;
@@ -775,7 +774,7 @@ status_t ACodec::allocateOutputMetaDataBuffers() {
 
         mBuffers[kPortIndexOutput].push(info);
 
-        ALOGV("[%s] allocated meta buffer with ID %u (pointer = %p)",
+        ALOGV("[%s] allocated meta buffer with ID %p (pointer = %p)",
              mComponentName.c_str(), info.mBufferID, mem->pointer());
     }
 
@@ -792,7 +791,7 @@ status_t ACodec::submitOutputMetaDataBuffer() {
     if (info == NULL)
         return ERROR_IO;
 
-    ALOGV("[%s] submitting output meta buffer ID %u for graphic buffer %p",
+    ALOGV("[%s] submitting output meta buffer ID %p for graphic buffer %p",
           mComponentName.c_str(), info->mBufferID, info->mGraphicBuffer.get());
 
     --mMetaDataBuffersToSubmit;
@@ -806,7 +805,7 @@ status_t ACodec::submitOutputMetaDataBuffer() {
 status_t ACodec::cancelBufferToNativeWindow(BufferInfo *info) {
     CHECK_EQ((int)info->mStatus, (int)BufferInfo::OWNED_BY_US);
 
-    ALOGV("[%s] Calling cancelBuffer on buffer %u",
+    ALOGV("[%s] Calling cancelBuffer on buffer %p",
          mComponentName.c_str(), info->mBufferID);
 
     int err = mNativeWindow->cancelBuffer(
@@ -2476,7 +2475,7 @@ bool ACodec::allYourBuffersAreBelongToUs(
 
         if (info->mStatus != BufferInfo::OWNED_BY_US
                 && info->mStatus != BufferInfo::OWNED_BY_NATIVE_WINDOW) {
-            ALOGV("[%s] Buffer %u on port %u still has status %d",
+            ALOGV("[%s] Buffer %p on port %ld still has status %d",
                     mComponentName.c_str(),
                     info->mBufferID, portIndex, info->mStatus);
             return false;
@@ -2958,7 +2957,7 @@ bool ACodec::BaseState::onOMXMessage(const sp<AMessage> &msg) {
     CHECK(msg->findInt32("type", &type));
 
     IOMX::node_id nodeID;
-    CHECK(msg->findInt32("node", (int32_t*)&nodeID));
+    CHECK(msg->findPointer("node", &nodeID));
     CHECK_EQ(nodeID, mCodec->mNode);
 
     switch (type) {
@@ -2989,7 +2988,7 @@ bool ACodec::BaseState::onOMXMessage(const sp<AMessage> &msg) {
         case omx_message::EMPTY_BUFFER_DONE:
         {
             IOMX::buffer_id bufferID;
-            CHECK(msg->findInt32("buffer", (int32_t*)&bufferID));
+            CHECK(msg->findPointer("buffer", &bufferID));
 
             return onOMXEmptyBufferDone(bufferID);
         }
@@ -2997,7 +2996,7 @@ bool ACodec::BaseState::onOMXMessage(const sp<AMessage> &msg) {
         case omx_message::FILL_BUFFER_DONE:
         {
             IOMX::buffer_id bufferID;
-            CHECK(msg->findInt32("buffer", (int32_t*)&bufferID));
+            CHECK(msg->findPointer("buffer", &bufferID));
 
             int32_t rangeOffset, rangeLength, flags;
             int64_t timeUs;
@@ -3100,13 +3099,13 @@ void ACodec::BaseState::postFillThisBuffer(BufferInfo *info) {
 
     sp<AMessage> notify = mCodec->mNotify->dup();
     notify->setInt32("what", ACodec::kWhatFillThisBuffer);
-    notify->setInt32("buffer-id", info->mBufferID);
+    notify->setPointer("buffer-id", info->mBufferID);
 
     info->mData->meta()->clear();
     notify->setBuffer("buffer", info->mData);
 
     sp<AMessage> reply = new AMessage(kWhatInputBufferFilled, mCodec->id());
-    reply->setInt32("buffer-id", info->mBufferID);
+    reply->setPointer("buffer-id", info->mBufferID);
 
     notify->setMessage("reply", reply);
 
@@ -3117,7 +3116,8 @@ void ACodec::BaseState::postFillThisBuffer(BufferInfo *info) {
 
 void ACodec::BaseState::onInputBufferFilled(const sp<AMessage> &msg) {
     IOMX::buffer_id bufferID;
-    CHECK(msg->findInt32("buffer-id", (int32_t*)&bufferID));
+    CHECK(msg->findPointer("buffer-id", &bufferID));
+
     sp<ABuffer> buffer;
     int32_t err = OK;
     bool eos = false;
@@ -3355,7 +3355,7 @@ bool ACodec::BaseState::onOMXFillBufferDone(
         case RESUBMIT_BUFFERS:
         {
             if (rangeLength == 0 && !(flags & OMX_BUFFERFLAG_EOS)) {
-                ALOGV("[%s] calling fillBuffer %u",
+                ALOGV("[%s] calling fillBuffer %p",
                      mCodec->mComponentName.c_str(), info->mBufferID);
 
                 CHECK_EQ(mCodec->mOMX->fillBuffer(
@@ -3397,11 +3397,11 @@ bool ACodec::BaseState::onOMXFillBufferDone(
 
             sp<AMessage> notify = mCodec->mNotify->dup();
             notify->setInt32("what", ACodec::kWhatDrainThisBuffer);
-            notify->setInt32("buffer-id", info->mBufferID);
+            notify->setPointer("buffer-id", info->mBufferID);
             notify->setBuffer("buffer", info->mData);
             notify->setInt32("flags", flags);
 
-            reply->setInt32("buffer-id", info->mBufferID);
+            reply->setPointer("buffer-id", info->mBufferID);
 
             notify->setMessage("reply", reply);
 
@@ -3437,7 +3437,8 @@ bool ACodec::BaseState::onOMXFillBufferDone(
 
 void ACodec::BaseState::onOutputBufferDrained(const sp<AMessage> &msg) {
     IOMX::buffer_id bufferID;
-    CHECK(msg->findInt32("buffer-id", (int32_t*)&bufferID));
+    CHECK(msg->findPointer("buffer-id", &bufferID));
+
     ssize_t index;
     BufferInfo *info =
         mCodec->findBufferByID(kPortIndexOutput, bufferID, &index);
@@ -3501,7 +3502,7 @@ void ACodec::BaseState::onOutputBufferDrained(const sp<AMessage> &msg) {
                 }
 
                 if (info != NULL) {
-                    ALOGV("[%s] calling fillBuffer %u",
+                    ALOGV("[%s] calling fillBuffer %p",
                          mCodec->mComponentName.c_str(), info->mBufferID);
 
                     CHECK_EQ(mCodec->mOMX->fillBuffer(mCodec->mNode, info->mBufferID),
@@ -4711,7 +4712,7 @@ bool ACodec::FlushingState::onOMXEvent(
         {
             sp<AMessage> msg = new AMessage(kWhatOMXMessage, mCodec->id());
             msg->setInt32("type", omx_message::EVENT);
-            msg->setInt32("node", mCodec->mNode);
+            msg->setPointer("node", mCodec->mNode);
             msg->setInt32("event", event);
             msg->setInt32("data1", data1);
             msg->setInt32("data2", data2);
