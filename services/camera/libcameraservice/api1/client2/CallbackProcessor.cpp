@@ -110,13 +110,11 @@ status_t CallbackProcessor::updateStream(const Parameters &params) {
     if (!mCallbackToApp && mCallbackConsumer == 0) {
         // Create CPU buffer queue endpoint, since app hasn't given us one
         // Make it async to avoid disconnect deadlocks
-        sp<IGraphicBufferProducer> producer;
-        sp<IGraphicBufferConsumer> consumer;
-        BufferQueue::createBufferQueue(&producer, &consumer);
-        mCallbackConsumer = new CpuConsumer(consumer, kCallbackHeapCount);
+        sp<BufferQueue> bq = new BufferQueue();
+        mCallbackConsumer = new CpuConsumer(bq, kCallbackHeapCount);
         mCallbackConsumer->setFrameAvailableListener(this);
         mCallbackConsumer->setName(String8("Camera2Client::CallbackConsumer"));
-        mCallbackWindow = new Surface(producer);
+        mCallbackWindow = new Surface(bq);
     }
 
     if (mCallbackStreamId != NO_STREAM) {
