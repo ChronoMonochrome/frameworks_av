@@ -151,6 +151,7 @@ private:
 NuPlayer::NuPlayer()
     : mUIDValid(false),
       mSourceFlags(0),
+      mCurrentPositionUs(0),
       mVideoIsAVC(false),
       mOffloadAudio(false),
       mCurrentOffloadInfo(AUDIO_INFO_INITIALIZER),
@@ -168,6 +169,7 @@ NuPlayer::NuPlayer()
       mFlushingVideo(NONE),
       mSkipRenderingAudioUntilMediaTimeUs(-1ll),
       mSkipRenderingVideoUntilMediaTimeUs(-1ll),
+      mVideoLateByUs(0ll),
       mNumFramesTotal(0ll),
       mNumFramesDropped(0ll),
       mVideoScalingMode(NATIVE_WINDOW_SCALING_MODE_SCALE_TO_WINDOW),
@@ -549,11 +551,8 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                     // the extractor may not yet be started and will assert.
                     // If the video decoder is not set (perhaps audio only in this case)
                     // do not perform a seek as it is not needed.
-                    int64_t currentPositionUs = 0;
-                    if (getCurrentPosition(&currentPositionUs) == OK) {
-                        mDeferredActions.push_back(
-                                new SeekAction(currentPositionUs, false /* needNotify */));
-                    }
+                    mDeferredActions.push_back(
+                            new SeekAction(mCurrentPositionUs, false /* needNotify */));
                 }
 
                 // If there is a new surface texture, instantiate decoders
@@ -587,6 +586,7 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             mVideoEOS = false;
             mSkipRenderingAudioUntilMediaTimeUs = -1;
             mSkipRenderingVideoUntilMediaTimeUs = -1;
+            mVideoLateByUs = 0;
             mNumFramesTotal = 0;
             mNumFramesDropped = 0;
             mStarted = true;
@@ -896,6 +896,22 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                         && (mVideoEOS || mVideoDecoder == NULL)) {
                     notifyListener(MEDIA_PLAYBACK_COMPLETE, 0, 0);
                 }
+            } else if (what == Renderer::kWhatPosition) {
+                int64_t positionUs;
+                CHECK(msg->findInt64("positionUs", &positionUs));
+                mCurrentPositionUs = positionUs;
+
+                CHECK(msg->findInt64("videoLateByUs", &mVideoLateByUs));
+
+                if (mDriver != NULL) {
+                    sp<NuPlayerDriver> driver = mDriver.promote();
+                    if (driver != NULL) {
+                        driver->notifyPosition(positionUs);
+
+                        driver->notifyFrameStats(
+                                mNumFramesTotal, mNumFramesDropped);
+                    }
+                }
             } else if (what == Renderer::kWhatFlushComplete) {
                 int32_t audio;
                 CHECK(msg->findInt32("audio", &audio));
@@ -1046,6 +1062,10 @@ void NuPlayer::handleFlushComplete(bool audio, bool isDecoder) {
         case FLUSHING_DECODER:
         {
             *state = FLUSHED;
+
+            if (!audio) {
+                mVideoLateByUs = 0;
+            }
             break;
         }
 
@@ -1055,6 +1075,7 @@ void NuPlayer::handleFlushComplete(bool audio, bool isDecoder) {
 
             ALOGV("initiating %s decoder shutdown", audio ? "audio" : "video");
             if (!audio) {
+                mVideoLateByUs = 0;
                 // Widevine source reads must stop before releasing the video decoder.
                 if (mSource != NULL && mSourceFlags & Source::FLAG_SECURE) {
                     mSource->stop();
@@ -1475,7 +1496,7 @@ status_t NuPlayer::feedDecoderInputData(bool audio, const sp<AMessage> &msg) {
         dropAccessUnit = false;
         if (!audio
                 && !(mSourceFlags & Source::FLAG_SECURE)
-                && mRenderer->getVideoLateByUs() > 100000ll
+                && mVideoLateByUs > 100000ll
                 && mVideoIsAVC
                 && !IsAVCReferenceFrame(accessUnit)) {
             dropAccessUnit = true;
@@ -1812,20 +1833,6 @@ status_t NuPlayer::selectTrack(size_t trackIndex, bool select) {
     return err;
 }
 
-status_t NuPlayer::getCurrentPosition(int64_t *mediaUs) {
-    sp<Renderer> renderer = mRenderer;
-    if (renderer == NULL) {
-        return NO_INIT;
-    }
-
-    return renderer->getCurrentPosition(mediaUs);
-}
-
-void NuPlayer::getStats(int64_t *numFramesTotal, int64_t *numFramesDropped) {
-    *numFramesTotal = mNumFramesTotal;
-    *numFramesDropped = mNumFramesDropped;
-}
-
 sp<MetaData> NuPlayer::getFileMeta() {
     return mSource->getFileFormatMeta();
 }
@@ -1883,6 +1890,7 @@ void NuPlayer::performSeek(int64_t seekTimeUs, bool needNotify) {
     if (mDriver != NULL) {
         sp<NuPlayerDriver> driver = mDriver.promote();
         if (driver != NULL) {
+            driver->notifyPosition(seekTimeUs);
             if (needNotify) {
                 driver->notifySeekComplete();
             }

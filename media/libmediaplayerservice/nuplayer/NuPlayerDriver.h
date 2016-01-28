@@ -68,8 +68,10 @@ struct NuPlayerDriver : public MediaPlayerInterface {
     void notifyResetComplete();
     void notifySetSurfaceComplete();
     void notifyDuration(int64_t durationUs);
+    void notifyPosition(int64_t positionUs);
     void notifySeekComplete();
     void notifySeekComplete_l();
+    void notifyFrameStats(int64_t numFramesTotal, int64_t numFramesDropped);
     void notifyListener(int msg, int ext1 = 0, int ext2 = 0, const Parcel *in = NULL);
     void notifyFlagsChanged(uint32_t flags);
 
@@ -104,7 +106,10 @@ private:
     bool mSetSurfaceInProgress;
     int64_t mDurationUs;
     int64_t mPositionUs;
-    bool mSeekInProgress;
+    int64_t mNotifyTimeRealUs;
+    int64_t mPauseStartedTimeUs;
+    int64_t mNumFramesTotal;
+    int64_t mNumFramesDropped;
     // <<<
 
     sp<ALooper> mLooper;
@@ -120,6 +125,7 @@ private:
 
     status_t prepare_l();
     void notifyListener_l(int msg, int ext1 = 0, int ext2 = 0, const Parcel *in = NULL);
+    void setPauseStartedTimeIfNeeded();
 
     DISALLOW_EVIL_CONSTRUCTORS(NuPlayerDriver);
 };
