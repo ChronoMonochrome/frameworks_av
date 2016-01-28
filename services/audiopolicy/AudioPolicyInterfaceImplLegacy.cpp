@@ -288,12 +288,6 @@ void AudioPolicyService::releaseInput(audio_io_handle_t input,
         return;
     }
 
-#ifdef HAVE_PRE_KITKAT_AUDIO_BLOB
-    if (inputSource == AUDIO_SOURCE_HOTWORD) {
-        inputSource = AUDIO_SOURCE_VOICE_RECOGNITION;
-    }
-#endif
-
     sp<AudioPolicyEffects>audioPolicyEffects;
     {
         Mutex::Autolock _l(mLock);
