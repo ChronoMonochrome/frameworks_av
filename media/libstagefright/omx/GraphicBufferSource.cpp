@@ -48,8 +48,6 @@ GraphicBufferSource::GraphicBufferSource(OMXNodeInstance* nodeInstance,
     mMaxTimestampGapUs(-1ll),
     mPrevOriginalTimeUs(-1ll),
     mPrevModifiedTimeUs(-1ll),
-    mSkipFramesBeforeNs(-1ll),
-    mRepeatAfterUs(-1ll),
     mRepeatLastFrameGeneration(0),
     mRepeatLastFrameTimestamp(-1ll),
     mLatestSubmittedBufferId(-1),
@@ -418,18 +416,7 @@ bool GraphicBufferSource::fillCodecBuffer_l() {
         mBufferSlot[item.mBuf] = item.mGraphicBuffer;
     }
 
-    err = UNKNOWN_ERROR;
-
-    // only submit sample if start time is unspecified, or sample
-    // is queued after the specified start time
-    if (mSkipFramesBeforeNs < 0ll || item.mTimestamp >= mSkipFramesBeforeNs) {
-        // if start time is set, offset time stamp by start time
-        if (mSkipFramesBeforeNs > 0) {
-            item.mTimestamp -= mSkipFramesBeforeNs;
-        }
-        err = submitBuffer_l(item, cbi);
-    }
-
+    err = submitBuffer_l(item, cbi);
     if (err != OK) {
         ALOGV("submitBuffer_l failed, releasing bq buf %d", item.mBuf);
         mConsumer->releaseBuffer(item.mBuf, item.mFrameNumber,
@@ -782,14 +769,6 @@ status_t GraphicBufferSource::setMaxTimestampGapUs(int64_t maxGapUs) {
 
     return OK;
 }
-
-void GraphicBufferSource::setSkipFramesBeforeUs(int64_t skipFramesBeforeUs) {
-    Mutex::Autolock autoLock(mMutex);
-
-    mSkipFramesBeforeNs =
-            (skipFramesBeforeUs > 0) ? (skipFramesBeforeUs * 1000) : -1ll;
-}
-
 void GraphicBufferSource::onMessageReceived(const sp<AMessage> &msg) {
     switch (msg->what()) {
         case kWhatRepeatLastFrame:
