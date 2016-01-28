@@ -91,7 +91,7 @@ void OMXMaster::addPlugin(OMXPluginBase *plugin) {
     }
 
     if (err != OMX_ErrorNoMore) {
-        ALOGE("OMX plugin failed w/ error 0x%08x after registering %zu "
+        ALOGE("OMX plugin failed w/ error 0x%08x after registering %d "
              "components", err, mPluginByComponentName.size());
     }
 }

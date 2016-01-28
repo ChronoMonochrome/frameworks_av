@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
-#include <stdlib.h>
-
 //#define LOG_NDEBUG 0
 #define LOG_TAG "AudioSource"
 #include <utils/Log.h>
@@ -29,6 +26,7 @@
 #include <media/stagefright/foundation/ADebug.h>
 #include <media/stagefright/foundation/ALooper.h>
 #include <cutils/properties.h>
+#include <stdlib.h>
 
 namespace android {
 
@@ -138,7 +136,7 @@ void AudioSource::releaseQueuedFrames_l() {
 }
 
 void AudioSource::waitOutstandingEncodingFrames_l() {
-    ALOGV("waitOutstandingEncodingFrames_l: %" PRId64, mNumClientOwnedBuffers);
+    ALOGV("waitOutstandingEncodingFrames_l: %lld", mNumClientOwnedBuffers);
     while (mNumClientOwnedBuffers > 0) {
         mFrameEncodingCompletionCondition.wait(mLock);
     }
@@ -273,7 +271,7 @@ void AudioSource::signalBufferReturned(MediaBuffer *buffer) {
 status_t AudioSource::dataCallback(const AudioRecord::Buffer& audioBuffer) {
     int64_t timeUs = systemTime() / 1000ll;
 
-    ALOGV("dataCallbackTimestamp: %" PRId64 " us", timeUs);
+    ALOGV("dataCallbackTimestamp: %lld us", timeUs);
     Mutex::Autolock autoLock(mLock);
     if (!mStarted) {
         ALOGW("Spurious callback from AudioRecord. Drop the audio data.");
@@ -283,7 +281,7 @@ status_t AudioSource::dataCallback(const AudioRecord::Buffer& audioBuffer) {
     // Drop retrieved and previously lost audio data.
     if (mNumFramesReceived == 0 && timeUs < mStartTimeUs) {
         (void) mRecord->getInputFramesLost();
-        ALOGV("Drop audio data at %" PRId64 "/%" PRId64 " us", timeUs, mStartTimeUs);
+        ALOGV("Drop audio data at %lld/%lld us", timeUs, mStartTimeUs);
         return OK;
     }
 
