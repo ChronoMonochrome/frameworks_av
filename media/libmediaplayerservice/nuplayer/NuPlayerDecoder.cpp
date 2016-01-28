@@ -140,8 +140,6 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
             format, surface, NULL /* crypto */, 0 /* flags */);
     if (err != OK) {
         ALOGE("Failed to configure %s decoder (err=%d)", mComponentName.c_str(), err);
-        mCodec->release();
-        mCodec.clear();
         handleError(err);
         return;
     }
@@ -154,8 +152,6 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
     err = mCodec->start();
     if (err != OK) {
         ALOGE("Failed to start %s decoder (err=%d)", mComponentName.c_str(), err);
-        mCodec->release();
-        mCodec.clear();
         handleError(err);
         return;
     }
@@ -515,9 +511,9 @@ void NuPlayer::Decoder::onFlush() {
     if (err != OK) {
         ALOGE("failed to flush %s (err=%d)", mComponentName.c_str(), err);
         handleError(err);
-        // finish with posting kWhatFlushCompleted.
-        // we attempt to release the buffers even if flush fails.
+        return;
     }
+
     releaseAndResetMediaBuffers();
 
     sp<AMessage> notify = mNotify->dup();
@@ -555,7 +551,7 @@ void NuPlayer::Decoder::onShutdown() {
     if (err != OK) {
         ALOGE("failed to release %s (err=%d)", mComponentName.c_str(), err);
         handleError(err);
-        // finish with posting kWhatShutdownCompleted.
+        return;
     }
 
     sp<AMessage> notify = mNotify->dup();

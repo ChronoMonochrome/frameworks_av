@@ -75,7 +75,6 @@ void NuPlayer::GenericSource::resetDataSource() {
     mDecryptHandle = NULL;
     mDrmManagerClient = NULL;
     mStarted = false;
-    mStopRead = true;
 }
 
 status_t NuPlayer::GenericSource::setDataSource(
@@ -456,7 +455,6 @@ status_t NuPlayer::GenericSource::prefillCacheIfNecessary() {
 void NuPlayer::GenericSource::start() {
     ALOGI("start");
 
-    mStopRead = false;
     if (mAudioTrack.mSource != NULL) {
         CHECK_EQ(mAudioTrack.mSource->start(), (status_t)OK);
 
@@ -477,12 +475,6 @@ void NuPlayer::GenericSource::stop() {
     // nothing to do, just account for DRM playback status
     setDrmPlaybackStatusIfNeeded(Playback::STOP, 0);
     mStarted = false;
-    if (mIsWidevine) {
-        // For a widevine source we need to prevent any further reads.
-        sp<AMessage> msg = new AMessage(kWhatStopWidevine, id());
-        sp<AMessage> response;
-        (void) msg->postAndAwaitResponse(&response);
-    }
 }
 
 void NuPlayer::GenericSource::pause() {
@@ -701,20 +693,6 @@ void NuPlayer::GenericSource::onMessageReceived(const sp<AMessage> &msg) {
           break;
       }
 
-      case kWhatStopWidevine:
-      {
-          // mStopRead is only used for Widevine to prevent the video source
-          // from being read while the associated video decoder is shutting down.
-          mStopRead = true;
-          if (mVideoTrack.mSource != NULL) {
-              mVideoTrack.mPackets->clear();
-          }
-          sp<AMessage> response = new AMessage;
-          uint32_t replyID;
-          CHECK(msg->senderAwaitsResponse(&replyID));
-          response->postReply(replyID);
-          break;
-      }
       default:
           Source::onMessageReceived(msg);
           break;
@@ -1122,11 +1100,6 @@ void NuPlayer::GenericSource::onSeek(sp<AMessage> msg) {
 }
 
 status_t NuPlayer::GenericSource::doSeek(int64_t seekTimeUs) {
-    // If the Widevine source is stopped, do not attempt to read any
-    // more buffers.
-    if (mStopRead) {
-        return INVALID_OPERATION;
-    }
     if (mVideoTrack.mSource != NULL) {
         int64_t actualTimeUs;
         readBuffer(MEDIA_TRACK_TYPE_VIDEO, seekTimeUs, &actualTimeUs);
@@ -1238,10 +1211,6 @@ void NuPlayer::GenericSource::onReadBuffer(sp<AMessage> msg) {
 
 void NuPlayer::GenericSource::readBuffer(
         media_track_type trackType, int64_t seekTimeUs, int64_t *actualTimeUs, bool formatChange) {
-    // Do not read data if Widevine source is stopped
-    if (mStopRead) {
-        return;
-    }
     Track *track;
     size_t maxBuffers = 1;
     switch (trackType) {
