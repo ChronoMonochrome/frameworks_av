@@ -71,7 +71,8 @@ GraphicBufferSource::GraphicBufferSource(OMXNodeInstance* nodeInstance,
     BufferQueue::createBufferQueue(&mProducer, &mConsumer);
     mConsumer->setConsumerName(name);
     mConsumer->setDefaultBufferSize(bufferWidth, bufferHeight);
-    mConsumer->setConsumerUsageBits(GRALLOC_USAGE_HW_VIDEO_ENCODER);
+    mConsumer->setConsumerUsageBits(GRALLOC_USAGE_HW_VIDEO_ENCODER |
+            GRALLOC_USAGE_HW_TEXTURE);
 
     mInitCheck = mConsumer->setMaxAcquiredBufferCount(bufferCount);
     if (mInitCheck != NO_ERROR) {
