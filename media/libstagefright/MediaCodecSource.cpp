@@ -34,6 +34,19 @@
 
 namespace android {
 
+static void ReleaseMediaBufferReference(const sp<ABuffer> &accessUnit) {
+    void *mbuf;
+    if (accessUnit->meta()->findPointer("mediaBuffer", &mbuf)
+            && mbuf != NULL) {
+        ALOGV("releasing mbuf %p", mbuf);
+
+        accessUnit->meta()->setPointer("mediaBuffer", NULL);
+
+        static_cast<MediaBuffer *>(mbuf)->release();
+        mbuf = NULL;
+    }
+}
+
 struct MediaCodecSource::Puller : public AHandler {
     Puller(const sp<MediaSource> &source);
 
@@ -461,7 +474,7 @@ void MediaCodecSource::releaseEncoder() {
 
     for (size_t i = 0; i < mEncoderInputBuffers.size(); ++i) {
         sp<ABuffer> accessUnit = mEncoderInputBuffers.itemAt(i);
-        accessUnit->setMediaBufferBase(NULL);
+        ReleaseMediaBufferReference(accessUnit);
     }
 
     mEncoderInputBuffers.clear();
@@ -592,8 +605,8 @@ status_t MediaCodecSource::feedEncoderInputBuffers() {
             if (mIsVideo) {
                 // video encoder will release MediaBuffer when done
                 // with underlying data.
-                mEncoderInputBuffers.itemAt(bufferIndex)->setMediaBufferBase(
-                        mbuf);
+                mEncoderInputBuffers.itemAt(bufferIndex)->meta()
+                        ->setPointer("mediaBuffer", mbuf);
             } else {
                 mbuf->release();
             }
