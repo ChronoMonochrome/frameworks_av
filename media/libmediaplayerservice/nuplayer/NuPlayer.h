@@ -59,9 +59,8 @@ struct NuPlayer : public AHandler {
     // Will notify the driver through "notifyResetComplete" once finished.
     void resetAsync();
 
-    // Will notify the driver through "notifySeekComplete" once finished
-    // and needNotify is true.
-    void seekToAsync(int64_t seekTimeUs, bool needNotify = false);
+    // Will notify the driver through "notifySeekComplete" once finished.
+    void seekToAsync(int64_t seekTimeUs);
 
     status_t setVideoScalingMode(int32_t mode);
     status_t getTrackInfo(Parcel* reply) const;
@@ -216,7 +215,7 @@ private:
 
     void processDeferredActions();
 
-    void performSeek(int64_t seekTimeUs, bool needNotify);
+    void performSeek(int64_t seekTimeUs);
     void performDecoderFlush();
     void performDecoderShutdown(bool audio, bool video);
     void performReset();
