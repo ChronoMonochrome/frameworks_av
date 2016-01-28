@@ -1540,10 +1540,10 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
 
     status_t err = OK;
     sp<MediaWriter> writer;
-    if (mOutputFormat == OUTPUT_FORMAT_WEBM) {
-        writer = new WebmWriter(mOutputFd);
-    } else {
+    if (mOutputFormat == OUTPUT_FORMAT_MPEG_4) {
         writer = new MPEG4Writer(mOutputFd);
+    } else {
+        writer = new WebmWriter(mOutputFd);
     }
 
     if (mVideoSource < VIDEO_SOURCE_LIST_END) {
@@ -1564,7 +1564,7 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
         mTotalBitRate += mVideoBitRate;
     }
 
-    if (mOutputFormat != OUTPUT_FORMAT_WEBM) {
+    if (mOutputFormat == OUTPUT_FORMAT_MPEG_4) {
         // Audio source is added at the end if it exists.
         // This help make sure that the "recoding" sound is suppressed for
         // camcorder applications in the recorded files.
@@ -1614,7 +1614,7 @@ void StagefrightRecorder::setupMPEG4orWEBMMetaData(sp<MetaData> *meta) {
     if (mMovieTimeScale > 0) {
         (*meta)->setInt32(kKeyTimeScale, mMovieTimeScale);
     }
-    if (mOutputFormat != OUTPUT_FORMAT_WEBM) {
+    if (mOutputFormat == OUTPUT_FORMAT_MPEG_4) {
         (*meta)->setInt32(kKey64BitFileOffset, mUse64BitFileOffset);
         if (mTrackEveryTimeDurationUs > 0) {
             (*meta)->setInt64(kKeyTrackTimeStatus, mTrackEveryTimeDurationUs);
