@@ -209,8 +209,6 @@ private:
 
     void finishFlushIfPossible();
 
-    bool audioDecoderStillNeeded();
-
     void flushDecoder(
             bool audio, bool needShutdown, const sp<AMessage> &newFormat = NULL);
     void updateDecoderFormatWithoutFlush(bool audio, const sp<AMessage> &format);
