@@ -1055,7 +1055,7 @@ status_t WifiDisplaySource::PlaybackSession::addVideoSource(
     err = source->setMaxAcquiredBufferCount(numInputBuffers);
     CHECK_EQ(err, (status_t)OK);
 
-    mProducer = source->getProducer();
+    mBufferQueue = source->getBufferQueue();
 
     return OK;
 }
@@ -1079,7 +1079,7 @@ status_t WifiDisplaySource::PlaybackSession::addAudioSource(bool usePCMAudio) {
 }
 
 sp<IGraphicBufferProducer> WifiDisplaySource::PlaybackSession::getSurfaceTexture() {
-    return mProducer;
+    return mBufferQueue;
 }
 
 void WifiDisplaySource::PlaybackSession::requestIDRFrame() {
