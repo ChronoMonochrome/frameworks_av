@@ -137,7 +137,6 @@ private:
     sp<ALooper> mRendererLooper;
     int32_t mAudioDecoderGeneration;
     int32_t mVideoDecoderGeneration;
-    int32_t mRendererGeneration;
 
     List<sp<Action> > mDeferredActions;
 
