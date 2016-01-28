@@ -94,7 +94,7 @@ status_t StagefrightRecorder::init() {
 // while encoding GL Frames
 sp<IGraphicBufferProducer> StagefrightRecorder::querySurfaceMediaSource() const {
     ALOGV("Get SurfaceMediaSource");
-    return mSurfaceMediaSource->getBufferQueue();
+    return mSurfaceMediaSource->getProducer();
 }
 
 status_t StagefrightRecorder::setAudioSource(audio_source_t as) {
