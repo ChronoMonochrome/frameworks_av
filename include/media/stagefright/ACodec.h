@@ -77,14 +77,8 @@ struct ACodec : public AHierarchicalStateMachine, public CodecBase {
     };
 
     static bool isFlexibleColorFormat(
-            const sp<IOMX> &omx, IOMX::node_id node,
-            uint32_t colorFormat, OMX_U32 *flexibleEquivalent);
-
-    // Returns 0 if configuration is not supported.  NOTE: this is treated by
-    // some OMX components as auto level, and by others as invalid level.
-    static int /* OMX_VIDEO_AVCLEVELTYPE */ getAVCLevelFor(
-            int width, int height, int rate, int bitrate,
-            OMX_VIDEO_AVCPROFILETYPE profile = OMX_VIDEO_AVCProfileBaseline);
+        const sp<IOMX> &omx, IOMX::node_id node,
+        uint32_t colorFormat, OMX_U32 *flexibleEquivalent);
 
 protected:
     virtual ~ACodec();
