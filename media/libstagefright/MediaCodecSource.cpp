@@ -303,8 +303,8 @@ sp<IGraphicBufferProducer> MediaCodecSource::getGraphicBufferProducer() {
     return mGraphicBufferProducer;
 }
 
-status_t MediaCodecSource::read(
-        MediaBuffer** buffer, const ReadOptions* /* options */) {
+status_t MediaCodecSource::read(MediaBuffer** buffer,
+        const ReadOptions* options) {
     Mutex::Autolock autolock(mOutputBufferLock);
 
     *buffer = NULL;
