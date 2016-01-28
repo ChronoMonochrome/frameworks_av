@@ -69,11 +69,6 @@ struct NuPlayer::Renderer : public AHandler {
         kWhatAudioOffloadPauseTimeout = 'aOPT',
     };
 
-    enum AudioOffloadTearDownReason {
-        kDueToError = 0,
-        kDueToTimeout,
-    };
-
 protected:
     virtual ~Renderer();
 
@@ -162,7 +157,7 @@ private:
     void onPause();
     void onResume();
     void onSetVideoFrameRate(float fps);
-    void onAudioOffloadTearDown(AudioOffloadTearDownReason reason);
+    void onAudioOffloadTearDown();
 
     void notifyEOS(bool audio, status_t finalResult, int64_t delayUs = 0);
     void notifyFlushComplete(bool audio);

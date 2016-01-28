@@ -973,8 +973,6 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                 ALOGV("Tear down audio offload, fall back to s/w path");
                 int64_t positionUs;
                 CHECK(msg->findInt64("positionUs", &positionUs));
-                int32_t reason;
-                CHECK(msg->findInt32("reason", &reason));
                 closeAudioSink();
                 mAudioDecoder.clear();
                 ++mAudioDecoderGeneration;
@@ -986,9 +984,7 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                 mOffloadAudio = false;
 
                 performSeek(positionUs, false /* needNotify */);
-                if (reason == Renderer::kDueToError) {
-                    instantiateDecoder(true /* audio */, &mAudioDecoder);
-                }
+                instantiateDecoder(true /* audio */, &mAudioDecoder);
             }
             break;
         }
@@ -1056,11 +1052,6 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                 mSource->resume();
             } else {
                 ALOGW("resume called when source is gone or not set");
-            }
-            // |mAudioDecoder| may have been released due to the pause timeout, so try to re-create
-            // it if needed.
-            if (mFlushingAudio != SHUT_DOWN) {
-                instantiateDecoder(true /* audio */, &mAudioDecoder);
             }
             if (mRenderer != NULL) {
                 mRenderer->resume();
