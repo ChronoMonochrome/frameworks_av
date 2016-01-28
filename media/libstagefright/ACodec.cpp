@@ -42,6 +42,7 @@
 #include <media/stagefright/OMXCodec.h>
 
 #include <media/hardware/HardwareAPI.h>
+#include <cutils/properties.h>
 
 #include <OMX_AudioExt.h>
 #include <OMX_VideoExt.h>
@@ -2218,21 +2219,34 @@ status_t ACodec::setupVideoEncoder(const char *mime, const sp<AMessage> &msg) {
     video_def->nFrameWidth = width;
     video_def->nFrameHeight = height;
 
-    int32_t stride;
+    int32_t stride, tmpstride;
     if (!msg->findInt32("stride", &stride)) {
         stride = width;
     }
 
+    tmpstride = stride;
+
+    stride = property_get_int32("debug.stride", stride);
+    ALOGE("overriding old stride=%d to %d\n", tmpstride, stride);
+
     video_def->nStride = stride;
 
-    int32_t sliceHeight;
+    int32_t sliceHeight, tmpsliceheight;
     if (!msg->findInt32("slice-height", &sliceHeight)) {
         sliceHeight = height;
     }
 
+    tmpsliceheight = sliceHeight;
+    sliceHeight = property_get_int32("debug.sliceheight", sliceHeight);
+    ALOGE("overriding old sliceHeight=%d to %d\n", tmpsliceheight, sliceHeight);
+
     video_def->nSliceHeight = sliceHeight;
 
     def.nBufferSize = (video_def->nStride * video_def->nSliceHeight * 3) / 2;
+    int32_t minbuffersize = (width * height * 3) / 2;
+    if (def.nBufferSize < minbuffersize)
+	def.nBufferSize = minbuffersize;
+    ALOGE("def.nBufferSize=%d\n", def.nBufferSize);
 
     float frameRate;
     if (!msg->findFloat("frame-rate", &frameRate)) {
