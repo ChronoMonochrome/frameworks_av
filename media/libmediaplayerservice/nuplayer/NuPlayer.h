@@ -67,8 +67,6 @@ struct NuPlayer : public AHandler {
     status_t getTrackInfo(Parcel* reply) const;
     status_t getSelectedTrack(int32_t type, Parcel* reply) const;
     status_t selectTrack(size_t trackIndex, bool select);
-    status_t getCurrentPosition(int64_t *mediaUs);
-    void getStats(int64_t *mNumFramesTotal, int64_t *mNumFramesDropped);
 
     sp<MetaData> getFileMeta();
 
@@ -128,6 +126,7 @@ private:
     sp<Source> mSource;
     uint32_t mSourceFlags;
     sp<NativeWindowWrapper> mNativeWindow;
+    int64_t mCurrentPositionUs;
     sp<MediaPlayerBase::AudioSink> mAudioSink;
     sp<Decoder> mVideoDecoder;
     bool mVideoIsAVC;
@@ -180,6 +179,7 @@ private:
     int64_t mSkipRenderingAudioUntilMediaTimeUs;
     int64_t mSkipRenderingVideoUntilMediaTimeUs;
 
+    int64_t mVideoLateByUs;
     int64_t mNumFramesTotal, mNumFramesDropped;
 
     int32_t mVideoScalingMode;
