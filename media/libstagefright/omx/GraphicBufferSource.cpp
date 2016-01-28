@@ -55,8 +55,6 @@ GraphicBufferSource::GraphicBufferSource(OMXNodeInstance* nodeInstance,
     mLatestSubmittedBufferFrameNum(0),
     mLatestSubmittedBufferUseCount(0),
     mRepeatBufferDeferred(false),
-    mPrevCaptureUs(-1ll),
-    mPrevFrameUs(-1ll),
     mUseGraphicBufferInMeta(useGraphicBufferInMeta) {
 
     ALOGV("GraphicBufferSource w=%u h=%u c=%u",
