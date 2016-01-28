@@ -57,7 +57,8 @@ class Camera2Device: public CameraDeviceBase {
     virtual status_t clearStreamingRequest(int64_t *lastFrameNumber = NULL);
     virtual status_t waitUntilRequestReceived(int32_t requestId, nsecs_t timeout);
     virtual status_t createStream(sp<ANativeWindow> consumer,
-            uint32_t width, uint32_t height, int format, int *id);
+            uint32_t width, uint32_t height, int format, size_t size,
+            int *id);
     virtual status_t createReprocessStreamFromStream(int outputId, int *id);
     virtual status_t getStreamInfo(int id,
             uint32_t *width, uint32_t *height, uint32_t *format);
@@ -80,7 +81,6 @@ class Camera2Device: public CameraDeviceBase {
     // Flush implemented as just a wait
     virtual status_t flush(int64_t *lastFrameNumber = NULL);
     virtual uint32_t getDeviceVersion();
-    virtual ssize_t getJpegBufferSize(uint32_t width, uint32_t height) const;
 
   private:
     const int mId;

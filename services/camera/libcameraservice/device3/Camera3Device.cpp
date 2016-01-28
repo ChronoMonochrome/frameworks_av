@@ -803,12 +803,12 @@ status_t Camera3Device::createZslStream(
 }
 
 status_t Camera3Device::createStream(sp<ANativeWindow> consumer,
-        uint32_t width, uint32_t height, int format, int *id) {
+        uint32_t width, uint32_t height, int format, size_t size, int *id) {
     ATRACE_CALL();
     Mutex::Autolock il(mInterfaceLock);
     Mutex::Autolock l(mLock);
-    ALOGV("Camera %d: Creating new stream %d: %d x %d, format %d",
-            mId, mNextStreamId, width, height, format);
+    ALOGV("Camera %d: Creating new stream %d: %d x %d, format %d, size %zu",
+            mId, mNextStreamId, width, height, format, size);
 
     status_t res;
     bool wasActive = false;
@@ -842,7 +842,10 @@ status_t Camera3Device::createStream(sp<ANativeWindow> consumer,
     sp<Camera3OutputStream> newStream;
     if (format == HAL_PIXEL_FORMAT_BLOB) {
         ssize_t jpegBufferSize = getJpegBufferSize(width, height);
-        if (jpegBufferSize <= 0) {
+        if (jpegBufferSize > 0) {
+            ALOGV("%s: Overwrite Jpeg output buffer size from %zu to %zu",
+                    __FUNCTION__, size, jpegBufferSize);
+        } else {
             SET_ERR_L("Invalid jpeg buffer size %zd", jpegBufferSize);
             return BAD_VALUE;
         }
