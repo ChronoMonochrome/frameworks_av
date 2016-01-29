@@ -869,9 +869,9 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                     CHECK(msg->findString("componentName", &mComponentName));
 
                     if (mComponentName.startsWith("OMX.google.")) {
-                        mFlags |= kFlagUsesSoftwareRenderer;
+                        mFlags |= kFlagIsSoftwareCodec;
                     } else {
-                        mFlags &= ~kFlagUsesSoftwareRenderer;
+                        mFlags &= ~kFlagIsSoftwareCodec;
                     }
 
                     if (mComponentName.endsWith(".secure")) {
@@ -894,11 +894,6 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                     CHECK(msg->findMessage("input-format", &mInputFormat));
                     CHECK(msg->findMessage("output-format", &mOutputFormat));
 
-                    int32_t usingSwRenderer;
-                    if (mOutputFormat->findInt32("using-sw-renderer", &usingSwRenderer)
-                            && usingSwRenderer) {
-                        mFlags |= kFlagUsesSoftwareRenderer;
-                    }
                     setState(CONFIGURED);
                     (new AMessage)->postReply(mReplyID);
                     break;
@@ -994,7 +989,7 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
 
                     if (mSoftRenderer == NULL &&
                             mNativeWindow != NULL &&
-                            (mFlags & kFlagUsesSoftwareRenderer)) {
+                            (mFlags & kFlagIsSoftwareCodec)) {
                         AString mime;
                         CHECK(msg->findString("mime", &mime));
 
