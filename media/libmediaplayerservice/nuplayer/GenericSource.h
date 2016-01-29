@@ -93,7 +93,6 @@ private:
         kWhatSelectTrack,
         kWhatSeek,
         kWhatReadBuffer,
-        kWhatStopWidevine,
     };
 
     Vector<sp<MediaSource> > mSources;
@@ -135,7 +134,6 @@ private:
     DrmManagerClient *mDrmManagerClient;
     sp<DecryptHandle> mDecryptHandle;
     bool mStarted;
-    bool mStopRead;
     String8 mContentType;
     AString mSniffedMIME;
     off64_t mMetaDataSize;
