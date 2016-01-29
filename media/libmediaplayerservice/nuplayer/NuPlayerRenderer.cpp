@@ -424,8 +424,7 @@ void NuPlayer::Renderer::onMessageReceived(const sp<AMessage> &msg) {
 
             onDrainVideoQueue();
 
-            Mutex::Autolock autoLock(mLock);
-            postDrainVideoQueue_l();
+            postDrainVideoQueue();
             break;
         }
 
@@ -438,8 +437,7 @@ void NuPlayer::Renderer::onMessageReceived(const sp<AMessage> &msg) {
             }
 
             mDrainVideoQueuePending = false;
-            Mutex::Autolock autoLock(mLock);
-            postDrainVideoQueue_l();
+            postDrainVideoQueue();
             break;
         }
 
@@ -768,7 +766,7 @@ int64_t NuPlayer::Renderer::getPendingAudioPlayoutDurationUs(int64_t nowUs) {
 
 int64_t NuPlayer::Renderer::getRealTimeUs(int64_t mediaTimeUs, int64_t nowUs) {
     int64_t currentPositionUs;
-    if (mPaused || getCurrentPositionOnLooper(
+    if (getCurrentPositionOnLooper(
             &currentPositionUs, nowUs, true /* allowPastQueuedVideo */) != OK) {
         // If failed to get current position, e.g. due to audio clock is not ready, then just
         // play out video immediately without delay.
@@ -789,7 +787,7 @@ void NuPlayer::Renderer::onNewAudioMediaTime(int64_t mediaTimeUs) {
             mediaTimeUs, nowUs + getPendingAudioPlayoutDurationUs(nowUs), mNumFramesWritten);
 }
 
-void NuPlayer::Renderer::postDrainVideoQueue_l() {
+void NuPlayer::Renderer::postDrainVideoQueue() {
     if (mDrainVideoQueuePending
             || mSyncQueues
             || (mPaused && mVideoSampleReceived)) {
@@ -825,7 +823,6 @@ void NuPlayer::Renderer::postDrainVideoQueue_l() {
 
         if (mAnchorTimeMediaUs < 0) {
             setAnchorTime(mediaTimeUs, nowUs);
-            mPausePositionMediaTimeUs = mediaTimeUs;
             mAnchorMaxMediaUs = mediaTimeUs;
             realTimeUs = nowUs;
         } else {
@@ -989,15 +986,16 @@ void NuPlayer::Renderer::onQueueBuffer(const sp<AMessage> &msg) {
     entry.mFinalResult = OK;
     entry.mBufferOrdinal = ++mTotalBuffersQueued;
 
-    Mutex::Autolock autoLock(mLock);
     if (audio) {
+        Mutex::Autolock autoLock(mLock);
         mAudioQueue.push_back(entry);
         postDrainAudioQueue_l();
     } else {
         mVideoQueue.push_back(entry);
-        postDrainVideoQueue_l();
+        postDrainVideoQueue();
     }
 
+    Mutex::Autolock autoLock(mLock);
     if (!mSyncQueues || mAudioQueue.empty() || mVideoQueue.empty()) {
         return;
     }
@@ -1046,7 +1044,7 @@ void NuPlayer::Renderer::syncQueuesDone_l() {
     }
 
     if (!mVideoQueue.empty()) {
-        postDrainVideoQueue_l();
+        postDrainVideoQueue();
     }
 }
 
@@ -1065,8 +1063,8 @@ void NuPlayer::Renderer::onQueueEOS(const sp<AMessage> &msg) {
     entry.mOffset = 0;
     entry.mFinalResult = finalResult;
 
-    Mutex::Autolock autoLock(mLock);
     if (audio) {
+        Mutex::Autolock autoLock(mLock);
         if (mAudioQueue.empty() && mSyncQueues) {
             syncQueuesDone_l();
         }
@@ -1074,10 +1072,11 @@ void NuPlayer::Renderer::onQueueEOS(const sp<AMessage> &msg) {
         postDrainAudioQueue_l();
     } else {
         if (mVideoQueue.empty() && mSyncQueues) {
+            Mutex::Autolock autoLock(mLock);
             syncQueuesDone_l();
         }
         mVideoQueue.push_back(entry);
-        postDrainVideoQueue_l();
+        postDrainVideoQueue();
     }
 }
 
@@ -1230,20 +1229,18 @@ void NuPlayer::Renderer::onPause() {
         return;
     }
     int64_t currentPositionUs;
-    int64_t pausePositionMediaTimeUs;
     if (getCurrentPositionFromAnchor(
             &currentPositionUs, ALooper::GetNowUs()) == OK) {
-        pausePositionMediaTimeUs = currentPositionUs;
+        mPausePositionMediaTimeUs = currentPositionUs;
     } else {
         // Set paused position to -1 (unavailabe) if we don't have anchor time
         // This could happen if client does a seekTo() immediately followed by
         // pause(). Renderer will be flushed with anchor time cleared. We don't
         // want to leave stale value in mPausePositionMediaTimeUs.
-        pausePositionMediaTimeUs = -1;
+        mPausePositionMediaTimeUs = -1;
     }
     {
         Mutex::Autolock autoLock(mLock);
-        mPausePositionMediaTimeUs = pausePositionMediaTimeUs;
         ++mAudioQueueGeneration;
         ++mVideoQueueGeneration;
         prepareForMediaRenderingStart();
@@ -1287,7 +1284,7 @@ void NuPlayer::Renderer::onResume() {
     }
 
     if (!mVideoQueue.empty()) {
-        postDrainVideoQueue_l();
+        postDrainVideoQueue();
     }
 }
 

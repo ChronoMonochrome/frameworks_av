@@ -212,7 +212,7 @@ private:
     int64_t getRealTimeUs(int64_t mediaTimeUs, int64_t nowUs);
 
     void onDrainVideoQueue();
-    void postDrainVideoQueue_l();
+    void postDrainVideoQueue();
 
     void prepareForMediaRenderingStart();
     void notifyIfMediaRenderingStarted();
