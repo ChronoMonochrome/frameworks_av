@@ -771,7 +771,6 @@ void NuPlayer::Renderer::postDrainVideoQueue() {
 
         if (mAnchorTimeMediaUs < 0) {
             setAnchorTime(mediaTimeUs, nowUs);
-            mAnchorMaxMediaUs = mediaTimeUs;
             realTimeUs = nowUs;
         } else {
             realTimeUs = getRealTimeUs(mediaTimeUs, nowUs);
