@@ -225,7 +225,7 @@ status_t OMX::allocateNode(
 
     *node = 0;
 
-    OMXNodeInstance *instance = new OMXNodeInstance(this, observer, name);
+    OMXNodeInstance *instance = new OMXNodeInstance(this, observer);
 
     OMX_COMPONENTTYPE *handle;
     OMX_ERRORTYPE err = mMaster->makeComponentInstance(
