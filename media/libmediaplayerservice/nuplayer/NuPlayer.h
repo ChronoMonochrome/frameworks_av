@@ -71,6 +71,8 @@ struct NuPlayer : public AHandler {
 
     sp<MetaData> getFileMeta();
 
+    static const size_t kAggregateBufferSizeBytes;
+
 protected:
     virtual ~NuPlayer();
 
@@ -82,7 +84,6 @@ public:
 
 private:
     struct Decoder;
-    struct DecoderBase;
     struct DecoderPassThrough;
     struct CCDecoder;
     struct GenericSource;
@@ -127,9 +128,10 @@ private:
     uint32_t mSourceFlags;
     sp<NativeWindowWrapper> mNativeWindow;
     sp<MediaPlayerBase::AudioSink> mAudioSink;
-    sp<DecoderBase> mVideoDecoder;
+    sp<Decoder> mVideoDecoder;
+    bool mVideoIsAVC;
     bool mOffloadAudio;
-    sp<DecoderBase> mAudioDecoder;
+    sp<Decoder> mAudioDecoder;
     sp<CCDecoder> mCCDecoder;
     sp<Renderer> mRenderer;
     sp<ALooper> mRendererLooper;
@@ -163,17 +165,29 @@ private:
         FLUSH_CMD_SHUTDOWN,
     };
 
+    // Once the current flush is complete this indicates whether the
+    // notion of time has changed.
+    bool mTimeDiscontinuityPending;
+
     // Status of flush responses from the decoder and renderer.
     bool mFlushComplete[2][2];
 
+    // Used by feedDecoderInputData to aggregate small buffers into
+    // one large buffer.
+    sp<ABuffer> mPendingAudioAccessUnit;
+    status_t    mPendingAudioErr;
+    sp<ABuffer> mAggregateBuffer;
+
     FlushStatus mFlushingAudio;
     FlushStatus mFlushingVideo;
+
+    int64_t mNumFramesTotal, mNumFramesDropped;
 
     int32_t mVideoScalingMode;
 
     bool mStarted;
 
-    inline const sp<DecoderBase> &getDecoder(bool audio) {
+    inline const sp<Decoder> &getDecoder(bool audio) {
         return audio ? mAudioDecoder : mVideoDecoder;
     }
 
@@ -187,11 +201,14 @@ private:
     void openAudioSink(const sp<AMessage> &format, bool offloadOnly);
     void closeAudioSink();
 
-    status_t instantiateDecoder(bool audio, sp<DecoderBase> *decoder);
+    status_t instantiateDecoder(bool audio, sp<Decoder> *decoder);
 
     void updateVideoSize(
             const sp<AMessage> &inputFormat,
             const sp<AMessage> &outputFormat = NULL);
+
+    status_t feedDecoderInputData(bool audio, const sp<AMessage> &msg);
+    void renderBuffer(bool audio, const sp<AMessage> &msg);
 
     void notifyListener(int msg, int ext1, int ext2, const Parcel *in = NULL);
 
@@ -203,7 +220,9 @@ private:
 
     bool audioDecoderStillNeeded();
 
-    void flushDecoder(bool audio, bool needShutdown);
+    void flushDecoder(
+            bool audio, bool needShutdown, const sp<AMessage> &newFormat = NULL);
+    void updateDecoderFormatWithoutFlush(bool audio, const sp<AMessage> &format);
 
     void postScanSources();
 
@@ -217,7 +236,6 @@ private:
     void performReset();
     void performScanSources();
     void performSetSurface(const sp<NativeWindowWrapper> &wrapper);
-    void performResumeDecoders();
 
     void onSourceNotify(const sp<AMessage> &msg);
     void onClosedCaptionNotify(const sp<AMessage> &msg);
