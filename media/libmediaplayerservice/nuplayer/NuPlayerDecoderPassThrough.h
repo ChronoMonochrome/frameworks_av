@@ -52,11 +52,13 @@ private:
         kWhatBufferConsumed     = 'bufC',
     };
 
+    sp<AMessage> mNotify;
     sp<Source> mSource;
     sp<Renderer> mRenderer;
     int64_t mSkipRenderingUntilMediaTimeUs;
     bool mPaused;
 
+    int32_t mBufferGeneration;
     bool    mReachedEOS;
 
     // Used by feedDecoderInputData to aggregate small buffers into

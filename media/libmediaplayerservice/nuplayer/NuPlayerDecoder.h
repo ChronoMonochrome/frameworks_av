@@ -53,6 +53,7 @@ private:
         kWhatRenderBuffer        = 'rndr',
     };
 
+    sp<AMessage> mNotify;
     sp<NativeWindowWrapper> mNativeWindow;
 
     sp<Source> mSource;
@@ -82,10 +83,12 @@ private:
     bool mIsSecure;
     bool mFormatChangePending;
 
+    int32_t mBufferGeneration;
     bool mPaused;
     bool mResumePending;
     AString mComponentName;
 
+    void handleError(int32_t err);
     bool handleAnInputBuffer();
     bool handleAnOutputBuffer();
 

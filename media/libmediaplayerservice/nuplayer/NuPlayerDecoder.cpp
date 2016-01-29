@@ -44,7 +44,7 @@ NuPlayer::Decoder::Decoder(
         const sp<Renderer> &renderer,
         const sp<NativeWindowWrapper> &nativeWindow,
         const sp<CCDecoder> &ccDecoder)
-    : DecoderBase(notify),
+    : mNotify(notify),
       mNativeWindow(nativeWindow),
       mSource(source),
       mRenderer(renderer),
@@ -56,6 +56,7 @@ NuPlayer::Decoder::Decoder(
       mIsVideoAVC(false),
       mIsSecure(false),
       mFormatChangePending(false),
+      mBufferGeneration(0),
       mPaused(true),
       mResumePending(false),
       mComponentName("decoder") {
@@ -335,6 +336,20 @@ void NuPlayer::Decoder::doRequestBuffers() {
     }
 }
 
+void NuPlayer::Decoder::handleError(int32_t err)
+{
+    // We cannot immediately release the codec due to buffers still outstanding
+    // in the renderer.  We signal to the player the error so it can shutdown/release the
+    // decoder after flushing and increment the generation to discard unnecessary messages.
+
+    ++mBufferGeneration;
+
+    sp<AMessage> notify = mNotify->dup();
+    notify->setInt32("what", kWhatError);
+    notify->setInt32("err", err);
+    notify->post();
+}
+
 bool NuPlayer::Decoder::handleAnInputBuffer() {
     if (mFormatChangePending) {
         return false;
@@ -447,14 +462,8 @@ bool NuPlayer::Decoder::handleAnOutputBuffer() {
                 flags = AUDIO_OUTPUT_FLAG_NONE;
             }
 
-            res = mRenderer->openAudioSink(
-                    format, false /* offloadOnly */, hasVideo, flags, NULL /* isOffloaded */);
-            if (res != OK) {
-                ALOGE("Failed to open AudioSink on format change for %s (err=%d)",
-                        mComponentName.c_str(), res);
-                handleError(res);
-                return false;
-            }
+            mRenderer->openAudioSink(
+                    format, false /* offloadOnly */, hasVideo, flags);
         }
         return true;
     } else if (res == INFO_DISCONTINUITY) {

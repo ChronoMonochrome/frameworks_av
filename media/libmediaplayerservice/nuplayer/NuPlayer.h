@@ -196,7 +196,7 @@ private:
         mFlushComplete[1][1] = false;
     }
 
-    void tryOpenAudioSinkForOffload(const sp<AMessage> &format, bool hasVideo);
+    void openAudioSink(const sp<AMessage> &format, bool offloadOnly);
     void closeAudioSink();
 
     status_t instantiateDecoder(bool audio, sp<DecoderBase> *decoder);

@@ -250,12 +250,11 @@ void NuPlayer::Renderer::setPauseStartedTimeRealUs(int64_t realUs) {
     mPauseStartedTimeRealUs = realUs;
 }
 
-status_t NuPlayer::Renderer::openAudioSink(
+bool NuPlayer::Renderer::openAudioSink(
         const sp<AMessage> &format,
         bool offloadOnly,
         bool hasVideo,
-        uint32_t flags,
-        bool *isOffloaded) {
+        uint32_t flags) {
     sp<AMessage> msg = new AMessage(kWhatOpenAudioSink, id());
     msg->setMessage("format", format);
     msg->setInt32("offload-only", offloadOnly);
@@ -265,15 +264,9 @@ status_t NuPlayer::Renderer::openAudioSink(
     sp<AMessage> response;
     msg->postAndAwaitResponse(&response);
 
-    int32_t err;
-    if (!response->findInt32("err", &err)) {
-        err = INVALID_OPERATION;
-    } else if (err == OK && isOffloaded != NULL) {
-        int32_t offload;
-        CHECK(response->findInt32("offload", &offload));
-        *isOffloaded = (offload != 0);
-    }
-    return err;
+    int32_t offload;
+    CHECK(response->findInt32("offload", &offload));
+    return (offload != 0);
 }
 
 void NuPlayer::Renderer::closeAudioSink() {
@@ -299,11 +292,10 @@ void NuPlayer::Renderer::onMessageReceived(const sp<AMessage> &msg) {
             uint32_t flags;
             CHECK(msg->findInt32("flags", (int32_t *)&flags));
 
-            status_t err = onOpenAudioSink(format, offloadOnly, hasVideo, flags);
+            bool offload = onOpenAudioSink(format, offloadOnly, hasVideo, flags);
 
             sp<AMessage> response = new AMessage;
-            response->setInt32("err", err);
-            response->setInt32("offload", offloadingAudio());
+            response->setInt32("offload", offload);
 
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
@@ -659,9 +651,8 @@ bool NuPlayer::Renderer::onDrainAudioQueue() {
 
         ssize_t written = mAudioSink->write(entry->mBuffer->data() + entry->mOffset, copy);
         if (written < 0) {
-            // An error in AudioSink write. Perhaps the AudioSink was not properly opened.
-            ALOGE("AudioSink write error(%zd) when writing %zu bytes", written, copy);
-            break;
+            // An error in AudioSink write is fatal here.
+            LOG_ALWAYS_FATAL("AudioSink write error(%zd) when writing %zu bytes", written, copy);
         }
 
         entry->mOffset += written;
@@ -1330,7 +1321,7 @@ void NuPlayer::Renderer::cancelAudioOffloadPauseTimeout() {
     }
 }
 
-status_t NuPlayer::Renderer::onOpenAudioSink(
+bool NuPlayer::Renderer::onOpenAudioSink(
         const sp<AMessage> &format,
         bool offloadOnly,
         bool hasVideo,
@@ -1392,7 +1383,7 @@ status_t NuPlayer::Renderer::onOpenAudioSink(
             if (memcmp(&mCurrentOffloadInfo, &offloadInfo, sizeof(offloadInfo)) == 0) {
                 ALOGV("openAudioSink: no change in offload mode");
                 // no change from previous configuration, everything ok.
-                return OK;
+                return offloadingAudio();
             }
             ALOGV("openAudioSink: try to open AudioSink in offload mode");
             uint32_t offloadFlags = flags;
@@ -1438,7 +1429,7 @@ status_t NuPlayer::Renderer::onOpenAudioSink(
         audioSinkChanged = true;
         mAudioSink->close();
         mCurrentOffloadInfo = AUDIO_INFO_INITIALIZER;
-        status_t err = mAudioSink->open(
+        CHECK_EQ(mAudioSink->open(
                     sampleRate,
                     numChannels,
                     (audio_channel_mask_t)channelMask,
@@ -1446,11 +1437,8 @@ status_t NuPlayer::Renderer::onOpenAudioSink(
                     8 /* bufferCount */,
                     NULL,
                     NULL,
-                    (audio_output_flags_t)pcmFlags);
-        if (err != OK) {
-            ALOGW("openAudioSink: non offloaded open failed status: %d", err);
-            return err;
-        }
+                    (audio_output_flags_t)pcmFlags),
+                 (status_t)OK);
         mAudioSink->start();
     }
     if (audioSinkChanged) {
@@ -1459,7 +1447,8 @@ status_t NuPlayer::Renderer::onOpenAudioSink(
     if (offloadingAudio()) {
         mAudioOffloadTornDown = false;
     }
-    return OK;
+
+    return offloadingAudio();
 }
 
 void NuPlayer::Renderer::onCloseAudioSink() {
