@@ -4595,8 +4595,7 @@ status_t QueryCodec(
 
             OMX_U32 flexibleEquivalent;
             if (ACodec::isFlexibleColorFormat(
-                        omx, node, portFormat.eColorFormat, false /* usingNativeWindow */,
-                        &flexibleEquivalent)) {
+                        omx, node, portFormat.eColorFormat, &flexibleEquivalent)) {
                 bool marked = false;
                 for (size_t i = 0; i < caps->mColorFormats.size(); i++) {
                     if (caps->mColorFormats.itemAt(i) == flexibleEquivalent) {
