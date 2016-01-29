@@ -306,6 +306,10 @@ void NuPlayer::pause() {
     (new AMessage(kWhatPause, id()))->post();
 }
 
+void NuPlayer::resume() {
+    (new AMessage(kWhatResume, id()))->post();
+}
+
 void NuPlayer::resetAsync() {
     if (mSource != NULL) {
         // During a reset, the data source might be unresponsive already, we need to
@@ -575,11 +579,69 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
         case kWhatStart:
         {
             ALOGV("kWhatStart");
-            if (mStarted) {
-                onResume();
-            } else {
-                onStart();
+
+            mVideoIsAVC = false;
+            mOffloadAudio = false;
+            mAudioEOS = false;
+            mVideoEOS = false;
+            mSkipRenderingAudioUntilMediaTimeUs = -1;
+            mSkipRenderingVideoUntilMediaTimeUs = -1;
+            mNumFramesTotal = 0;
+            mNumFramesDropped = 0;
+            mStarted = true;
+
+            /* instantiate decoders now for secure playback */
+            if (mSourceFlags & Source::FLAG_SECURE) {
+                if (mNativeWindow != NULL) {
+                    instantiateDecoder(false, &mVideoDecoder);
+                }
+
+                if (mAudioSink != NULL) {
+                    instantiateDecoder(true, &mAudioDecoder);
+                }
             }
+
+            mSource->start();
+
+            uint32_t flags = 0;
+
+            if (mSource->isRealTime()) {
+                flags |= Renderer::FLAG_REAL_TIME;
+            }
+
+            sp<MetaData> audioMeta = mSource->getFormatMeta(true /* audio */);
+            audio_stream_type_t streamType = AUDIO_STREAM_MUSIC;
+            if (mAudioSink != NULL) {
+                streamType = mAudioSink->getAudioStreamType();
+            }
+
+            sp<AMessage> videoFormat = mSource->getFormat(false /* audio */);
+
+            mOffloadAudio =
+                canOffloadStream(audioMeta, (videoFormat != NULL),
+                                 true /* is_streaming */, streamType);
+            if (mOffloadAudio) {
+                flags |= Renderer::FLAG_OFFLOAD_AUDIO;
+            }
+
+            sp<AMessage> notify = new AMessage(kWhatRendererNotify, id());
+            ++mRendererGeneration;
+            notify->setInt32("generation", mRendererGeneration);
+            mRenderer = new Renderer(mAudioSink, notify, flags);
+
+            mRendererLooper = new ALooper;
+            mRendererLooper->setName("NuPlayerRenderer");
+            mRendererLooper->start(false, false, ANDROID_PRIORITY_AUDIO);
+            mRendererLooper->registerHandler(mRenderer);
+
+            sp<MetaData> meta = getFileMeta();
+            int32_t rate;
+            if (meta != NULL
+                    && meta->findInt32(kKeyFrameRate, &rate) && rate > 0) {
+                mRenderer->setVideoFrameRate(rate);
+            }
+
+            postScanSources();
             break;
         }
 
@@ -926,6 +988,26 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             break;
         }
 
+        case kWhatResume:
+        {
+            if (mSource != NULL) {
+                mSource->resume();
+            } else {
+                ALOGW("resume called when source is gone or not set");
+            }
+            // |mAudioDecoder| may have been released due to the pause timeout, so re-create it if
+            // needed.
+            if (audioDecoderStillNeeded() && mAudioDecoder == NULL) {
+                instantiateDecoder(true /* audio */, &mAudioDecoder);
+            }
+            if (mRenderer != NULL) {
+                mRenderer->resume();
+            } else {
+                ALOGW("resume called when renderer is gone or not set");
+            }
+            break;
+        }
+
         case kWhatSourceNotify:
         {
             onSourceNotify(msg);
@@ -942,89 +1024,6 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             TRESPASS();
             break;
     }
-}
-
-void NuPlayer::onResume() {
-    if (mSource != NULL) {
-        mSource->resume();
-    } else {
-        ALOGW("resume called when source is gone or not set");
-    }
-    // |mAudioDecoder| may have been released due to the pause timeout, so re-create it if
-    // needed.
-    if (audioDecoderStillNeeded() && mAudioDecoder == NULL) {
-        instantiateDecoder(true /* audio */, &mAudioDecoder);
-    }
-    if (mRenderer != NULL) {
-        mRenderer->resume();
-    } else {
-        ALOGW("resume called when renderer is gone or not set");
-    }
-}
-
-void NuPlayer::onStart() {
-    mVideoIsAVC = false;
-    mOffloadAudio = false;
-    mAudioEOS = false;
-    mVideoEOS = false;
-    mSkipRenderingAudioUntilMediaTimeUs = -1;
-    mSkipRenderingVideoUntilMediaTimeUs = -1;
-    mNumFramesTotal = 0;
-    mNumFramesDropped = 0;
-    mStarted = true;
-
-    /* instantiate decoders now for secure playback */
-    if (mSourceFlags & Source::FLAG_SECURE) {
-        if (mNativeWindow != NULL) {
-            instantiateDecoder(false, &mVideoDecoder);
-        }
-
-        if (mAudioSink != NULL) {
-            instantiateDecoder(true, &mAudioDecoder);
-        }
-    }
-
-    mSource->start();
-
-    uint32_t flags = 0;
-
-    if (mSource->isRealTime()) {
-        flags |= Renderer::FLAG_REAL_TIME;
-    }
-
-    sp<MetaData> audioMeta = mSource->getFormatMeta(true /* audio */);
-    audio_stream_type_t streamType = AUDIO_STREAM_MUSIC;
-    if (mAudioSink != NULL) {
-        streamType = mAudioSink->getAudioStreamType();
-    }
-
-    sp<AMessage> videoFormat = mSource->getFormat(false /* audio */);
-
-    mOffloadAudio =
-        canOffloadStream(audioMeta, (videoFormat != NULL),
-                         true /* is_streaming */, streamType);
-    if (mOffloadAudio) {
-        flags |= Renderer::FLAG_OFFLOAD_AUDIO;
-    }
-
-    sp<AMessage> notify = new AMessage(kWhatRendererNotify, id());
-    ++mRendererGeneration;
-    notify->setInt32("generation", mRendererGeneration);
-    mRenderer = new Renderer(mAudioSink, notify, flags);
-
-    mRendererLooper = new ALooper;
-    mRendererLooper->setName("NuPlayerRenderer");
-    mRendererLooper->start(false, false, ANDROID_PRIORITY_AUDIO);
-    mRendererLooper->registerHandler(mRenderer);
-
-    sp<MetaData> meta = getFileMeta();
-    int32_t rate;
-    if (meta != NULL
-            && meta->findInt32(kKeyFrameRate, &rate) && rate > 0) {
-        mRenderer->setVideoFrameRate(rate);
-    }
-
-    postScanSources();
 }
 
 bool NuPlayer::audioDecoderStillNeeded() {

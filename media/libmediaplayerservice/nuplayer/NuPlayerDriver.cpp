@@ -239,24 +239,16 @@ status_t NuPlayerDriver::start() {
             // fall through
         }
 
-        case STATE_PAUSED:
-        case STATE_STOPPED_AND_PREPARED:
-        {
-            if (mAtEOS && mStartupSeekTimeUs < 0) {
-                mStartupSeekTimeUs = 0;
-                mPositionUs = -1;
-            }
-
-            // fall through
-        }
-
         case STATE_PREPARED:
         {
             mAtEOS = false;
             mPlayer->start();
 
             if (mStartupSeekTimeUs >= 0) {
-                mPlayer->seekToAsync(mStartupSeekTimeUs);
+                if (mStartupSeekTimeUs > 0) {
+                    mPlayer->seekToAsync(mStartupSeekTimeUs);
+                }
+
                 mStartupSeekTimeUs = -1;
             }
             break;
@@ -268,6 +260,20 @@ status_t NuPlayerDriver::start() {
                 mPlayer->seekToAsync(0);
                 mAtEOS = false;
                 mPositionUs = -1;
+            }
+            break;
+        }
+
+        case STATE_PAUSED:
+        case STATE_STOPPED_AND_PREPARED:
+        {
+            if (mAtEOS) {
+                mPlayer->seekToAsync(0);
+                mAtEOS = false;
+                mPlayer->resume();
+                mPositionUs = -1;
+            } else {
+                mPlayer->resume();
             }
             break;
         }
@@ -349,7 +355,6 @@ status_t NuPlayerDriver::seekTo(int msec) {
 
     switch (mState) {
         case STATE_PREPARED:
-        case STATE_STOPPED_AND_PREPARED:
         {
             mStartupSeekTimeUs = seekTimeUs;
             // pretend that the seek completed. It will actually happen when starting playback.
