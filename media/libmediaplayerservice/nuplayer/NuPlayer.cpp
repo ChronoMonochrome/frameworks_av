@@ -164,9 +164,7 @@ NuPlayer::NuPlayer()
       mFlushingAudio(NONE),
       mFlushingVideo(NONE),
       mVideoScalingMode(NATIVE_WINDOW_SCALING_MODE_SCALE_TO_WINDOW),
-      mStarted(false),
-      mPaused(false),
-      mPausedByClient(false) {
+      mStarted(false) {
     clearFlushComplete();
 }
 
@@ -584,7 +582,6 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             } else {
                 onStart();
             }
-            mPausedByClient = false;
             break;
         }
 
@@ -938,8 +935,16 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
 
         case kWhatPause:
         {
-            onPause();
-            mPausedByClient = true;
+            if (mSource != NULL) {
+                mSource->pause();
+            } else {
+                ALOGW("pause called when source is gone or not set");
+            }
+            if (mRenderer != NULL) {
+                mRenderer->pause();
+            } else {
+                ALOGW("pause called when renderer is gone or not set");
+            }
             break;
         }
 
@@ -962,10 +967,6 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
 }
 
 void NuPlayer::onResume() {
-    if (!mPaused) {
-        return;
-    }
-    mPaused = false;
     if (mSource != NULL) {
         mSource->resume();
     } else {
@@ -1048,23 +1049,6 @@ void NuPlayer::onStart() {
     }
 
     postScanSources();
-}
-
-void NuPlayer::onPause() {
-    if (mPaused) {
-        return;
-    }
-    mPaused = true;
-    if (mSource != NULL) {
-        mSource->pause();
-    } else {
-        ALOGW("pause called when source is gone or not set");
-    }
-    if (mRenderer != NULL) {
-        mRenderer->pause();
-    } else {
-        ALOGW("pause called when renderer is gone or not set");
-    }
 }
 
 bool NuPlayer::audioDecoderStillNeeded() {
@@ -1695,46 +1679,15 @@ void NuPlayer::onSourceNotify(const sp<AMessage> &msg) {
             break;
         }
 
-        case Source::kWhatPauseOnBufferingStart:
-        {
-            // ignore if not playing
-            if (mStarted && !mPausedByClient) {
-                ALOGI("buffer low, pausing...");
-
-                onPause();
-            }
-            // fall-thru
-        }
-
         case Source::kWhatBufferingStart:
         {
             notifyListener(MEDIA_INFO, MEDIA_INFO_BUFFERING_START, 0);
             break;
         }
 
-        case Source::kWhatResumeOnBufferingEnd:
-        {
-            // ignore if not playing
-            if (mStarted && !mPausedByClient) {
-                ALOGI("buffer ready, resuming...");
-
-                onResume();
-            }
-            // fall-thru
-        }
-
         case Source::kWhatBufferingEnd:
         {
             notifyListener(MEDIA_INFO, MEDIA_INFO_BUFFERING_END, 0);
-            break;
-        }
-
-        case Source::kWhatCacheStats:
-        {
-            int32_t kbps;
-            CHECK(msg->findInt32("bandwidth", &kbps));
-
-            notifyListener(MEDIA_INFO, MEDIA_INFO_NETWORK_BANDWIDTH, kbps);
             break;
         }
 
