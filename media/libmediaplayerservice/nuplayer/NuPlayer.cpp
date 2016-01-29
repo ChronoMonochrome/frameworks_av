@@ -80,21 +80,6 @@ private:
     DISALLOW_EVIL_CONSTRUCTORS(SeekAction);
 };
 
-struct NuPlayer::ResumeDecoderAction : public Action {
-    ResumeDecoderAction(bool needNotify)
-        : mNeedNotify(needNotify) {
-    }
-
-    virtual void execute(NuPlayer *player) {
-        player->performResumeDecoders(mNeedNotify);
-    }
-
-private:
-    bool mNeedNotify;
-
-    DISALLOW_EVIL_CONSTRUCTORS(ResumeDecoderAction);
-};
-
 struct NuPlayer::SetSurfaceAction : public Action {
     SetSurfaceAction(const sp<NativeWindowWrapper> &wrapper)
         : mWrapper(wrapper) {
@@ -178,7 +163,6 @@ NuPlayer::NuPlayer()
       mTimedTextGeneration(0),
       mFlushingAudio(NONE),
       mFlushingVideo(NONE),
-      mResumePending(false),
       mVideoScalingMode(NATIVE_WINDOW_SCALING_MODE_SCALE_TO_WINDOW),
       mStarted(false),
       mPaused(false),
@@ -571,11 +555,11 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                         new SimpleAction(&NuPlayer::performScanSources));
             }
 
-            // After a flush without shutdown, decoder is paused.
-            // Don't resume it until source seek is done, otherwise it could
+            // After a flush wihtout shutdown, decoder is paused.
+            // Don't resume it until source is seeked, otherwise it could
             // start pulling stale data too soon.
             mDeferredActions.push_back(
-                    new ResumeDecoderAction(false /* needNotify */));
+                    new SimpleAction(&NuPlayer::performResumeDecoders));
 
             processDeferredActions();
             break;
@@ -766,8 +750,6 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                 }
 
                 finishFlushIfPossible();
-            } else if (what == DecoderBase::kWhatResumeCompleted) {
-                finishResume();
             } else if (what == DecoderBase::kWhatError) {
                 status_t err;
                 if (!msg->findInt32("err", &err) || err == OK) {
@@ -944,11 +926,11 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             mDeferredActions.push_back(
                     new SeekAction(seekTimeUs, needNotify));
 
-            // After a flush without shutdown, decoder is paused.
-            // Don't resume it until source seek is done, otherwise it could
+            // After a flush wihtout shutdown, decoder is paused.
+            // Don't resume it until source is seeked, otherwise it could
             // start pulling stale data too soon.
             mDeferredActions.push_back(
-                    new ResumeDecoderAction(needNotify));
+                    new SimpleAction(&NuPlayer::performResumeDecoders));
 
             processDeferredActions();
             break;
@@ -1553,6 +1535,15 @@ void NuPlayer::performSeek(int64_t seekTimeUs, bool needNotify) {
     mSource->seekTo(seekTimeUs);
     ++mTimedTextGeneration;
 
+    if (mDriver != NULL) {
+        sp<NuPlayerDriver> driver = mDriver.promote();
+        if (driver != NULL) {
+            if (needNotify) {
+                driver->notifySeekComplete();
+            }
+        }
+    }
+
     // everything's flushed, continue playback.
 }
 
@@ -1638,39 +1629,13 @@ void NuPlayer::performSetSurface(const sp<NativeWindowWrapper> &wrapper) {
     }
 }
 
-void NuPlayer::performResumeDecoders(bool needNotify) {
-    if (needNotify) {
-        mResumePending = true;
-        if (mVideoDecoder == NULL) {
-            // if audio-only, we can notify seek complete now,
-            // as the resume operation will be relatively fast.
-            finishResume();
-        }
-    }
-
+void NuPlayer::performResumeDecoders() {
     if (mVideoDecoder != NULL) {
-        // When there is continuous seek, MediaPlayer will cache the seek
-        // position, and send down new seek request when previous seek is
-        // complete. Let's wait for at least one video output frame before
-        // notifying seek complete, so that the video thumbnail gets updated
-        // when seekbar is dragged.
-        mVideoDecoder->signalResume(needNotify);
+        mVideoDecoder->signalResume();
     }
 
     if (mAudioDecoder != NULL) {
-        mAudioDecoder->signalResume(false /* needNotify */);
-    }
-}
-
-void NuPlayer::finishResume() {
-    if (mResumePending) {
-        mResumePending = false;
-        if (mDriver != NULL) {
-            sp<NuPlayerDriver> driver = mDriver.promote();
-            if (driver != NULL) {
-                driver->notifySeekComplete();
-            }
-        }
+        mAudioDecoder->signalResume();
     }
 }
 
