@@ -118,7 +118,6 @@ private:
     int64_t mDurationUs;
     bool mAudioIsVorbis;
     bool mIsWidevine;
-    bool mIsSecure;
     bool mUIDValid;
     uid_t mUID;
     sp<IMediaHTTPService> mHTTPService;
