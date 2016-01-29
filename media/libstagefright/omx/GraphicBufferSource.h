@@ -49,8 +49,7 @@ namespace android {
 class GraphicBufferSource : public BufferQueue::ConsumerListener {
 public:
     GraphicBufferSource(OMXNodeInstance* nodeInstance,
-            uint32_t bufferWidth, uint32_t bufferHeight, uint32_t bufferCount,
-            bool useGraphicBufferInMeta = false);
+            uint32_t bufferWidth, uint32_t bufferHeight, uint32_t bufferCount);
     virtual ~GraphicBufferSource();
 
     // We can't throw an exception if the constructor fails, so we just set
@@ -271,8 +270,6 @@ private:
     int64_t mTimePerFrameUs;
     int64_t mPrevCaptureUs;
     int64_t mPrevFrameUs;
-
-    bool mUseGraphicBufferInMeta;
 
     void onMessageReceived(const sp<AMessage> &msg);
 

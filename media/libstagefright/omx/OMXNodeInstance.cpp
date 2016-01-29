@@ -393,39 +393,20 @@ status_t OMXNodeInstance::storeMetaDataInBuffers(
         OMX_U32 portIndex,
         OMX_BOOL enable) {
     Mutex::Autolock autolock(mLock);
-    return storeMetaDataInBuffers_l(
-            portIndex, enable,
-            OMX_FALSE /* useGraphicBuffer */, NULL /* usingGraphicBufferInMetadata */);
+    return storeMetaDataInBuffers_l(portIndex, enable);
 }
 
 status_t OMXNodeInstance::storeMetaDataInBuffers_l(
         OMX_U32 portIndex,
-        OMX_BOOL enable,
-        OMX_BOOL useGraphicBuffer,
-        OMX_BOOL *usingGraphicBufferInMetadata) {
+        OMX_BOOL enable) {
     OMX_INDEXTYPE index;
     OMX_STRING name = const_cast<OMX_STRING>(
             "OMX.google.android.index.storeMetaDataInBuffers");
 
-    OMX_STRING graphicBufferName = const_cast<OMX_STRING>(
-            "OMX.google.android.index.storeGraphicBufferInMetaData");
-    if (usingGraphicBufferInMetadata == NULL) {
-        usingGraphicBufferInMetadata = &useGraphicBuffer;
-    }
-
-    OMX_ERRORTYPE err =
-        (useGraphicBuffer && portIndex == kPortIndexInput)
-                ? OMX_GetExtensionIndex(mHandle, graphicBufferName, &index)
-                : OMX_ErrorBadParameter;
-    if (err == OMX_ErrorNone) {
-        *usingGraphicBufferInMetadata = OMX_TRUE;
-    } else {
-        *usingGraphicBufferInMetadata = OMX_FALSE;
-        err = OMX_GetExtensionIndex(mHandle, name, &index);
-    }
-
+    OMX_ERRORTYPE err = OMX_GetExtensionIndex(mHandle, name, &index);
     if (err != OMX_ErrorNone) {
         ALOGE("OMX_GetExtensionIndex %s failed", name);
+
         return StatusFromOMXError(err);
     }
 
@@ -440,7 +421,6 @@ status_t OMXNodeInstance::storeMetaDataInBuffers_l(
     params.bStoreMetaData = enable;
     if ((err = OMX_SetParameter(mHandle, index, &params)) != OMX_ErrorNone) {
         ALOGE("OMX_SetParameter() failed for StoreMetaDataInBuffers: 0x%08x", err);
-        *usingGraphicBufferInMetadata = OMX_FALSE;
         return UNKNOWN_ERROR;
     }
     return err;
@@ -710,10 +690,7 @@ status_t OMXNodeInstance::createInputSurface(
     }
 
     // Input buffers will hold meta-data (gralloc references).
-    OMX_BOOL usingGraphicBuffer = OMX_FALSE;
-    err = storeMetaDataInBuffers_l(
-            portIndex, OMX_TRUE,
-            OMX_TRUE /* useGraphicBuffer */, &usingGraphicBuffer);
+    err = storeMetaDataInBuffers_l(portIndex, OMX_TRUE);
     if (err != OK) {
         return err;
     }
@@ -739,7 +716,7 @@ status_t OMXNodeInstance::createInputSurface(
 
     GraphicBufferSource* bufferSource = new GraphicBufferSource(
             this, def.format.video.nFrameWidth, def.format.video.nFrameHeight,
-            def.nBufferCountActual, usingGraphicBuffer);
+            def.nBufferCountActual);
     if ((err = bufferSource->initCheck()) != OK) {
         delete bufferSource;
         return err;
