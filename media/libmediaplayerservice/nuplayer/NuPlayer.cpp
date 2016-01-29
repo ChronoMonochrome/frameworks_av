@@ -525,7 +525,7 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             sp<RefBase> obj;
             CHECK(msg->findObject("native-window", &obj));
 
-            if (mSource == NULL || mSource->getFormat(false /* audio */) == NULL) {
+            if (mSource->getFormat(false /* audio */) == NULL) {
                 performSetSurface(static_cast<NativeWindowWrapper *>(obj.get()));
                 break;
             }
