@@ -17,9 +17,6 @@
 //#define LOG_NDEBUG 0
 #define LOG_TAG "MediaCodecSource"
 #define DEBUG_DRIFT_TIME 0
-
-#include <inttypes.h>
-
 #include <gui/IGraphicBufferProducer.h>
 #include <gui/Surface.h>
 #include <media/ICrypto.h>
@@ -694,7 +691,7 @@ status_t MediaCodecSource::doMoreWork() {
                     }
                     mbuf->meta_data()->setInt64(kKeyDecodingTime, decodingTimeUs);
 
-                    ALOGV("[video] time %" PRId64 " us (%.2f secs), dts/pts diff %" PRId64,
+                    ALOGV("[video] time %lld us (%.2f secs), dts/pts diff %lld",
                             timeUs, timeUs / 1E6, decodingTimeUs - timeUs);
                 } else {
                     int64_t driftTimeUs = 0;
@@ -704,7 +701,7 @@ status_t MediaCodecSource::doMoreWork() {
                     mDriftTimeQueue.erase(mDriftTimeQueue.begin());
                     mbuf->meta_data()->setInt64(kKeyDriftTime, driftTimeUs);
 #endif // DEBUG_DRIFT_TIME
-                    ALOGV("[audio] time %" PRId64 " us (%.2f secs), drift %" PRId64,
+                    ALOGV("[audio] time %lld us (%.2f secs), drift %lld",
                             timeUs, timeUs / 1E6, driftTimeUs);
                 }
                 mbuf->meta_data()->setInt64(kKeyTime, timeUs);

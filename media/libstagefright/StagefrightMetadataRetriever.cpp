@@ -16,9 +16,7 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "StagefrightMetadataRetriever"
-
 #include <inttypes.h>
-
 #include <utils/Log.h>
 
 #include "include/StagefrightMetadataRetriever.h"
@@ -90,7 +88,7 @@ status_t StagefrightMetadataRetriever::setDataSource(
         int fd, int64_t offset, int64_t length) {
     fd = dup(fd);
 
-    ALOGV("setDataSource(%d, %" PRId64 ", %" PRId64 ")", fd, offset, length);
+    ALOGV("setDataSource(%d, %lld, %lld)", fd, offset, length);
 
     mParsedMetaData = false;
     mMetaData.clear();
@@ -245,7 +243,7 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
             const char *mime;
             CHECK(trackMeta->findCString(kKeyMIMEType, &mime));
 
-            ALOGV("thumbNailTime = %" PRId64 " us, timeUs = %" PRId64 " us, mime = %s",
+            ALOGV("thumbNailTime = %lld us, timeUs = %lld us, mime = %s",
                  thumbNailTime, timeUs, mime);
         }
     }
@@ -328,7 +326,7 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
 VideoFrame *StagefrightMetadataRetriever::getFrameAtTime(
         int64_t timeUs, int option) {
 
-    ALOGV("getFrameAtTime: %" PRId64 " us option: %d", timeUs, option);
+    ALOGV("getFrameAtTime: %lld us option: %d", timeUs, option);
 
     if (mExtractor.get() == NULL) {
         ALOGV("no extractor.");

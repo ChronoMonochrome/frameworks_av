@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-#include <fcntl.h>
-#include <inttypes.h>
-#include <sys/prctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
 //#define LOG_NDEBUG 0
 #define LOG_TAG "AACWriter"
 #include <utils/Log.h>
@@ -33,6 +27,10 @@
 #include <media/stagefright/MediaSource.h>
 #include <media/stagefright/MetaData.h>
 #include <media/mediarecorder.h>
+#include <sys/prctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 namespace android {
 
@@ -351,7 +349,7 @@ status_t AACWriter::threadFunc() {
             mResumed = false;
         }
         timestampUs -= previousPausedDurationUs;
-        ALOGV("time stamp: %" PRId64 ", previous paused duration: %" PRId64,
+        ALOGV("time stamp: %lld, previous paused duration: %lld",
             timestampUs, previousPausedDurationUs);
         if (timestampUs > maxTimestampUs) {
             maxTimestampUs = timestampUs;

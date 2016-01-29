@@ -1714,7 +1714,7 @@ void MediaCodec::extractCSD(const sp<AMessage> &format) {
         ++i;
     }
 
-    ALOGV("Found %zu pieces of codec specific data.", mCSD.size());
+    ALOGV("Found %u pieces of codec specific data.", mCSD.size());
 }
 
 status_t MediaCodec::queueCSDInputBuffer(size_t bufferIndex) {

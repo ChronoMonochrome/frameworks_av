@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
-
 //#define LOG_NDEBUG 0
 #define LOG_TAG "AudioPlayer"
 #include <utils/Log.h>
@@ -575,12 +573,12 @@ size_t AudioPlayer::fillBuffer(void *data, size_t size) {
                             int64_t timeToCompletionUs =
                                 (1000000ll * numFramesPendingPlayout) / mSampleRate;
 
-                            ALOGV("total number of frames played: %" PRId64 " (%lld us)",
+                            ALOGV("total number of frames played: %lld (%lld us)",
                                     (mNumFramesPlayed + numAdditionalFrames),
                                     1000000ll * (mNumFramesPlayed + numAdditionalFrames)
                                         / mSampleRate);
 
-                            ALOGV("%d frames left to play, %" PRId64 " us (%.2f secs)",
+                            ALOGV("%d frames left to play, %lld us (%.2f secs)",
                                  numFramesPendingPlayout,
                                  timeToCompletionUs, timeToCompletionUs / 1E6);
 
@@ -637,7 +635,7 @@ size_t AudioPlayer::fillBuffer(void *data, size_t size) {
                 mPositionTimeRealUs =
                     ((mNumFramesPlayed + size_done / mFrameSize) * 1000000)
                         / mSampleRate;
-                ALOGV("buffer->size() = %zu, "
+                ALOGV("buffer->size() = %d, "
                      "mPositionTimeMediaUs=%.2f mPositionTimeRealUs=%.2f",
                      mInputBuffer->range_length(),
                      mPositionTimeMediaUs / 1E6, mPositionTimeRealUs / 1E6);
@@ -755,7 +753,7 @@ int64_t AudioPlayer::getOutputPlayPositionUs_l()
 
     // HAL position is relative to the first buffer we sent at mStartPosUs
     const int64_t renderedDuration = mStartPosUs + playedUs;
-    ALOGV("getOutputPlayPositionUs_l %" PRId64, renderedDuration);
+    ALOGV("getOutputPlayPositionUs_l %lld", renderedDuration);
     return renderedDuration;
 }
 
@@ -772,7 +770,7 @@ int64_t AudioPlayer::getMediaTimeUs() {
             return durationUs;
         }
         mPositionTimeRealUs = getOutputPlayPositionUs_l();
-        ALOGV("getMediaTimeUs getOutputPlayPositionUs_l() mPositionTimeRealUs %" PRId64,
+        ALOGV("getMediaTimeUs getOutputPlayPositionUs_l() mPositionTimeRealUs %lld",
               mPositionTimeRealUs);
         return mPositionTimeRealUs;
     }
@@ -810,7 +808,7 @@ bool AudioPlayer::getMediaTimeMapping(
 status_t AudioPlayer::seekTo(int64_t time_us) {
     Mutex::Autolock autoLock(mLock);
 
-    ALOGV("seekTo( %" PRId64 " )", time_us);
+    ALOGV("seekTo( %lld )", time_us);
 
     mSeeking = true;
     mPositionTimeRealUs = mPositionTimeMediaUs = -1;

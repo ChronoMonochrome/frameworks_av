@@ -115,7 +115,7 @@ GraphicBufferSource::~GraphicBufferSource() {
 
 void GraphicBufferSource::omxExecuting() {
     Mutex::Autolock autoLock(mMutex);
-    ALOGV("--> executing; avail=%zu, codec vec size=%zd",
+    ALOGV("--> executing; avail=%d, codec vec size=%zd",
             mNumFramesAvailable, mCodecBuffers.size());
     CHECK(!mExecuting);
     mExecuting = true;
@@ -137,7 +137,7 @@ void GraphicBufferSource::omxExecuting() {
         }
     }
 
-    ALOGV("done loading initial frames, avail=%zu", mNumFramesAvailable);
+    ALOGV("done loading initial frames, avail=%d", mNumFramesAvailable);
 
     // If EOS has already been signaled, and there are no more frames to
     // submit, try to send EOS now as well.
@@ -189,7 +189,7 @@ void GraphicBufferSource::omxLoaded(){
         mLooper.clear();
     }
 
-    ALOGV("--> loaded; avail=%zu eos=%d eosSent=%d",
+    ALOGV("--> loaded; avail=%d eos=%d eosSent=%d",
             mNumFramesAvailable, mEndOfStream, mEndOfStreamSent);
 
     // Codec is no longer executing.  Discard all codec-related state.
@@ -304,7 +304,7 @@ void GraphicBufferSource::codecBufferEmptied(OMX_BUFFERHEADERTYPE* header) {
     if (mNumFramesAvailable) {
         // Fill this codec buffer.
         CHECK(!mEndOfStreamSent);
-        ALOGV("buffer freed, %zu frames avail (eos=%d)",
+        ALOGV("buffer freed, %d frames avail (eos=%d)",
                 mNumFramesAvailable, mEndOfStream);
         fillCodecBuffer_l();
     } else if (mEndOfStream) {
@@ -333,8 +333,7 @@ void GraphicBufferSource::codecBufferFilled(OMX_BUFFERHEADERTYPE* header) {
         ssize_t index = mOriginalTimeUs.indexOfKey(header->nTimeStamp);
         if (index >= 0) {
             ALOGV("OUT timestamp: %lld -> %lld",
-                    static_cast<long long>(header->nTimeStamp),
-                    static_cast<long long>(mOriginalTimeUs[index]));
+                    header->nTimeStamp, mOriginalTimeUs[index]);
             header->nTimeStamp = mOriginalTimeUs[index];
             mOriginalTimeUs.removeItemsAt(index);
         } else {
@@ -345,7 +344,7 @@ void GraphicBufferSource::codecBufferFilled(OMX_BUFFERHEADERTYPE* header) {
         }
         if (mOriginalTimeUs.size() > BufferQueue::NUM_BUFFER_SLOTS) {
             // something terribly wrong must have happened, giving up...
-            ALOGE("mOriginalTimeUs has too many entries (%zu)",
+            ALOGE("mOriginalTimeUs has too many entries (%d)",
                     mOriginalTimeUs.size());
             mMaxTimestampGapUs = -1ll;
         }
@@ -402,12 +401,12 @@ bool GraphicBufferSource::fillCodecBuffer_l() {
     int cbi = findAvailableCodecBuffer_l();
     if (cbi < 0) {
         // No buffers available, bail.
-        ALOGV("fillCodecBuffer_l: no codec buffers, avail now %zu",
+        ALOGV("fillCodecBuffer_l: no codec buffers, avail now %d",
                 mNumFramesAvailable);
         return false;
     }
 
-    ALOGV("fillCodecBuffer_l: acquiring buffer, avail=%zu",
+    ALOGV("fillCodecBuffer_l: acquiring buffer, avail=%d",
             mNumFramesAvailable);
     BufferQueue::BufferItem item;
     status_t err = mConsumer->acquireBuffer(&item, 0);
@@ -554,7 +553,7 @@ void GraphicBufferSource::setLatestSubmittedBuffer_l(
 
 status_t GraphicBufferSource::signalEndOfInputStream() {
     Mutex::Autolock autoLock(mMutex);
-    ALOGV("signalEndOfInputStream: exec=%d avail=%zu eos=%d",
+    ALOGV("signalEndOfInputStream: exec=%d avail=%d eos=%d",
             mExecuting, mNumFramesAvailable, mEndOfStream);
 
     if (mEndOfStream) {
@@ -594,7 +593,7 @@ int64_t GraphicBufferSource::getTimestamp(const BufferQueue::BufferItem &item) {
                     / mTimePerCaptureUs;
             if (nFrames <= 0) {
                 // skip this frame as it's too close to previous capture
-                ALOGV("skipping frame, timeUs %lld", static_cast<long long>(timeUs));
+                ALOGV("skipping frame, timeUs %lld", timeUs);
                 return -1;
             }
             mPrevCaptureUs = mPrevCaptureUs + nFrames * mTimePerCaptureUs;
@@ -602,9 +601,7 @@ int64_t GraphicBufferSource::getTimestamp(const BufferQueue::BufferItem &item) {
         }
 
         ALOGV("timeUs %lld, captureUs %lld, frameUs %lld",
-                static_cast<long long>(timeUs),
-                static_cast<long long>(mPrevCaptureUs),
-                static_cast<long long>(mPrevFrameUs));
+                timeUs, mPrevCaptureUs, mPrevFrameUs);
 
         return mPrevFrameUs;
     } else if (mMaxTimestampGapUs > 0ll) {
@@ -631,9 +628,7 @@ int64_t GraphicBufferSource::getTimestamp(const BufferQueue::BufferItem &item) {
         mPrevOriginalTimeUs = originalTimeUs;
         mPrevModifiedTimeUs = timeUs;
         mOriginalTimeUs.add(timeUs, originalTimeUs);
-        ALOGV("IN  timestamp: %lld -> %lld",
-            static_cast<long long>(originalTimeUs),
-            static_cast<long long>(timeUs));
+        ALOGV("IN  timestamp: %lld -> %lld", originalTimeUs, timeUs);
     }
 
     return timeUs;
@@ -753,7 +748,7 @@ int GraphicBufferSource::findMatchingCodecBuffer_l(
 void GraphicBufferSource::onFrameAvailable(const BufferItem& /*item*/) {
     Mutex::Autolock autoLock(mMutex);
 
-    ALOGV("onFrameAvailable exec=%d avail=%zu",
+    ALOGV("onFrameAvailable exec=%d avail=%d",
             mExecuting, mNumFramesAvailable);
 
     if (mEndOfStream || mSuspended) {
