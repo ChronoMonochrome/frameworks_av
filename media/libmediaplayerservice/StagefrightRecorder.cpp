@@ -19,7 +19,6 @@
 #include <inttypes.h>
 #include <utils/Log.h>
 
-#include "WebmWriter.h"
 #include "StagefrightRecorder.h"
 
 #include <binder/IPCThreadState.h>
@@ -765,8 +764,7 @@ status_t StagefrightRecorder::prepareInternal() {
         case OUTPUT_FORMAT_DEFAULT:
         case OUTPUT_FORMAT_THREE_GPP:
         case OUTPUT_FORMAT_MPEG_4:
-        case OUTPUT_FORMAT_WEBM:
-            status = setupMPEG4orWEBMRecording();
+            status = setupMPEG4Recording();
             break;
 
         case OUTPUT_FORMAT_AMR_NB:
@@ -828,14 +826,9 @@ status_t StagefrightRecorder::start() {
         case OUTPUT_FORMAT_DEFAULT:
         case OUTPUT_FORMAT_THREE_GPP:
         case OUTPUT_FORMAT_MPEG_4:
-        case OUTPUT_FORMAT_WEBM:
         {
-            bool isMPEG4 = true;
-            if (mOutputFormat == OUTPUT_FORMAT_WEBM) {
-                isMPEG4 = false;
-            }
             sp<MetaData> meta = new MetaData;
-            setupMPEG4orWEBMMetaData(&meta);
+            setupMPEG4MetaData(&meta);
             status = mWriter->start(meta.get());
             break;
         }
@@ -1545,17 +1538,12 @@ status_t StagefrightRecorder::setupAudioEncoder(const sp<MediaWriter>& writer) {
     return OK;
 }
 
-status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
+status_t StagefrightRecorder::setupMPEG4Recording() {
     mWriter.clear();
     mTotalBitRate = 0;
 
     status_t err = OK;
-    sp<MediaWriter> writer;
-    if (mOutputFormat == OUTPUT_FORMAT_MPEG_4) {
-        writer = new MPEG4Writer(mOutputFd);
-    } else {
-        writer = new WebmWriter(mOutputFd);
-    }
+    sp<MediaWriter> writer = new MPEG4Writer(mOutputFd);
 
     if (mVideoSource < VIDEO_SOURCE_LIST_END) {
 
@@ -1575,25 +1563,22 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
         mTotalBitRate += mVideoBitRate;
     }
 
-    if (mOutputFormat == OUTPUT_FORMAT_MPEG_4) {
-        // Audio source is added at the end if it exists.
-        // This help make sure that the "recoding" sound is suppressed for
-        // camcorder applications in the recorded files.
-        // TODO Audio source is currently unsupported for webm output; vorbis encoder needed.
-        if (!mCaptureTimeLapse && (mAudioSource != AUDIO_SOURCE_CNT)) {
-            err = setupAudioEncoder(writer);
-            if (err != OK) return err;
-            mTotalBitRate += mAudioBitRate;
-        }
+    // Audio source is added at the end if it exists.
+    // This help make sure that the "recoding" sound is suppressed for
+    // camcorder applications in the recorded files.
+    if (!mCaptureTimeLapse && (mAudioSource != AUDIO_SOURCE_CNT)) {
+        err = setupAudioEncoder(writer);
+        if (err != OK) return err;
+        mTotalBitRate += mAudioBitRate;
+    }
 
-        if (mInterleaveDurationUs > 0) {
-            reinterpret_cast<MPEG4Writer *>(writer.get())->
-                setInterleaveDuration(mInterleaveDurationUs);
-        }
-        if (mLongitudex10000 > -3600000 && mLatitudex10000 > -3600000) {
-            reinterpret_cast<MPEG4Writer *>(writer.get())->
-                setGeoData(mLatitudex10000, mLongitudex10000);
-        }
+    if (mInterleaveDurationUs > 0) {
+        reinterpret_cast<MPEG4Writer *>(writer.get())->
+            setInterleaveDuration(mInterleaveDurationUs);
+    }
+    if (mLongitudex10000 > -3600000 && mLatitudex10000 > -3600000) {
+        reinterpret_cast<MPEG4Writer *>(writer.get())->
+            setGeoData(mLatitudex10000, mLongitudex10000);
     }
     if (mMaxFileDurationUs != 0) {
         writer->setMaxFileDuration(mMaxFileDurationUs);
@@ -1601,6 +1586,7 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
     if (mMaxFileSizeBytes != 0) {
         writer->setMaxFileSize(mMaxFileSizeBytes);
     }
+
     if (mVideoSource == VIDEO_SOURCE_DEFAULT
             || mVideoSource == VIDEO_SOURCE_CAMERA) {
         mStartTimeOffsetMs = mEncoderProfiles->getStartTimeOffsetMs(mCameraId);
@@ -1609,7 +1595,8 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
         mStartTimeOffsetMs = 200;
     }
     if (mStartTimeOffsetMs > 0) {
-        writer->setStartTimeOffsetMs(mStartTimeOffsetMs);
+        reinterpret_cast<MPEG4Writer *>(writer.get())->
+            setStartTimeOffsetMs(mStartTimeOffsetMs);
     }
 
     writer->setListener(mListener);
@@ -1617,22 +1604,20 @@ status_t StagefrightRecorder::setupMPEG4orWEBMRecording() {
     return OK;
 }
 
-void StagefrightRecorder::setupMPEG4orWEBMMetaData(sp<MetaData> *meta) {
+void StagefrightRecorder::setupMPEG4MetaData(sp<MetaData> *meta) {
     int64_t startTimeUs = systemTime() / 1000;
     (*meta)->setInt64(kKeyTime, startTimeUs);
     (*meta)->setInt32(kKeyFileType, mOutputFormat);
     (*meta)->setInt32(kKeyBitRate, mTotalBitRate);
+    (*meta)->setInt32(kKey64BitFileOffset, mUse64BitFileOffset);
     if (mMovieTimeScale > 0) {
         (*meta)->setInt32(kKeyTimeScale, mMovieTimeScale);
     }
-    if (mOutputFormat == OUTPUT_FORMAT_MPEG_4) {
-        (*meta)->setInt32(kKey64BitFileOffset, mUse64BitFileOffset);
-        if (mTrackEveryTimeDurationUs > 0) {
-            (*meta)->setInt64(kKeyTrackTimeStatus, mTrackEveryTimeDurationUs);
-        }
-        if (mRotationDegrees != 0) {
-            (*meta)->setInt32(kKeyRotation, mRotationDegrees);
-        }
+    if (mTrackEveryTimeDurationUs > 0) {
+        (*meta)->setInt64(kKeyTrackTimeStatus, mTrackEveryTimeDurationUs);
+    }
+    if (mRotationDegrees != 0) {
+        (*meta)->setInt32(kKeyRotation, mRotationDegrees);
     }
 }
 
