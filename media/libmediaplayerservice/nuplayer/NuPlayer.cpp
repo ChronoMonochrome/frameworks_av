@@ -95,21 +95,21 @@ private:
     DISALLOW_EVIL_CONSTRUCTORS(SetSurfaceAction);
 };
 
-struct NuPlayer::FlushDecoderAction : public Action {
-    FlushDecoderAction(FlushCommand audio, FlushCommand video)
+struct NuPlayer::ShutdownDecoderAction : public Action {
+    ShutdownDecoderAction(bool audio, bool video)
         : mAudio(audio),
           mVideo(video) {
     }
 
     virtual void execute(NuPlayer *player) {
-        player->performDecoderFlush(mAudio, mVideo);
+        player->performDecoderShutdown(mAudio, mVideo);
     }
 
 private:
-    FlushCommand mAudio;
-    FlushCommand mVideo;
+    bool mAudio;
+    bool mVideo;
 
-    DISALLOW_EVIL_CONSTRUCTORS(FlushDecoderAction);
+    DISALLOW_EVIL_CONSTRUCTORS(ShutdownDecoderAction);
 };
 
 struct NuPlayer::PostMessageAction : public Action {
@@ -547,24 +547,19 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
         {
             ALOGV("kWhatSetVideoNativeWindow");
 
+            mDeferredActions.push_back(
+                    new ShutdownDecoderAction(
+                        false /* audio */, true /* video */));
+
             sp<RefBase> obj;
             CHECK(msg->findObject("native-window", &obj));
-
-            if (mSource->getFormat(false /* audio */) == NULL) {
-                performSetSurface(static_cast<NativeWindowWrapper *>(obj.get()));
-                break;
-            }
-
-            mDeferredActions.push_back(
-                    new FlushDecoderAction(FLUSH_CMD_FLUSH /* audio */,
-                                           FLUSH_CMD_SHUTDOWN /* video */));
 
             mDeferredActions.push_back(
                     new SetSurfaceAction(
                         static_cast<NativeWindowWrapper *>(obj.get())));
 
             if (obj != NULL) {
-                if (mStarted) {
+                if (mStarted && mSource->getFormat(false /* audio */) != NULL) {
                     // Issue a seek to refresh the video screen only if started otherwise
                     // the extractor may not yet be started and will assert.
                     // If the video decoder is not set (perhaps audio only in this case)
@@ -864,9 +859,7 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                 switch (*flushing) {
                     case NONE:
                         mDeferredActions.push_back(
-                                new FlushDecoderAction(
-                                    audio ? FLUSH_CMD_SHUTDOWN : FLUSH_CMD_NONE,
-                                    audio ? FLUSH_CMD_NONE : FLUSH_CMD_SHUTDOWN));
+                                new ShutdownDecoderAction(audio, !audio /* video */));
                         processDeferredActions();
                         break;
                     case FLUSHING_DECODER:
@@ -999,9 +992,8 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
             ALOGV("kWhatReset");
 
             mDeferredActions.push_back(
-                    new FlushDecoderAction(
-                        FLUSH_CMD_SHUTDOWN /* audio */,
-                        FLUSH_CMD_SHUTDOWN /* video */));
+                    new ShutdownDecoderAction(
+                        true /* audio */, true /* video */));
 
             mDeferredActions.push_back(
                     new SimpleAction(&NuPlayer::performReset));
@@ -1021,8 +1013,7 @@ void NuPlayer::onMessageReceived(const sp<AMessage> &msg) {
                     seekTimeUs, needNotify);
 
             mDeferredActions.push_back(
-                    new FlushDecoderAction(FLUSH_CMD_FLUSH /* audio */,
-                                           FLUSH_CMD_FLUSH /* video */));
+                    new SimpleAction(&NuPlayer::performDecoderFlush));
 
             mDeferredActions.push_back(
                     new SeekAction(seekTimeUs, needNotify));
@@ -1735,9 +1726,7 @@ void NuPlayer::queueDecoderShutdown(
     ALOGI("queueDecoderShutdown audio=%d, video=%d", audio, video);
 
     mDeferredActions.push_back(
-            new FlushDecoderAction(
-                audio ? FLUSH_CMD_SHUTDOWN : FLUSH_CMD_NONE,
-                video ? FLUSH_CMD_SHUTDOWN : FLUSH_CMD_NONE));
+            new ShutdownDecoderAction(audio, video));
 
     mDeferredActions.push_back(
             new SimpleAction(&NuPlayer::performScanSources));
@@ -1869,22 +1858,40 @@ void NuPlayer::performSeek(int64_t seekTimeUs, bool needNotify) {
     // everything's flushed, continue playback.
 }
 
-void NuPlayer::performDecoderFlush(FlushCommand audio, FlushCommand video) {
-    ALOGV("performDecoderFlush audio=%d, video=%d", audio, video);
+void NuPlayer::performDecoderFlush() {
+    ALOGV("performDecoderFlush");
 
-    if ((audio == FLUSH_CMD_NONE || mAudioDecoder == NULL)
-            && (video == FLUSH_CMD_NONE || mVideoDecoder == NULL)) {
+    if (mAudioDecoder == NULL && mVideoDecoder == NULL) {
         return;
     }
 
     mTimeDiscontinuityPending = true;
 
-    if (audio != FLUSH_CMD_NONE && mAudioDecoder != NULL) {
-        flushDecoder(true /* audio */, (audio == FLUSH_CMD_SHUTDOWN));
+    if (mAudioDecoder != NULL) {
+        flushDecoder(true /* audio */, false /* needShutdown */);
     }
 
-    if (video != FLUSH_CMD_NONE && mVideoDecoder != NULL) {
-        flushDecoder(false /* audio */, (video == FLUSH_CMD_SHUTDOWN));
+    if (mVideoDecoder != NULL) {
+        flushDecoder(false /* audio */, false /* needShutdown */);
+    }
+}
+
+void NuPlayer::performDecoderShutdown(bool audio, bool video) {
+    ALOGV("performDecoderShutdown audio=%d, video=%d", audio, video);
+
+    if ((!audio || mAudioDecoder == NULL)
+            && (!video || mVideoDecoder == NULL)) {
+        return;
+    }
+
+    mTimeDiscontinuityPending = true;
+
+    if (audio && mAudioDecoder != NULL) {
+        flushDecoder(true /* audio */, true /* needShutdown */);
+    }
+
+    if (video && mVideoDecoder != NULL) {
+        flushDecoder(false /* audio */, true /* needShutdown */);
     }
 }
 

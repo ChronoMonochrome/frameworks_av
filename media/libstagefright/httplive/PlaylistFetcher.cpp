@@ -1199,7 +1199,7 @@ status_t PlaylistFetcher::extractAndQueueAccessUnitsFromTs(const sp<ABuffer> &bu
         extra->setInt64(IStreamListener::kKeyMediaTimeUs, 0);
 
         mTSParser->signalDiscontinuity(
-                ATSParser::DISCONTINUITY_TIME, extra);
+                ATSParser::DISCONTINUITY_SEEK, extra);
 
         mAbsoluteTimeAnchorUs = mNextPTSTimeUs;
         mNextPTSTimeUs = -1ll;

@@ -1316,9 +1316,11 @@ void NuPlayer::GenericSource::readBuffer(
             if ((seeking || formatChange)
                     && (trackType == MEDIA_TRACK_TYPE_AUDIO
                     || trackType == MEDIA_TRACK_TYPE_VIDEO)) {
-                ATSParser::DiscontinuityType type = (formatChange && seeking)
-                        ? ATSParser::DISCONTINUITY_FORMATCHANGE
-                        : ATSParser::DISCONTINUITY_NONE;
+                ATSParser::DiscontinuityType type = formatChange
+                        ? (seeking
+                                ? ATSParser::DISCONTINUITY_FORMATCHANGE
+                                : ATSParser::DISCONTINUITY_NONE)
+                        : ATSParser::DISCONTINUITY_SEEK;
                 track->mPackets->queueDiscontinuity( type, NULL, true /* discard */);
             }
 

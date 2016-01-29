@@ -493,7 +493,7 @@ void NuPlayer::RTSPSource::onMessageReceived(const sp<AMessage> &msg) {
             sp<AnotherPacketSource> source = info->mSource;
             if (source != NULL) {
                 source->queueDiscontinuity(
-                        ATSParser::DISCONTINUITY_TIME,
+                        ATSParser::DISCONTINUITY_SEEK,
                         NULL,
                         true /* discard */);
             }
