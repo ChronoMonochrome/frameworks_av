@@ -638,13 +638,10 @@ bool NuPlayer::Renderer::onDrainAudioQueue() {
 
             mAudioQueue.erase(mAudioQueue.begin());
             entry = NULL;
-            if (mAudioSink->needsTrailingPadding()) {
-                // If we're not in gapless playback (i.e. through setNextPlayer), we
-                // need to stop the track here, because that will play out the last
-                // little bit at the end of the file. Otherwise short files won't play.
-                mAudioSink->stop();
-                mNumFramesWritten = 0;
-            }
+            // Need to stop the track here, because that will play out the last
+            // little bit at the end of the file. Otherwise short files won't play.
+            mAudioSink->stop();
+            mNumFramesWritten = 0;
             return false;
         }
 
