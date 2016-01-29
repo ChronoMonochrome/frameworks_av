@@ -840,7 +840,6 @@ static size_t getFrameSize(
             CHECK(!"Should not be here. Unsupported color format.");
             break;
     }
-    return 0;
 }
 
 status_t OMXCodec::findTargetColorFormat(
