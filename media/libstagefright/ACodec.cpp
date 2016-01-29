@@ -2255,17 +2255,8 @@ status_t ACodec::setupVideoDecoder(
         return err;
     }
 
-    int32_t frameRateInt;
-    float frameRateFloat;
-    if (!msg->findFloat("frame-rate", &frameRateFloat)) {
-        if (!msg->findInt32("frame-rate", &frameRateInt)) {
-            frameRateInt = -1;
-        }
-        frameRateFloat = (float)frameRateInt;
-    }
-
     err = setVideoFormatOnPort(
-            kPortIndexInput, width, height, compressionFormat, frameRateFloat);
+            kPortIndexInput, width, height, compressionFormat);
 
     if (err != OK) {
         return err;
@@ -3042,8 +3033,7 @@ status_t ACodec::setupErrorCorrectionParameters() {
 
 status_t ACodec::setVideoFormatOnPort(
         OMX_U32 portIndex,
-        int32_t width, int32_t height, OMX_VIDEO_CODINGTYPE compressionFormat,
-        float frameRate) {
+        int32_t width, int32_t height, OMX_VIDEO_CODINGTYPE compressionFormat) {
     OMX_PARAM_PORTDEFINITIONTYPE def;
     InitOMXParams(&def);
     def.nPortIndex = portIndex;
@@ -3071,9 +3061,6 @@ status_t ACodec::setVideoFormatOnPort(
     if (portIndex == kPortIndexInput) {
         video_def->eCompressionFormat = compressionFormat;
         video_def->eColorFormat = OMX_COLOR_FormatUnused;
-        if (frameRate >= 0) {
-            video_def->xFramerate = (OMX_U32)(frameRate * 65536.0f);
-        }
     }
 
     err = mOMX->setParameter(
