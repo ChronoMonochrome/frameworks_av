@@ -1029,7 +1029,6 @@ void NuPlayer::Renderer::onFlush(const sp<AMessage> &msg) {
          Mutex::Autolock autoLock(mLock);
          syncQueuesDone_l();
          setPauseStartedTimeRealUs(-1);
-         setAnchorTime(-1, -1);
     }
 
     ALOGV("flushing %s", audio ? "audio" : "video");
