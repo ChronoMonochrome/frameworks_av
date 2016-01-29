@@ -130,7 +130,6 @@ private:
     enum {
         kFlagIsSecure                                 = 1,
         kFlagPushBlankBuffersToNativeWindowOnShutdown = 2,
-        kFlagIsGrallocUsageProtected                  = 4,
     };
 
     struct BufferInfo {
