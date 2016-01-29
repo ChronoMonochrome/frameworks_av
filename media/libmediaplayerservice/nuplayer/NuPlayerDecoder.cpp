@@ -189,8 +189,6 @@ void NuPlayer::Decoder::releaseAndResetMediaBuffers() {
     for (size_t i = 0; i < mInputBufferIsDequeued.size(); i++) {
         mInputBufferIsDequeued.editItemAt(i) = false;
     }
-
-    mPendingInputMessages.clear();
 }
 
 void NuPlayer::Decoder::requestCodecNotification() {
@@ -276,19 +274,7 @@ bool NuPlayer::Decoder::handleAnInputBuffer() {
         ALOGI("[%s] resubmitting CSD", mComponentName.c_str());
         reply->setBuffer("buffer", buffer);
         mCSDsToSubmit.removeAt(0);
-        CHECK(onInputBufferFilled(reply));
-        return true;
-    }
-
-    while (!mPendingInputMessages.empty()) {
-        sp<AMessage> msg = *mPendingInputMessages.begin();
-        if (!onInputBufferFilled(msg)) {
-            break;
-        }
-        mPendingInputMessages.erase(mPendingInputMessages.begin());
-    }
-
-    if (!mInputBufferIsDequeued.editItemAt(bufferIx)) {
+        reply->post();
         return true;
     }
 
@@ -300,7 +286,7 @@ bool NuPlayer::Decoder::handleAnInputBuffer() {
     return true;
 }
 
-bool android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
+void android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
     size_t bufferIx;
     CHECK(msg->findSize("buffer-ix", &bufferIx));
     CHECK_LT(bufferIx, mInputBuffers.size());
@@ -320,12 +306,9 @@ bool android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
                 const sp<ABuffer> &buf = mInputBuffers[ix];
                 if (buf->data() == mediaBuffer->data()) {
                     // all input buffers are dequeued on start, hence the check
-                    if (!mInputBufferIsDequeued[ix]) {
-                        ALOGV("[%s] received MediaBuffer for #%zu instead of #%zu",
-                                mComponentName.c_str(), ix, bufferIx);
-                        mediaBuffer->release();
-                        return false;
-                    }
+                    CHECK(mInputBufferIsDequeued[ix]);
+                    ALOGV("[%s] received MediaBuffer for #%zu instead of #%zu",
+                            mComponentName.c_str(), ix, bufferIx);
 
                     // TRICKY: need buffer for the metadata, so instead, set
                     // codecBuffer to the same (though incorrect) buffer to
@@ -350,7 +333,7 @@ bool android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
 
         if (streamErr == OK) {
             /* buffers are returned to hold on to */
-            return true;
+            return;
         }
 
         // attempt to queue EOS
@@ -415,7 +398,6 @@ bool android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
             }
         }
     }
-    return true;
 }
 
 bool NuPlayer::Decoder::handleAnOutputBuffer() {
@@ -638,10 +620,7 @@ void NuPlayer::Decoder::onMessageReceived(const sp<AMessage> &msg) {
         case kWhatInputBufferFilled:
         {
             if (!isStaleReply(msg)) {
-                if (!mPendingInputMessages.empty()
-                        || !onInputBufferFilled(msg)) {
-                    mPendingInputMessages.push_back(msg);
-                }
+                onInputBufferFilled(msg);
             }
 
             break;
