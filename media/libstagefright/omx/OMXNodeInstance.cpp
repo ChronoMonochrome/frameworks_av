@@ -236,11 +236,6 @@ status_t OMXNodeInstance::freeNode(OMXMaster *master) {
     CLOG_LIFE(freeNode, "handle=%p", mHandle);
     static int32_t kMaxNumIterations = 10;
 
-    // exit if we have already freed the node
-    if (mHandle == NULL) {
-        return OK;
-    }
-
     // Transition the node from its current state all the way down
     // to "Loaded".
     // This ensures that all active buffers are properly freed even
