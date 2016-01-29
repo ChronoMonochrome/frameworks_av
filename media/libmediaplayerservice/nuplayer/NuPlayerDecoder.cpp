@@ -21,9 +21,6 @@
 
 #include "NuPlayerDecoder.h"
 
-#include "NuPlayerRenderer.h"
-#include "NuPlayerSource.h"
-
 #include <media/ICrypto.h>
 #include <media/stagefright/foundation/ABitReader.h>
 #include <media/stagefright/foundation/ABuffer.h>
@@ -38,14 +35,9 @@ namespace android {
 
 NuPlayer::Decoder::Decoder(
         const sp<AMessage> &notify,
-        const sp<Source> &source,
-        const sp<Renderer> &renderer,
         const sp<NativeWindowWrapper> &nativeWindow)
     : mNotify(notify),
       mNativeWindow(nativeWindow),
-      mSource(source),
-      mRenderer(renderer),
-      mSkipRenderingUntilMediaTimeUs(-1ll),
       mBufferGeneration(0),
       mPaused(true),
       mComponentName("decoder") {
@@ -177,9 +169,7 @@ void NuPlayer::Decoder::onConfigure(const sp<AMessage> &format) {
             mInputBuffers.size(),
             mOutputBuffers.size());
 
-    if (mRenderer != NULL) {
-        requestCodecNotification();
-    }
+    requestCodecNotification();
     mPaused = false;
 }
 
@@ -201,7 +191,6 @@ void NuPlayer::Decoder::releaseAndResetMediaBuffers() {
     }
 
     mPendingInputMessages.clear();
-    mSkipRenderingUntilMediaTimeUs = -1;
 }
 
 void NuPlayer::Decoder::requestCodecNotification() {
@@ -225,12 +214,6 @@ void NuPlayer::Decoder::init() {
 void NuPlayer::Decoder::configure(const sp<AMessage> &format) {
     sp<AMessage> msg = new AMessage(kWhatConfigure, id());
     msg->setMessage("format", format);
-    msg->post();
-}
-
-void NuPlayer::Decoder::setRenderer(const sp<Renderer> &renderer) {
-    sp<AMessage> msg = new AMessage(kWhatSetRenderer, id());
-    msg->setObject("renderer", renderer);
     msg->post();
 }
 
@@ -359,6 +342,8 @@ bool android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
         }
     }
 
+
+
     if (buffer == NULL /* includes !hasBuffer */) {
         int32_t streamErr = ERROR_END_OF_STREAM;
         CHECK(msg->findInt32("err", &streamErr) || !hasBuffer);
@@ -390,17 +375,6 @@ bool android::NuPlayer::Decoder::onInputBufferFilled(const sp<AMessage> &msg) {
             handleError(streamErr);
         }
     } else {
-        sp<AMessage> extra;
-        if (buffer->meta()->findMessage("extra", &extra) && extra != NULL) {
-            int64_t resumeAtMediaTimeUs;
-            if (extra->findInt64(
-                        "resume-at-mediaTimeUs", &resumeAtMediaTimeUs)) {
-                ALOGI("[%s] suppressing rendering until %lld us",
-                        mComponentName.c_str(), (long long)resumeAtMediaTimeUs);
-                mSkipRenderingUntilMediaTimeUs = resumeAtMediaTimeUs;
-            }
-        }
-
         int64_t timeUs = 0;
         uint32_t flags = 0;
         CHECK(buffer->meta()->findInt64("timeUs", &timeUs));
@@ -480,27 +454,10 @@ bool NuPlayer::Decoder::handleAnOutputBuffer() {
             return false;
         }
 
-        if (isVideo()) {
-            sp<AMessage> notify = mNotify->dup();
-            notify->setInt32("what", kWhatVideoSizeChanged);
-            notify->setMessage("format", format);
-            notify->post();
-        } else if (mRenderer != NULL) {
-            uint32_t flags;
-            int64_t durationUs;
-            bool hasVideo = (mSource->getFormat(false /* audio */) != NULL);
-            if (!hasVideo &&
-                    mSource->getDuration(&durationUs) == OK &&
-                    durationUs
-                        > AUDIO_SINK_MIN_DEEP_BUFFER_DURATION_US) {
-                flags = AUDIO_OUTPUT_FLAG_DEEP_BUFFER;
-            } else {
-                flags = AUDIO_OUTPUT_FLAG_NONE;
-            }
-
-            mRenderer->openAudioSink(
-                    format, false /* offloadOnly */, hasVideo, flags);
-        }
+        sp<AMessage> notify = mNotify->dup();
+        notify->setInt32("what", kWhatOutputFormatChanged);
+        notify->setMessage("format", format);
+        notify->post();
         return true;
     } else if (res == INFO_DISCONTINUITY) {
         // nothing to do
@@ -528,26 +485,21 @@ bool NuPlayer::Decoder::handleAnOutputBuffer() {
     reply->setSize("buffer-ix", bufferIx);
     reply->setInt32("generation", mBufferGeneration);
 
-    if (mSkipRenderingUntilMediaTimeUs >= 0) {
-        if (timeUs < mSkipRenderingUntilMediaTimeUs) {
-            ALOGV("[%s] dropping buffer at time %lld as requested.",
-                     mComponentName.c_str(), (long long)timeUs);
+    sp<AMessage> notify = mNotify->dup();
+    notify->setInt32("what", kWhatDrainThisBuffer);
+    notify->setBuffer("buffer", buffer);
+    notify->setMessage("reply", reply);
+    notify->post();
 
-            reply->post();
-            return true;
-        }
-
-        mSkipRenderingUntilMediaTimeUs = -1;
+    // FIXME: This should be handled after rendering is complete,
+    // but Renderer needs it now
+    if (flags & MediaCodec::BUFFER_FLAG_EOS) {
+        ALOGV("queueing eos [%s]", mComponentName.c_str());
+        sp<AMessage> notify = mNotify->dup();
+        notify->setInt32("what", kWhatEOS);
+        notify->setInt32("err", ERROR_END_OF_STREAM);
+        notify->post();
     }
-
-    if (mRenderer != NULL) {
-        // send the buffer to renderer.
-        mRenderer->queueBuffer(!isVideo(), buffer, reply);
-        if (flags & MediaCodec::BUFFER_FLAG_EOS) {
-            mRenderer->queueEOS(!isVideo(), ERROR_END_OF_STREAM);
-        }
-    }
-
     return true;
 }
 
@@ -556,17 +508,6 @@ void NuPlayer::Decoder::onRenderBuffer(const sp<AMessage> &msg) {
     int32_t render;
     size_t bufferIx;
     CHECK(msg->findSize("buffer-ix", &bufferIx));
-
-    if (isVideo()) {
-        int64_t timeUs;
-        sp<ABuffer> buffer = mOutputBuffers[bufferIx];
-        buffer->meta()->findInt64("timeUs", &timeUs);
-        sp<AMessage> notify = mNotify->dup();
-        notify->setInt32("what", kWhatRenderBufferTime);
-        notify->setInt64("timeUs", timeUs);
-        notify->post();
-    }
-
     if (msg->findInt32("render", &render) && render) {
         int64_t timestampNs;
         CHECK(msg->findInt64("timestampNs", &timestampNs));
@@ -582,10 +523,6 @@ void NuPlayer::Decoder::onRenderBuffer(const sp<AMessage> &msg) {
 }
 
 void NuPlayer::Decoder::onFlush() {
-    if (mRenderer != NULL) {
-        mRenderer->flush(!isVideo());
-    }
-
     status_t err = OK;
     if (mCodec != NULL) {
         err = mCodec->flush();
@@ -654,18 +591,6 @@ void NuPlayer::Decoder::onMessageReceived(const sp<AMessage> &msg) {
             sp<AMessage> format;
             CHECK(msg->findMessage("format", &format));
             onConfigure(format);
-            break;
-        }
-
-        case kWhatSetRenderer:
-        {
-            bool hadNoRenderer = (mRenderer == NULL);
-            sp<RefBase> obj;
-            CHECK(msg->findObject("renderer", &obj));
-            mRenderer = static_cast<Renderer *>(obj.get());
-            if (hadNoRenderer && mRenderer != NULL) {
-                requestCodecNotification();
-            }
             break;
         }
 
@@ -845,10 +770,6 @@ bool NuPlayer::Decoder::supportsSeamlessFormatChange(const sp<AMessage> &targetF
 
     ALOGV("%s seamless support for %s", seamless ? "yes" : "no", oldMime.c_str());
     return seamless;
-}
-
-bool NuPlayer::Decoder::isVideo() {
-    return mNativeWindow != NULL;
 }
 
 struct CCData {

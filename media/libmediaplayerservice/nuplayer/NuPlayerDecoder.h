@@ -30,14 +30,10 @@ struct MediaBuffer;
 
 struct NuPlayer::Decoder : public AHandler {
     Decoder(const sp<AMessage> &notify,
-            const sp<Source> &source,
-            const sp<Renderer> &renderer = NULL,
             const sp<NativeWindowWrapper> &nativeWindow = NULL);
 
     virtual void configure(const sp<AMessage> &format);
     virtual void init();
-
-    virtual void setRenderer(const sp<Renderer> &renderer);
 
     status_t getInputBuffers(Vector<sp<ABuffer> > *dstBuffers) const;
     virtual void signalFlush(const sp<AMessage> &format = NULL);
@@ -49,8 +45,8 @@ struct NuPlayer::Decoder : public AHandler {
 
     enum {
         kWhatFillThisBuffer      = 'flTB',
-        kWhatRenderBufferTime    = 'rnBT',
-        kWhatVideoSizeChanged    = 'viSC',
+        kWhatDrainThisBuffer     = 'drTB',
+        kWhatOutputFormatChanged = 'fmtC',
         kWhatFlushCompleted      = 'flsC',
         kWhatShutdownCompleted   = 'shDC',
         kWhatEOS                 = 'eos ',
@@ -63,10 +59,10 @@ protected:
 
     virtual void onMessageReceived(const sp<AMessage> &msg);
 
+private:
     enum {
         kWhatCodecNotify        = 'cdcN',
         kWhatConfigure          = 'conf',
-        kWhatSetRenderer        = 'setR',
         kWhatGetInputBuffers    = 'gInB',
         kWhatInputBufferFilled  = 'inpF',
         kWhatRenderBuffer       = 'rndr',
@@ -75,12 +71,8 @@ protected:
         kWhatUpdateFormat       = 'uFmt',
     };
 
-private:
     sp<AMessage> mNotify;
     sp<NativeWindowWrapper> mNativeWindow;
-
-    sp<Source> mSource;
-    sp<Renderer> mRenderer;
 
     sp<AMessage> mInputFormat;
     sp<AMessage> mOutputFormat;
@@ -96,8 +88,6 @@ private:
     Vector<sp<ABuffer> > mCSDsToSubmit;
     Vector<bool> mInputBufferIsDequeued;
     Vector<MediaBuffer *> mMediaBuffers;
-
-    int64_t mSkipRenderingUntilMediaTimeUs;
 
     void handleError(int32_t err);
     bool handleAnInputBuffer();
@@ -120,7 +110,6 @@ private:
 
     bool supportsSeamlessAudioFormatChange(const sp<AMessage> &targetFormat) const;
     void rememberCodecSpecificData(const sp<AMessage> &format);
-    bool isVideo();
 
     DISALLOW_EVIL_CONSTRUCTORS(Decoder);
 };

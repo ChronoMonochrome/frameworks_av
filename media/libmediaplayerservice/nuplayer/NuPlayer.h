@@ -181,6 +181,9 @@ private:
     FlushStatus mFlushingAudio;
     FlushStatus mFlushingVideo;
 
+    int64_t mSkipRenderingAudioUntilMediaTimeUs;
+    int64_t mSkipRenderingVideoUntilMediaTimeUs;
+
     int64_t mNumFramesTotal, mNumFramesDropped;
 
     int32_t mVideoScalingMode;

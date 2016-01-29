@@ -21,9 +21,6 @@
 
 #include "NuPlayerDecoderPassThrough.h"
 
-#include "NuPlayerRenderer.h"
-#include "NuPlayerSource.h"
-
 #include <media/ICrypto.h>
 #include <media/stagefright/foundation/ABuffer.h>
 #include <media/stagefright/foundation/ADebug.h>
@@ -39,21 +36,15 @@ static const size_t kMaxCachedBytes = 200000;
 static const size_t kMaxPendingBuffers = 1 + (kMaxCachedBytes / NuPlayer::kAggregateBufferSizeBytes);
 
 NuPlayer::DecoderPassThrough::DecoderPassThrough(
-        const sp<AMessage> &notify,
-        const sp<Source> &source,
-        const sp<Renderer> &renderer)
-    : Decoder(notify, source),
+        const sp<AMessage> &notify)
+    : Decoder(notify),
       mNotify(notify),
-      mSource(source),
-      mRenderer(renderer),
-      mSkipRenderingUntilMediaTimeUs(-1ll),
       mBufferGeneration(0),
       mReachedEOS(true),
       mPendingBuffersToFill(0),
       mPendingBuffersToDrain(0),
       mCachedBytes(0),
       mComponentName("pass through decoder") {
-    ALOGW_IF(renderer == NULL, "expect a non-NULL renderer");
     mDecoderLooper = new ALooper;
     mDecoderLooper->setName("NuPlayerDecoderPassThrough");
     mDecoderLooper->start(false, false, ANDROID_PRIORITY_AUDIO);
@@ -99,17 +90,10 @@ void NuPlayer::DecoderPassThrough::onConfigure(const sp<AMessage> &format) {
 
     requestMaxBuffers();
 
-    uint32_t flags;
-    int64_t durationUs;
-    if (mSource->getDuration(&durationUs) == OK &&
-            durationUs > AUDIO_SINK_MIN_DEEP_BUFFER_DURATION_US) {
-        flags = AUDIO_OUTPUT_FLAG_DEEP_BUFFER;
-    } else {
-        flags = AUDIO_OUTPUT_FLAG_NONE;
-    }
-
-    mRenderer->openAudioSink(
-            format, true /* offloadOnly */, false /* hasVideo */, flags);
+    sp<AMessage> notify = mNotify->dup();
+    notify->setInt32("what", kWhatOutputFormatChanged);
+    notify->setMessage("format", format);
+    notify->post();
 }
 
 bool NuPlayer::DecoderPassThrough::isStaleReply(const sp<AMessage> &msg) {
@@ -154,52 +138,25 @@ void android::NuPlayer::DecoderPassThrough::onInputBufferFilled(
     msg->findBuffer("buffer", &buffer);
     if (buffer == NULL) {
         mReachedEOS = true;
-        if (mRenderer != NULL) {
-            mRenderer->queueEOS(true /* audio */, ERROR_END_OF_STREAM);
-        }
+
+        sp<AMessage> notify = mNotify->dup();
+        notify->setInt32("what", kWhatEOS);
+        notify->setInt32("err", ERROR_END_OF_STREAM);
+        notify->post();
         return;
     }
 
-    sp<AMessage> extra;
-    if (buffer->meta()->findMessage("extra", &extra) && extra != NULL) {
-        int64_t resumeAtMediaTimeUs;
-        if (extra->findInt64(
-                    "resume-at-mediatimeUs", &resumeAtMediaTimeUs)) {
-            ALOGI("[%s] suppressing rendering until %lld us",
-                    mComponentName.c_str(), (long long)resumeAtMediaTimeUs);
-            mSkipRenderingUntilMediaTimeUs = resumeAtMediaTimeUs;
-        }
-    }
-
-    int32_t bufferSize = buffer->size();
-    mCachedBytes += bufferSize;
-
-    if (mSkipRenderingUntilMediaTimeUs >= 0) {
-        int64_t timeUs = 0;
-        CHECK(buffer->meta()->findInt64("timeUs", &timeUs));
-
-        if (timeUs < mSkipRenderingUntilMediaTimeUs) {
-            ALOGV("[%s] dropping buffer at time %lld as requested.",
-                     mComponentName.c_str(), (long long)timeUs);
-
-            onBufferConsumed(bufferSize);
-            return;
-        }
-
-        mSkipRenderingUntilMediaTimeUs = -1;
-    }
-
-    if (mRenderer == NULL) {
-        onBufferConsumed(bufferSize);
-        return;
-    }
+    mCachedBytes += buffer->size();
 
     sp<AMessage> reply = new AMessage(kWhatBufferConsumed, id());
     reply->setInt32("generation", mBufferGeneration);
-    reply->setInt32("size", bufferSize);
+    reply->setInt32("size", buffer->size());
 
-    mRenderer->queueBuffer(true /* audio */, buffer, reply);
-
+    sp<AMessage> notify = mNotify->dup();
+    notify->setInt32("what", kWhatDrainThisBuffer);
+    notify->setBuffer("buffer", buffer);
+    notify->setMessage("reply", reply);
+    notify->post();
     ++mPendingBuffersToDrain;
     ALOGV("onInputBufferFilled: #ToFill = %zu, #ToDrain = %zu, cachedBytes = %zu",
             mPendingBuffersToFill, mPendingBuffersToDrain, mCachedBytes);
@@ -215,11 +172,6 @@ void NuPlayer::DecoderPassThrough::onBufferConsumed(int32_t size) {
 
 void NuPlayer::DecoderPassThrough::onFlush() {
     ++mBufferGeneration;
-    mSkipRenderingUntilMediaTimeUs = -1;
-
-    if (mRenderer != NULL) {
-        mRenderer->flush(true /* audio */);
-    }
 
     sp<AMessage> notify = mNotify->dup();
     notify->setInt32("what", kWhatFlushCompleted);
@@ -240,7 +192,6 @@ void NuPlayer::DecoderPassThrough::requestMaxBuffers() {
 
 void NuPlayer::DecoderPassThrough::onShutdown() {
     ++mBufferGeneration;
-    mSkipRenderingUntilMediaTimeUs = -1;
 
     sp<AMessage> notify = mNotify->dup();
     notify->setInt32("what", kWhatShutdownCompleted);
