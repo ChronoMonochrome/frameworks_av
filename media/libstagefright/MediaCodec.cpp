@@ -2168,24 +2168,11 @@ void MediaCodec::postActivityNotificationIfPossible() {
         return;
     }
 
-    bool isErrorOrOutputChanged =
-            (mFlags & (kFlagStickyError
+    if ((mFlags & (kFlagStickyError
                     | kFlagOutputBuffersChanged
-                    | kFlagOutputFormatChanged));
-
-    if (isErrorOrOutputChanged
+                    | kFlagOutputFormatChanged))
             || !mAvailPortBuffers[kPortIndexInput].empty()
             || !mAvailPortBuffers[kPortIndexOutput].empty()) {
-        mActivityNotify->setInt32("input-buffers",
-                mAvailPortBuffers[kPortIndexInput].size());
-
-        if (isErrorOrOutputChanged) {
-            // we want consumer to dequeue as many times as it can
-            mActivityNotify->setInt32("output-buffers", INT32_MAX);
-        } else {
-            mActivityNotify->setInt32("output-buffers",
-                    mAvailPortBuffers[kPortIndexOutput].size());
-        }
         mActivityNotify->post();
         mActivityNotify.clear();
     }
