@@ -1359,9 +1359,8 @@ bool NuPlayer::Renderer::onOpenAudioSink(
                 return offloadingAudio();
             }
             ALOGV("openAudioSink: try to open AudioSink in offload mode");
-            uint32_t offloadFlags = flags;
-            offloadFlags |= AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD;
-            offloadFlags &= ~AUDIO_OUTPUT_FLAG_DEEP_BUFFER;
+            flags |= AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD;
+            flags &= ~AUDIO_OUTPUT_FLAG_DEEP_BUFFER;
             audioSinkChanged = true;
             mAudioSink->close();
             err = mAudioSink->open(
@@ -1372,7 +1371,7 @@ bool NuPlayer::Renderer::onOpenAudioSink(
                     8 /* bufferCount */,
                     &NuPlayer::Renderer::AudioSinkCallback,
                     this,
-                    (audio_output_flags_t)offloadFlags,
+                    (audio_output_flags_t)flags,
                     &offloadInfo);
 
             if (err == OK) {
@@ -1396,9 +1395,9 @@ bool NuPlayer::Renderer::onOpenAudioSink(
         }
     }
     if (!offloadOnly && !offloadingAudio()) {
+        flags &= ~AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD;
         ALOGV("openAudioSink: open AudioSink in NON-offload mode");
-        uint32_t pcmFlags = flags;
-        pcmFlags &= ~AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD;
+
         audioSinkChanged = true;
         mAudioSink->close();
         mCurrentOffloadInfo = AUDIO_INFO_INITIALIZER;
@@ -1410,7 +1409,7 @@ bool NuPlayer::Renderer::onOpenAudioSink(
                     8 /* bufferCount */,
                     NULL,
                     NULL,
-                    (audio_output_flags_t)pcmFlags),
+                    (audio_output_flags_t)flags),
                  (status_t)OK);
         mAudioSink->start();
     }
