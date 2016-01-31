@@ -399,6 +399,7 @@ void MediaPlayerFactory::registerBuiltinFactories() {
     registerFactory_l(new SonivoxPlayerFactory(), SONIVOX_PLAYER);
     registerFactory_l(new TestPlayerFactory(), TEST_PLAYER);
 
+#ifdef QCOM_HARDWARE
     const char* FACTORY_LIB           = "libdashplayer.so";
     const char* FACTORY_CREATE_FN     = "CreateDASHFactory";
 
@@ -425,6 +426,7 @@ void MediaPlayerFactory::registerBuiltinFactories() {
         }
       }
     }
+#endif
     sInitComplete = true;
 }
 
