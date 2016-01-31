@@ -278,14 +278,12 @@ void GraphicBufferSource::codecBufferEmptied(OMX_BUFFERHEADERTYPE* header) {
         } else if (type == kMetadataBufferTypeGraphicBuffer) {
             GraphicBuffer *buffer;
             memcpy(&buffer, data + 4, sizeof(buffer));
-#ifndef STE_HARDWARE
             if (buffer != codecBuffer.mGraphicBuffer.get()) {
                 // should never happen
                 ALOGE("codecBufferEmptied: buffer is %p, expected %p",
                         buffer, codecBuffer.mGraphicBuffer.get());
                 CHECK(!"codecBufferEmptied: mismatched buffer");
             }
-#endif
         }
     }
 
