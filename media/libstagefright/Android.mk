@@ -64,11 +64,6 @@ LOCAL_C_INCLUDES:= \
         $(TOP)/external/flac/include \
         $(TOP)/external/tremolo \
         $(TOP)/external/openssl/include \
-ifeq ($(BOARD_USES_STE_FMRADIO),true)
-LOCAL_SRC_FILES += \
-        FMRadioSource.cpp                 \
-        PCMExtractor.cpp
-endif
 
 LOCAL_SHARED_LIBRARIES := \
         libbinder \
