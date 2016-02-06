@@ -249,8 +249,6 @@ RTPSink::RTPSink(
     : mNetSession(netSession),
       mSurfaceTex(surfaceTex),
       mNotify(notify),
-      mUsingTCPTransport(false),
-      mUsingTCPInterleaving(false),
       mRTPPort(0),
       mRTPSessionID(0),
       mRTCPSessionID(0),
@@ -281,9 +279,6 @@ RTPSink::~RTPSink() {
 }
 
 status_t RTPSink::init(bool usingTCPTransport, bool usingTCPInterleaving) {
-    mUsingTCPTransport = usingTCPTransport;
-    mUsingTCPInterleaving = usingTCPInterleaving;
-
     if (usingTCPInterleaving) {
         return OK;
     }
@@ -721,9 +716,7 @@ status_t RTPSink::connect(
             mRTCPSessionID, buf->data(), buf->size());
 #endif
 
-    if (!mUsingTCPTransport) {
-        scheduleSendRR();
-    }
+    scheduleSendRR();
 
     return OK;
 }
@@ -826,11 +819,6 @@ void RTPSink::onSendRR() {
 }
 
 void RTPSink::onPacketLost(const sp<AMessage> &msg) {
-    if (mUsingTCPTransport) {
-        ALOGW("huh? lost a packet even though using reliable transport?");
-        return;
-    }
-
     uint32_t srcId;
     CHECK(msg->findInt32("ssrc", (int32_t *)&srcId));
 
