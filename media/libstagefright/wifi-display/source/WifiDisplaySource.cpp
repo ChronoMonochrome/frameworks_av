@@ -1560,7 +1560,7 @@ status_t WifiDisplaySource::makeHDCP() {
     sp<IMediaPlayerService> service = interface_cast<IMediaPlayerService>(binder);
     CHECK(service != NULL);
 
-    mHDCP = service->makeHDCP(true /* createEncryptionModule */);
+    mHDCP = service->makeHDCP();
 
     if (mHDCP == NULL) {
         return ERROR_UNSUPPORTED;
