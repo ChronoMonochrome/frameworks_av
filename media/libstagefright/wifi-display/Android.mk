@@ -6,7 +6,6 @@ LOCAL_SRC_FILES:= \
         ANetworkSession.cpp             \
         Parameters.cpp                  \
         ParsedMessage.cpp               \
-        sink/DirectRenderer.cpp         \
         sink/LinearRegression.cpp       \
         sink/RTPSink.cpp                \
         sink/TunnelRenderer.cpp         \
@@ -19,7 +18,6 @@ LOCAL_SRC_FILES:= \
         source/TSPacketizer.cpp         \
         source/WifiDisplaySource.cpp    \
         TimeSeries.cpp                  \
-        VideoFormats.cpp                \
 
 LOCAL_C_INCLUDES:= \
         $(TOP)/frameworks/av/media/libstagefright \

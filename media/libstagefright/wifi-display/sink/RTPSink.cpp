@@ -21,14 +21,7 @@
 #include "RTPSink.h"
 
 #include "ANetworkSession.h"
-
-#if USE_TUNNEL_RENDERER
 #include "TunnelRenderer.h"
-#define RENDERER_CLASS TunnelRenderer
-#else
-#include "DirectRenderer.h"
-#define RENDERER_CLASS DirectRenderer
-#endif
 
 #include <media/stagefright/foundation/ABuffer.h>
 #include <media/stagefright/foundation/ADebug.h>
@@ -248,7 +241,6 @@ RTPSink::RTPSink(
         const sp<ISurfaceTexture> &surfaceTex)
     : mNetSession(netSession),
       mSurfaceTex(surfaceTex),
-      mNotify(notify),
       mRTPPort(0),
       mRTPSessionID(0),
       mRTCPSessionID(0),
@@ -478,7 +470,6 @@ status_t RTPSink::parseRTP(const sp<ABuffer> &buffer) {
     uint32_t rtpTime = U32_AT(&data[4]);
     uint16_t seqNo = U16_AT(&data[2]);
 
-#if 0
     int64_t arrivalTimeUs;
     CHECK(buffer->meta()->findInt64("arrivalTimeUs", &arrivalTimeUs));
 
@@ -509,7 +500,6 @@ status_t RTPSink::parseRTP(const sp<ABuffer> &buffer) {
             ALOGI("packet was %.2f ms late", latenessMs);
         }
     }
-#endif
 
     sp<AMessage> meta = buffer->meta();
     meta->setInt32("ssrc", srcId);
@@ -525,12 +515,12 @@ status_t RTPSink::parseRTP(const sp<ABuffer> &buffer) {
             sp<AMessage> notifyLost = new AMessage(kWhatPacketLost, id());
             notifyLost->setInt32("ssrc", srcId);
 
-            mRenderer = new RENDERER_CLASS(notifyLost, mSurfaceTex);
+            mRenderer = new TunnelRenderer(notifyLost, mSurfaceTex);
             looper()->registerHandler(mRenderer);
         }
 
         sp<AMessage> queueBufferMsg =
-            new AMessage(RENDERER_CLASS::kWhatQueueBuffer, mRenderer->id());
+            new AMessage(TunnelRenderer::kWhatQueueBuffer, mRenderer->id());
 
         sp<Source> source = new Source(seqNo, buffer, queueBufferMsg);
         mSources.add(srcId, source);

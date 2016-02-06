@@ -346,17 +346,8 @@ WifiDisplaySource::PlaybackSession::PlaybackSession(
 status_t WifiDisplaySource::PlaybackSession::init(
         const char *clientIP, int32_t clientRtp, int32_t clientRtcp,
         Sender::TransportMode transportMode,
-        bool enableAudio,
-        bool usePCMAudio,
-        bool enableVideo,
-        VideoFormats::ResolutionType videoResolutionType,
-        size_t videoResolutionIndex) {
-    status_t err = setupPacketizer(
-            enableAudio,
-            usePCMAudio,
-            enableVideo,
-            videoResolutionType,
-            videoResolutionIndex);
+        bool usePCMAudio) {
+    status_t err = setupPacketizer(usePCMAudio);
 
     if (err != OK) {
         return err;
@@ -648,27 +639,13 @@ void WifiDisplaySource::PlaybackSession::onMessageReceived(
     }
 }
 
-status_t WifiDisplaySource::PlaybackSession::setupPacketizer(
-        bool enableAudio,
-        bool usePCMAudio,
-        bool enableVideo,
-        VideoFormats::ResolutionType videoResolutionType,
-        size_t videoResolutionIndex) {
-    CHECK(enableAudio || enableVideo);
-
+status_t WifiDisplaySource::PlaybackSession::setupPacketizer(bool usePCMAudio) {
     mPacketizer = new TSPacketizer;
 
-    if (enableVideo) {
-        status_t err = addVideoSource(
-                videoResolutionType, videoResolutionIndex);
+    status_t err = addVideoSource();
 
-        if (err != OK) {
-            return err;
-        }
-    }
-
-    if (!enableAudio) {
-        return OK;
+    if (err != OK) {
+        return err;
     }
 
     return addAudioSource(usePCMAudio);
@@ -758,30 +735,27 @@ status_t WifiDisplaySource::PlaybackSession::addSource(
     return OK;
 }
 
-status_t WifiDisplaySource::PlaybackSession::addVideoSource(
-        VideoFormats::ResolutionType videoResolutionType,
-        size_t videoResolutionIndex) {
-    size_t width, height, framesPerSecond;
-    bool interlaced;
-    CHECK(VideoFormats::GetConfiguration(
-                videoResolutionType,
-                videoResolutionIndex,
-                &width,
-                &height,
-                &framesPerSecond,
-                &interlaced));
-
-    sp<SurfaceMediaSource> source = new SurfaceMediaSource(width, height);
+status_t WifiDisplaySource::PlaybackSession::addVideoSource() {
+    sp<SurfaceMediaSource> source = new SurfaceMediaSource(width(), height());
 
     source->setUseAbsoluteTimestamps();
 
+#if 1
     sp<RepeaterSource> videoSource =
-        new RepeaterSource(source, framesPerSecond);
+        new RepeaterSource(source, 30.0 /* rateHz */);
+#endif
 
+#if 1
     size_t numInputBuffers;
     status_t err = addSource(
             true /* isVideo */, videoSource, true /* isRepeaterSource */,
             false /* usePCMAudio */, &numInputBuffers);
+#else
+    size_t numInputBuffers;
+    status_t err = addSource(
+            true /* isVideo */, source, false /* isRepeaterSource */,
+            false /* usePCMAudio */, &numInputBuffers);
+#endif
 
     if (err != OK) {
         return err;
@@ -814,6 +788,22 @@ status_t WifiDisplaySource::PlaybackSession::addAudioSource(bool usePCMAudio) {
 
 sp<ISurfaceTexture> WifiDisplaySource::PlaybackSession::getSurfaceTexture() {
     return mBufferQueue;
+}
+
+int32_t WifiDisplaySource::PlaybackSession::width() const {
+#if USE_1080P
+    return 1920;
+#else
+    return 1280;
+#endif
+}
+
+int32_t WifiDisplaySource::PlaybackSession::height() const {
+#if USE_1080P
+    return 1080;
+#else
+    return 720;
+#endif
 }
 
 void WifiDisplaySource::PlaybackSession::requestIDRFrame() {

@@ -19,7 +19,6 @@
 #define PLAYBACK_SESSION_H_
 
 #include "Sender.h"
-#include "VideoFormats.h"
 #include "WifiDisplaySource.h"
 
 namespace android {
@@ -44,11 +43,7 @@ struct WifiDisplaySource::PlaybackSession : public AHandler {
     status_t init(
             const char *clientIP, int32_t clientRtp, int32_t clientRtcp,
             Sender::TransportMode transportMode,
-            bool enableAudio,
-            bool usePCMAudio,
-            bool enableVideo,
-            VideoFormats::ResolutionType videoResolutionType,
-            size_t videoResolutionIndex);
+            bool usePCMAudio);
 
     void destroyAsync();
 
@@ -62,6 +57,8 @@ struct WifiDisplaySource::PlaybackSession : public AHandler {
     status_t pause();
 
     sp<ISurfaceTexture> getSurfaceTexture();
+    int32_t width() const;
+    int32_t height() const;
 
     void requestIDRFrame();
 
@@ -112,12 +109,7 @@ private:
 
     bool mAllTracksHavePacketizerIndex;
 
-    status_t setupPacketizer(
-            bool enableAudio,
-            bool usePCMAudio,
-            bool enableVideo,
-            VideoFormats::ResolutionType videoResolutionType,
-            size_t videoResolutionIndex);
+    status_t setupPacketizer(bool usePCMAudio);
 
     status_t addSource(
             bool isVideo,
@@ -126,10 +118,7 @@ private:
             bool usePCMAudio,
             size_t *numInputBuffers);
 
-    status_t addVideoSource(
-            VideoFormats::ResolutionType videoResolutionType,
-            size_t videoResolutionIndex);
-
+    status_t addVideoSource();
     status_t addAudioSource(bool usePCMAudio);
 
     ssize_t appendTSData(
