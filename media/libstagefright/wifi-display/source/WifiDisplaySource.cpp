@@ -597,6 +597,15 @@ status_t WifiDisplaySource::sendM3(int32_t sessionID) {
 status_t WifiDisplaySource::sendM4(int32_t sessionID) {
     CHECK_EQ(sessionID, mClientSessionID);
 
+    AString transportString = "UDP";
+
+    char val[PROPERTY_VALUE_MAX];
+    if (property_get("media.wfd.enable-tcp", val, NULL)
+            && (!strcasecmp("true", val) || !strcmp("1", val))) {
+        ALOGI("Using TCP transport.");
+        transportString = "TCP";
+    }
+
     AString body;
 
     if (mSinkSupportsVideo) {
@@ -621,11 +630,11 @@ status_t WifiDisplaySource::sendM4(int32_t sessionID) {
 
     body.append(
             StringPrintf(
-                "wfd_presentation_URL: rtsp://%s/wfd1.0/streamid=0 none\r\n",
-                mClientInfo.mLocalIP.c_str()));
-
-    body.append(mWfdClientRtpPorts);
-    body.append("\r\n");
+                "wfd_presentation_URL: rtsp://%s/wfd1.0/streamid=0 none\r\n"
+                "wfd_client_rtp_ports: RTP/AVP/%s;unicast %d 0 mode=play\r\n",
+                mClientInfo.mLocalIP.c_str(),
+                transportString.c_str(),
+                mChosenRTPPort));
 
     AString request = "SET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\n";
     AppendCommonResponse(&request, mNextCSeq);
@@ -788,29 +797,18 @@ status_t WifiDisplaySource::onReceiveM3Response(
         return ERROR_MALFORMED;
     }
 
-    unsigned port0 = 0, port1 = 0;
+    unsigned port0, port1;
     if (sscanf(value.c_str(),
                "RTP/AVP/UDP;unicast %u %u mode=play",
                &port0,
-               &port1) == 2
-        || sscanf(value.c_str(),
-               "RTP/AVP/TCP;unicast %u %u mode=play",
-               &port0,
-               &port1) == 2) {
-            if (port0 == 0 || port0 > 65535 || port1 != 0) {
-                ALOGE("Sink chose its wfd_client_rtp_ports poorly (%s)",
-                      value.c_str());
-
-                return ERROR_MALFORMED;
-            }
-    } else if (strcmp(value.c_str(), "RTP/AVP/TCP;interleaved mode=play")) {
-        ALOGE("Unsupported value for wfd_client_rtp_ports (%s)",
+               &port1) != 2
+        || port0 == 0 || port0 > 65535 || port1 != 0) {
+        ALOGE("Sink chose its wfd_client_rtp_ports poorly (%s)",
               value.c_str());
 
-        return ERROR_UNSUPPORTED;
+        return ERROR_MALFORMED;
     }
 
-    mWfdClientRtpPorts = value;
     mChosenRTPPort = port0;
 
     if (!params->findParameter("wfd_video_formats", &value)) {

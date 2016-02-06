@@ -1091,6 +1091,7 @@ void ANetworkSession::threadLoop() {
                                   clientSocket);
 
                             sp<Session> clientSession =
+                                // using socket sd as sessionID
                                 new Session(
                                         mNextSessionID++,
                                         Session::CONNECTED,
