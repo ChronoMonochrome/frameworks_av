@@ -25,7 +25,7 @@
 #include <OMX_Component.h>
 
 #include <binder/IMemory.h>
-#include <gui/BufferQueue.h>
+#include <gui_legacy/BufferQueue.h>
 #include <HardwareAPI.h>
 #include <media/stagefright/foundation/ADebug.h>
 #include <media/stagefright/MediaErrors.h>

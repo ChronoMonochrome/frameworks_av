@@ -19,7 +19,7 @@
 #define ANDROID_IOMX_H_
 
 #include <binder/IInterface.h>
-#include <gui/IGraphicBufferProducer.h>
+#include <gui_legacy/IGraphicBufferProducer.h>
 #include <ui/GraphicBuffer.h>
 #include <utils/List.h>
 #include <utils/String8.h>

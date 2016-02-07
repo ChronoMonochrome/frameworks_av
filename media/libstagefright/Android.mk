@@ -75,7 +75,7 @@ LOCAL_SHARED_LIBRARIES := \
         libdl \
         libdrmframework \
         libexpat \
-        libgui \
+        libgui_legacy \
         libicui18n \
         libicuuc \
         liblog \

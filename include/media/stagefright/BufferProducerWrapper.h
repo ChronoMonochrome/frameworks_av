@@ -18,7 +18,7 @@
 
 #define BUFFER_PRODUCER_WRAPPER_H_
 
-#include <gui/IGraphicBufferProducer.h>
+#include <gui_legacy/IGraphicBufferProducer.h>
 
 namespace android {
 

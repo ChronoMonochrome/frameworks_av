@@ -18,8 +18,8 @@
 
 #define GRAPHIC_BUFFER_SOURCE_H_
 
-#include <gui/IGraphicBufferProducer.h>
-#include <gui/BufferQueue.h>
+#include <gui_legacy/IGraphicBufferProducer.h>
+#include <gui_legacy/BufferQueue.h>
 #include <utils/RefBase.h>
 
 #include <OMX_Core.h>
