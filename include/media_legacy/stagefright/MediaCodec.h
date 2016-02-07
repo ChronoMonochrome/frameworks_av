@@ -19,7 +19,7 @@
 #define MEDIA_CODEC_H_
 
 #include <gui_legacy/IGraphicBufferProducer.h>
-#include <media_legacy/hardware/CryptoAPI.h>
+#include <media/hardware/CryptoAPI.h>
 #include <media_legacy/stagefright/foundation/AHandler.h>
 #include <utils/Vector.h>
 

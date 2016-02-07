@@ -19,17 +19,17 @@
 #include <utils/Log.h>
 
 #include <binder/ProcessState.h>
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/ALooper.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/foundation/AString.h>
-#include <media/stagefright/DataSource.h>
-#include <media/stagefright/MediaCodec.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MediaMuxer.h>
-#include <media/stagefright/MetaData.h>
-#include <media/stagefright/NuMediaExtractor.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/foundation/AString.h>
+#include <media_legacy/stagefright/DataSource.h>
+#include <media_legacy/stagefright/MediaCodec.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MediaMuxer.h>
+#include <media_legacy/stagefright/MetaData.h>
+#include <media_legacy/stagefright/NuMediaExtractor.h>
 
 static void usage(const char *me) {
     fprintf(stderr, "usage: %s [-a] [-v] [-s <trim start time>]"

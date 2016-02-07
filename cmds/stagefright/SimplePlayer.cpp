@@ -20,16 +20,16 @@
 
 #include "SimplePlayer.h"
 
-#include <gui/SurfaceTextureClient.h>
-#include <media/AudioTrack.h>
-#include <media/ICrypto.h>
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/MediaCodec.h>
-#include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/NativeWindowWrapper.h>
-#include <media/stagefright/NuMediaExtractor.h>
+#include <gui_legacy/Surface.h>
+#include <media_legacy/AudioTrack.h>
+#include <media_legacy/ICrypto.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/MediaCodec.h>
+#include <media_legacy/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/NativeWindowWrapper.h>
+#include <media_legacy/stagefright/NuMediaExtractor.h>
 
 namespace android {
 
@@ -67,13 +67,13 @@ status_t SimplePlayer::setDataSource(const char *path) {
 status_t SimplePlayer::setSurface(const sp<IGraphicBufferProducer> &bufferProducer) {
     sp<AMessage> msg = new AMessage(kWhatSetSurface, id());
 
-    sp<SurfaceTextureClient> surfaceTextureClient;
+    sp<Surface> surface;
     if (bufferProducer != NULL) {
-        surfaceTextureClient = new SurfaceTextureClient(bufferProducer);
+        surface = new Surface(bufferProducer);
     }
 
     msg->setObject(
-            "native-window", new NativeWindowWrapper(surfaceTextureClient));
+            "native-window", new NativeWindowWrapper(surface));
 
     sp<AMessage> response;
     return PostAndAwaitResponse(msg, &response);
@@ -297,9 +297,11 @@ status_t SimplePlayer::onPrepare() {
         AString mime;
         CHECK(format->findString("mime", &mime));
 
+        bool isVideo = !strncasecmp(mime.c_str(), "video/", 6);
+
         if (!haveAudio && !strncasecmp(mime.c_str(), "audio/", 6)) {
             haveAudio = true;
-        } else if (!haveVideo && !strncasecmp(mime.c_str(), "video/", 6)) {
+        } else if (!haveVideo && isVideo) {
             haveVideo = true;
         } else {
             continue;
@@ -320,7 +322,7 @@ status_t SimplePlayer::onPrepare() {
 
         err = state->mCodec->configure(
                 format,
-                mNativeWindow->getSurfaceTextureClient(),
+                isVideo ? mNativeWindow->getSurfaceTextureClient() : NULL,
                 NULL /* crypto */,
                 0 /* flags */);
 

@@ -22,20 +22,21 @@
 
 #include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
-#include <media/ICrypto.h>
-#include <media/IMediaPlayerService.h>
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/ALooper.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/foundation/AString.h>
-#include <media/stagefright/DataSource.h>
-#include <media/stagefright/MediaCodec.h>
-#include <media/stagefright/MediaCodecList.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/NuMediaExtractor.h>
-#include <gui/ISurfaceComposer.h>
-#include <gui/SurfaceComposerClient.h>
+#include <media_legacy/ICrypto.h>
+#include <media_legacy/IMediaPlayerService.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/foundation/AString.h>
+#include <media_legacy/stagefright/DataSource.h>
+#include <media_legacy/stagefright/MediaCodec.h>
+#include <media_legacy/stagefright/MediaCodecList.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/NuMediaExtractor.h>
+#include <gui_legacy/ISurfaceComposer.h>
+#include <gui_legacy/SurfaceComposerClient.h>
+#include <gui_legacy/Surface.h>
 #include <ui/DisplayInfo.h>
 
 static void usage(const char *me) {
@@ -413,7 +414,7 @@ int main(int argc, char **argv) {
         looper->registerHandler(player);
 
         player->setDataSource(argv[0]);
-        player->setSurface(surface->getSurfaceTexture());
+        player->setSurface(surface->getIGraphicBufferProducer());
         player->start();
         sleep(60);
         player->stop();

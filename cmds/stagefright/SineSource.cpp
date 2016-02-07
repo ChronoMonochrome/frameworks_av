@@ -2,10 +2,10 @@
 
 #include <math.h>
 
-#include <media/stagefright/MediaBufferGroup.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/MediaBufferGroup.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 namespace android {
 

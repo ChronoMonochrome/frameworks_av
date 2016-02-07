@@ -20,23 +20,23 @@
 
 #include <binder/ProcessState.h>
 
-#include <media/stagefright/foundation/hexdump.h>
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/ALooper.h>
-#include <media/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/foundation/hexdump.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
 
-#include <media/stagefright/ACodec.h>
-#include <media/stagefright/DataSource.h>
-#include <media/stagefright/MediaBuffer.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MediaExtractor.h>
-#include <media/stagefright/MediaSource.h>
-#include <media/stagefright/MetaData.h>
-#include <media/stagefright/NativeWindowWrapper.h>
-#include <media/stagefright/Utils.h>
+#include <media_legacy/stagefright/ACodec.h>
+#include <media_legacy/stagefright/DataSource.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MediaExtractor.h>
+#include <media_legacy/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MetaData.h>
+#include <media_legacy/stagefright/NativeWindowWrapper.h>
+#include <media_legacy/stagefright/Utils.h>
 
-#include <gui/SurfaceComposerClient.h>
+#include <gui_legacy/SurfaceComposerClient.h>
 
 #include "include/ESDS.h"
 

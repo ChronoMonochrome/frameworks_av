@@ -374,7 +374,7 @@ int main(int argc, char **argv) {
         service->create(getpid(), client, 0);
 
     if (player != NULL && player->setDataSource(source) == NO_ERROR) {
-        player->setVideoSurfaceTexture(surface->getIGraphicBufferProducer);
+        player->setVideoSurfaceTexture(surface->getIGraphicBufferProducer());
         player->start();
 
         client->waitForEOS();

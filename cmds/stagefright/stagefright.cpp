@@ -16,7 +16,7 @@
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "stagefright"
-#include <media/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
 
 #include <sys/time.h>
 
@@ -29,26 +29,26 @@
 
 #include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
-#include <media/IMediaPlayerService.h>
-#include <media/stagefright/foundation/ALooper.h>
-#include <media/stagefright/foundation/AMessage.h>
+#include <media_legacy/IMediaPlayerService.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
 #include "include/LiveSession.h"
 #include "include/NuCachedSource2.h"
-#include <media/stagefright/AudioPlayer.h>
-#include <media/stagefright/DataSource.h>
-#include <media/stagefright/JPEGSource.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/MediaExtractor.h>
-#include <media/stagefright/MediaSource.h>
-#include <media/stagefright/MetaData.h>
-#include <media/stagefright/OMXClient.h>
-#include <media/stagefright/OMXCodec.h>
-#include <media/mediametadataretriever.h>
+#include <media_legacy/stagefright/AudioPlayer.h>
+#include <media_legacy/stagefright/DataSource.h>
+#include <media_legacy/stagefright/JPEGSource.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/MediaExtractor.h>
+#include <media_legacy/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MetaData.h>
+#include <media_legacy/stagefright/OMXClient.h>
+#include <media_legacy/stagefright/OMXCodec.h>
+#include <media_legacy/mediametadataretriever.h>
 
-#include <media/stagefright/foundation/hexdump.h>
-#include <media/stagefright/MPEG2TSWriter.h>
-#include <media/stagefright/MPEG4Writer.h>
+#include <media_legacy/stagefright/foundation/hexdump.h>
+#include <media_legacy/stagefright/MPEG2TSWriter.h>
+#include <media_legacy/stagefright/MPEG4Writer.h>
 
 #include <private/media/VideoFrame.h>
 

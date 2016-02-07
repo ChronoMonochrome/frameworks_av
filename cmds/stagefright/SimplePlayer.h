@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <media/stagefright/foundation/AHandler.h>
-#include <media/stagefright/foundation/AString.h>
+#include <media_legacy/stagefright/foundation/AHandler.h>
+#include <media_legacy/stagefright/foundation/AString.h>
 #include <utils/KeyedVector.h>
 
 namespace android {

@@ -17,18 +17,18 @@
 #include "SineSource.h"
 
 #include <binder/ProcessState.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/AudioPlayer.h>
-#include <media/stagefright/CameraSource.h>
-#include <media/stagefright/FileSource.h>
-#include <media/stagefright/MediaBufferGroup.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MetaData.h>
-#include <media/stagefright/MediaExtractor.h>
-#include <media/stagefright/MPEG4Writer.h>
-#include <media/stagefright/OMXClient.h>
-#include <media/stagefright/OMXCodec.h>
-#include <media/MediaPlayerInterface.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/AudioPlayer.h>
+#include <media_legacy/stagefright/CameraSource.h>
+#include <media_legacy/stagefright/FileSource.h>
+#include <media_legacy/stagefright/MediaBufferGroup.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MetaData.h>
+#include <media_legacy/stagefright/MediaExtractor.h>
+#include <media_legacy/stagefright/MPEG4Writer.h>
+#include <media_legacy/stagefright/OMXClient.h>
+#include <media_legacy/stagefright/OMXCodec.h>
+#include <media_legacy/MediaPlayerInterface.h>
 
 using namespace android;
 

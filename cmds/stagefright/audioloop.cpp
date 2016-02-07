@@ -1,15 +1,15 @@
 #include "SineSource.h"
 
 #include <binder/ProcessState.h>
-#include <media/mediarecorder.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/AMRWriter.h>
-#include <media/stagefright/AudioPlayer.h>
-#include <media/stagefright/AudioSource.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MetaData.h>
-#include <media/stagefright/OMXClient.h>
-#include <media/stagefright/OMXCodec.h>
+#include <media_legacy/mediarecorder.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/AMRWriter.h>
+#include <media_legacy/stagefright/AudioPlayer.h>
+#include <media_legacy/stagefright/AudioSource.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MetaData.h>
+#include <media_legacy/stagefright/OMXClient.h>
+#include <media_legacy/stagefright/OMXCodec.h>
 
 #include <system/audio.h>
 
