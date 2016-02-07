@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <binder/Parcel.h>
-#include <media/IEffect.h>
+#include <media_legacy/IEffect.h>
 
 namespace android {
 

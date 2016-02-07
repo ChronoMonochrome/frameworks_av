@@ -25,11 +25,11 @@
 #include "LiveDataSource.h"
 #include "LiveSession.h"
 
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 namespace android {
 

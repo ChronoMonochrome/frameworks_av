@@ -21,8 +21,8 @@
 
 #include <binder/Parcel.h>
 
-#include <media/IMediaPlayer.h>
-#include <media/IStreamSource.h>
+#include <media_legacy/IMediaPlayer.h>
+#include <media_legacy/IStreamSource.h>
 
 #include <gui_legacy/IGraphicBufferProducer.h>
 #include <utils/String8.h>

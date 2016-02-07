@@ -20,7 +20,7 @@
 #include <utils/Log.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include <media/IEffectClient.h>
+#include <media_legacy/IEffectClient.h>
 
 namespace android {
 

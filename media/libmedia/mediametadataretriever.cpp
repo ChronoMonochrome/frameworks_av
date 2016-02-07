@@ -20,8 +20,8 @@
 
 #include <binder/IServiceManager.h>
 #include <binder/IPCThreadState.h>
-#include <media/mediametadataretriever.h>
-#include <media/IMediaPlayerService.h>
+#include <media_legacy/mediametadataretriever.h>
+#include <media_legacy/IMediaPlayerService.h>
 #include <utils/Log.h>
 #include <dlfcn.h>
 

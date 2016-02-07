@@ -26,7 +26,7 @@
 
 #include <cutils/bitops.h>
 
-#include <media/Visualizer.h>
+#include <media_legacy/Visualizer.h>
 #include <audio_utils/fixedfft.h>
 
 namespace android {

@@ -20,7 +20,7 @@
 
 #include "NuPlayer.h"
 
-#include <media/IStreamSource.h>
+#include <media_legacy/IStreamSource.h>
 
 namespace android {
 

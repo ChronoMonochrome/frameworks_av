@@ -18,8 +18,8 @@
 
 #define REMOTE_DISPLAY_H_
 
-#include <media/IRemoteDisplay.h>
-#include <media/stagefright/foundation/ABase.h>
+#include <media_legacy/IRemoteDisplay.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
 #include <utils/Errors.h>
 #include <utils/RefBase.h>
 

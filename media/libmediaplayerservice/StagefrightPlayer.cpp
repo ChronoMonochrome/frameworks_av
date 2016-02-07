@@ -22,8 +22,8 @@
 
 #include "AwesomePlayer.h"
 
-#include <media/Metadata.h>
-#include <media/stagefright/MediaExtractor.h>
+#include <media_legacy/Metadata.h>
+#include <media_legacy/stagefright/MediaExtractor.h>
 
 namespace android {
 

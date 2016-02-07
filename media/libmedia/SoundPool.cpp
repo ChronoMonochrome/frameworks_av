@@ -23,12 +23,12 @@
 // XXX needed for timing latency
 #include <utils/Timers.h>
 
-#include <media/AudioTrack.h>
-#include <media/mediaplayer.h>
+#include <media_legacy/AudioTrack.h>
+#include <media_legacy/mediaplayer.h>
 
 #include <system/audio.h>
 
-#include <media/SoundPool.h>
+#include <media_legacy/SoundPool.h>
 #include "SoundPoolThread.h"
 
 namespace android

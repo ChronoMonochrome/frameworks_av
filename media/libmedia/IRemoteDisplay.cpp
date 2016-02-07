@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <media/IRemoteDisplay.h>
+#include <media_legacy/IRemoteDisplay.h>
 
 namespace android {
 

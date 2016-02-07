@@ -18,8 +18,8 @@
 #define LOG_TAG "IStreamSource"
 #include <utils/Log.h>
 
-#include <media/IStreamSource.h>
-#include <media/stagefright/foundation/AMessage.h>
+#include <media_legacy/IStreamSource.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
 
 #include <binder/IMemory.h>
 #include <binder/Parcel.h>

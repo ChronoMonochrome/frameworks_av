@@ -44,15 +44,15 @@
 #include <utils/SystemClock.h>
 #include <utils/Vector.h>
 
-#include <media/IRemoteDisplay.h>
-#include <media/IRemoteDisplayClient.h>
-#include <media/MediaPlayerInterface.h>
-#include <media/mediarecorder.h>
-#include <media/MediaMetadataRetrieverInterface.h>
-#include <media/Metadata.h>
-#include <media/AudioTrack.h>
-#include <media/MemoryLeakTrackUtil.h>
-#include <media/stagefright/MediaErrors.h>
+#include <media_legacy/IRemoteDisplay.h>
+#include <media_legacy/IRemoteDisplayClient.h>
+#include <media_legacy/MediaPlayerInterface.h>
+#include <media_legacy/mediarecorder.h>
+#include <media_legacy/MediaMetadataRetrieverInterface.h>
+#include <media_legacy/Metadata.h>
+#include <media_legacy/AudioTrack.h>
+#include <media_legacy/MemoryLeakTrackUtil.h>
+#include <media_legacy/stagefright/MediaErrors.h>
 
 #include <system/audio.h>
 

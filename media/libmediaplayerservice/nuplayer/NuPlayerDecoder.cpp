@@ -20,11 +20,11 @@
 
 #include "NuPlayerDecoder.h"
 
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/ACodec.h>
-#include <media/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/ACodec.h>
+#include <media_legacy/stagefright/MediaDefs.h>
 
 namespace android {
 

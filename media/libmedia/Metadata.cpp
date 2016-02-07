@@ -19,7 +19,7 @@
 #include <utils/Log.h>
 
 #include <sys/types.h>
-#include <media/Metadata.h>
+#include <media_legacy/Metadata.h>
 #include <binder/Parcel.h>
 #include <utils/Errors.h>
 #include <utils/RefBase.h>

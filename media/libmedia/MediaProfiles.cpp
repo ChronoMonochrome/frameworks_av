@@ -24,8 +24,8 @@
 #include <utils/Vector.h>
 #include <cutils/properties.h>
 #include <libexpat/expat.h>
-#include <media/MediaProfiles.h>
-#include <media/stagefright/foundation/ADebug.h>
+#include <media_legacy/MediaProfiles.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
 #include <OMX_Video.h>
 
 namespace android {

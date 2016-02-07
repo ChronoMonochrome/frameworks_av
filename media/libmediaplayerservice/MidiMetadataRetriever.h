@@ -20,7 +20,7 @@
 
 #include <utils/threads.h>
 #include <utils/Errors.h>
-#include <media/MediaMetadataRetrieverInterface.h>
+#include <media_legacy/MediaMetadataRetrieverInterface.h>
 
 #include "MidiFile.h"
 

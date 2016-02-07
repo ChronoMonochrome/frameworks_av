@@ -23,7 +23,7 @@
 
 #include <binder/Parcel.h>
 
-#include <media/IAudioPolicyService.h>
+#include <media_legacy/IAudioPolicyService.h>
 
 #include <system/audio.h>
 

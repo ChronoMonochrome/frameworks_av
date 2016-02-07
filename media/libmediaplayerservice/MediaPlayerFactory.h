@@ -18,8 +18,8 @@
 #ifndef ANDROID_MEDIAPLAYERFACTORY_H
 #define ANDROID_MEDIAPLAYERFACTORY_H
 
-#include <media/MediaPlayerInterface.h>
-#include <media/stagefright/foundation/ABase.h>
+#include <media_legacy/MediaPlayerInterface.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
 
 namespace android {
 

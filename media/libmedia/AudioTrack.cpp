@@ -28,8 +28,8 @@
 
 #include <private/media/AudioTrackShared.h>
 
-#include <media/AudioSystem.h>
-#include <media/AudioTrack.h>
+#include <media_legacy/AudioSystem.h>
+#include <media_legacy/AudioTrack.h>
 
 #include <utils/Log.h>
 #include <binder/Parcel.h>

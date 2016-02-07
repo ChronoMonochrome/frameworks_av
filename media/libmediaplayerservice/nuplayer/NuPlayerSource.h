@@ -20,7 +20,7 @@
 
 #include "NuPlayer.h"
 
-#include <media/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
 
 namespace android {
 

@@ -20,7 +20,7 @@
 #include <utils/Log.h>
 
 #include <hardware/audio.h>
-#include <media/AudioParameter.h>
+#include <media_legacy/AudioParameter.h>
 
 namespace android {
 

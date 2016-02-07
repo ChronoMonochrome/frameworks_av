@@ -18,7 +18,7 @@
 
 #define CRYPTO_H_
 
-#include <media/ICrypto.h>
+#include <media_legacy/ICrypto.h>
 #include <utils/threads.h>
 
 namespace android {

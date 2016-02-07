@@ -18,7 +18,7 @@
 #ifndef ANDROID_STAGEFRIGHTPLAYER_H
 #define ANDROID_STAGEFRIGHTPLAYER_H
 
-#include <media/MediaPlayerInterface.h>
+#include <media_legacy/MediaPlayerInterface.h>
 
 namespace android {
 

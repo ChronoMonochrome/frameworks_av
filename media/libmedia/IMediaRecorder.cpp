@@ -20,8 +20,8 @@
 #include <utils/Log.h>
 #include <binder/Parcel.h>
 #include <camera/ICamera.h>
-#include <media/IMediaRecorderClient.h>
-#include <media/IMediaRecorder.h>
+#include <media_legacy/IMediaRecorderClient.h>
+#include <media_legacy/IMediaRecorder.h>
 #include <gui/Surface.h>
 #include <gui_legacy/IGraphicBufferProducer.h>
 #include <unistd.h>

@@ -25,7 +25,7 @@
 #include <utils/KeyedVector.h>
 #include <binder/IMemory.h>
 
-#include <media/MediaMetadataRetrieverInterface.h>
+#include <media_legacy/MediaMetadataRetrieverInterface.h>
 
 
 namespace android {

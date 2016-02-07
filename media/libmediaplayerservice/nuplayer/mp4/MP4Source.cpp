@@ -19,10 +19,10 @@
 #include "FragmentedMP4Parser.h"
 #include "../NuPlayerStreamListener.h"
 
-#include <media/IStreamSource.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/IStreamSource.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 namespace android {
 

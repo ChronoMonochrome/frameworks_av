@@ -19,7 +19,7 @@
 #include <binder/IInterface.h>
 #include <binder/Parcel.h>
 
-#include <media/IMediaRecorderClient.h>
+#include <media_legacy/IMediaRecorderClient.h>
 
 namespace android {
 

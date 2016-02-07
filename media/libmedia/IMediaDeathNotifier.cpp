@@ -20,7 +20,7 @@
 
 #include <binder/IServiceManager.h>
 #include <binder/IPCThreadState.h>
-#include <media/IMediaDeathNotifier.h>
+#include <media_legacy/IMediaDeathNotifier.h>
 
 namespace android {
 

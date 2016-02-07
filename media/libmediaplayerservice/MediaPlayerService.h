@@ -28,10 +28,10 @@
 #include <utils/String8.h>
 #include <utils/Vector.h>
 
-#include <media/IMediaPlayerService.h>
-#include <media/MediaPlayerInterface.h>
-#include <media/Metadata.h>
-#include <media/stagefright/foundation/ABase.h>
+#include <media_legacy/IMediaPlayerService.h>
+#include <media_legacy/MediaPlayerInterface.h>
+#include <media_legacy/Metadata.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
 
 #include <system/audio.h>
 

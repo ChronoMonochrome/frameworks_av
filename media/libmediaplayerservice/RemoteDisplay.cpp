@@ -19,7 +19,7 @@
 #include "ANetworkSession.h"
 #include "source/WifiDisplaySource.h"
 
-#include <media/IRemoteDisplayClient.h>
+#include <media_legacy/IRemoteDisplayClient.h>
 
 namespace android {
 

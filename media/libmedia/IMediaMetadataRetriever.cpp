@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <binder/Parcel.h>
-#include <media/IMediaMetadataRetriever.h>
+#include <media_legacy/IMediaMetadataRetriever.h>
 #include <utils/String8.h>
 
 // The binder is supposed to propagate the scheduler group across

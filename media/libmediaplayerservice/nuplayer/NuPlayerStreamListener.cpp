@@ -21,9 +21,9 @@
 #include "NuPlayerStreamListener.h"
 
 #include <binder/MemoryDealer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/MediaErrors.h>
 
 namespace android {
 

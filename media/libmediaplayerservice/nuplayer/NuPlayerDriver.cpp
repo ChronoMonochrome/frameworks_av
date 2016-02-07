@@ -23,9 +23,9 @@
 #include "NuPlayer.h"
 #include "NuPlayerSource.h"
 
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/ALooper.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 namespace android {
 

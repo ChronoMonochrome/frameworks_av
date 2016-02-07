@@ -20,7 +20,7 @@
 #include <utils/Log.h>
 
 #include "MidiMetadataRetriever.h"
-#include <media/mediametadataretriever.h>
+#include <media_legacy/mediametadataretriever.h>
 
 namespace android {
 

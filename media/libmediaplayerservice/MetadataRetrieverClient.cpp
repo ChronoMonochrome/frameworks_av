@@ -31,8 +31,8 @@
 #include <binder/MemoryHeapBase.h>
 #include <binder/IPCThreadState.h>
 #include <binder/IServiceManager.h>
-#include <media/MediaMetadataRetrieverInterface.h>
-#include <media/MediaPlayerInterface.h>
+#include <media_legacy/MediaMetadataRetrieverInterface.h>
+#include <media_legacy/MediaPlayerInterface.h>
 #include <private/media/VideoFrame.h>
 #include "MidiMetadataRetriever.h"
 #include "MetadataRetrieverClient.h"

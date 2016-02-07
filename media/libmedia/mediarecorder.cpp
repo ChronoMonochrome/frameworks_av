@@ -18,12 +18,12 @@
 //#define LOG_NDEBUG 0
 #define LOG_TAG "MediaRecorder"
 #include <utils/Log.h>
-#include <media/mediarecorder.h>
+#include <media_legacy/mediarecorder.h>
 #include <binder/IServiceManager.h>
 #include <utils/String8.h>
-#include <media/IMediaPlayerService.h>
-#include <media/IMediaRecorder.h>
-#include <media/mediaplayer.h>  // for MEDIA_ERROR_SERVER_DIED
+#include <media_legacy/IMediaPlayerService.h>
+#include <media_legacy/IMediaRecorder.h>
+#include <media_legacy/mediaplayer.h>  // for MEDIA_ERROR_SERVER_DIED
 #include <gui_legacy/IGraphicBufferProducer.h>
 
 namespace android {

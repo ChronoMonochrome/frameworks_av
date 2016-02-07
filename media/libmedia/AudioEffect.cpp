@@ -24,7 +24,7 @@
 #include <limits.h>
 
 #include <private/media/AudioEffectShared.h>
-#include <media/AudioEffect.h>
+#include <media_legacy/AudioEffect.h>
 
 #include <utils/Log.h>
 #include <binder/IPCThreadState.h>

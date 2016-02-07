@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <media/MemoryLeakTrackUtil.h>
+#include <media_legacy/MemoryLeakTrackUtil.h>
 
 #include <stdio.h>
 #include <sys/types.h>

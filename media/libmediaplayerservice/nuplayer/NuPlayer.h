@@ -18,9 +18,9 @@
 
 #define NU_PLAYER_H_
 
-#include <media/MediaPlayerInterface.h>
-#include <media/stagefright/foundation/AHandler.h>
-#include <media/stagefright/NativeWindowWrapper.h>
+#include <media_legacy/MediaPlayerInterface.h>
+#include <media_legacy/stagefright/foundation/AHandler.h>
+#include <media_legacy/stagefright/NativeWindowWrapper.h>
 
 namespace android {
 

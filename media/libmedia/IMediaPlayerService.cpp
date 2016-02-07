@@ -20,14 +20,14 @@
 
 #include <binder/Parcel.h>
 #include <binder/IMemory.h>
-#include <media/ICrypto.h>
-#include <media/IHDCP.h>
-#include <media/IMediaPlayerService.h>
-#include <media/IMediaRecorder.h>
-#include <media/IOMX.h>
-#include <media/IRemoteDisplay.h>
-#include <media/IRemoteDisplayClient.h>
-#include <media/IStreamSource.h>
+#include <media_legacy/ICrypto.h>
+#include <media_legacy/IHDCP.h>
+#include <media_legacy/IMediaPlayerService.h>
+#include <media_legacy/IMediaRecorder.h>
+#include <media_legacy/IOMX.h>
+#include <media_legacy/IRemoteDisplay.h>
+#include <media_legacy/IRemoteDisplayClient.h>
+#include <media_legacy/IStreamSource.h>
 
 #include <utils/Errors.h>  // for status_t
 #include <utils/String8.h>

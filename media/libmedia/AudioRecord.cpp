@@ -24,8 +24,8 @@
 #include <binder/IPCThreadState.h>
 #include <cutils/atomic.h>
 #include <cutils/compiler.h>
-#include <media/AudioRecord.h>
-#include <media/AudioSystem.h>
+#include <media_legacy/AudioRecord.h>
+#include <media_legacy/AudioSystem.h>
 #include <system/audio.h>
 #include <utils/Log.h>
 

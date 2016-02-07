@@ -20,8 +20,8 @@
 
 #include <binder/IMemory.h>
 #include <binder/Parcel.h>
-#include <media/IOMX.h>
-#include <media/stagefright/foundation/ADebug.h>
+#include <media_legacy/IOMX.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
 
 namespace android {
 

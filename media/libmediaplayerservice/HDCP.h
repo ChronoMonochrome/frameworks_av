@@ -18,7 +18,7 @@
 
 #define HDCP_H_
 
-#include <media/IHDCP.h>
+#include <media_legacy/IHDCP.h>
 #include <utils/Mutex.h>
 
 namespace android {

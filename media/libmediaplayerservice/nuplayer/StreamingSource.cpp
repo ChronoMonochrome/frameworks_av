@@ -24,11 +24,11 @@
 #include "AnotherPacketSource.h"
 #include "NuPlayerStreamListener.h"
 
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/MediaSource.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 namespace android {
 

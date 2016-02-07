@@ -22,8 +22,8 @@
 
 #include <binder/Parcel.h>
 
-#include <media/IAudioFlingerClient.h>
-#include <media/AudioSystem.h>
+#include <media_legacy/IAudioFlingerClient.h>
+#include <media_legacy/AudioSystem.h>
 
 namespace android {
 

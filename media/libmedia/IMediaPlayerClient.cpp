@@ -19,7 +19,7 @@
 #include <binder/IInterface.h>
 #include <binder/Parcel.h>
 
-#include <media/IMediaPlayerClient.h>
+#include <media_legacy/IMediaPlayerClient.h>
 
 namespace android {
 

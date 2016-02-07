@@ -33,20 +33,20 @@
 #include "ATSParser.h"
 
 #include <cutils/properties.h> // for property_get
-#include <media/stagefright/foundation/hexdump.h>
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/ACodec.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/foundation/hexdump.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/ACodec.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/MetaData.h>
 #include <gui_legacy/IGraphicBufferProducer.h>
 
 #include "avc_utils.h"
 
 #include "ESDS.h"
-#include <media/stagefright/Utils.h>
+#include <media_legacy/stagefright/Utils.h>
 
 namespace android {
 

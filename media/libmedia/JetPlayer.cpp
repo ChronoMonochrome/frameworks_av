@@ -20,7 +20,7 @@
 #include <utils/Log.h>
 #include <utils/threads.h>
 
-#include <media/JetPlayer.h>
+#include <media_legacy/JetPlayer.h>
 
 
 namespace android

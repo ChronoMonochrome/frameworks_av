@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <media/IRemoteDisplayClient.h>
+#include <media_legacy/IRemoteDisplayClient.h>
 #include <gui_legacy/IGraphicBufferProducer.h>
 #include <utils/String8.h>
 

@@ -24,7 +24,7 @@
 
 #include <binder/Parcel.h>
 
-#include <media/IAudioRecord.h>
+#include <media_legacy/IAudioRecord.h>
 
 namespace android {
 

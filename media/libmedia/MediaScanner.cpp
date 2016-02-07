@@ -19,7 +19,7 @@
 #include <cutils/properties.h>
 #include <utils/Log.h>
 
-#include <media/mediascanner.h>
+#include <media_legacy/mediascanner.h>
 
 #include <sys/stat.h>
 #include <dirent.h>

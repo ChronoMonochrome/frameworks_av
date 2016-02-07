@@ -29,8 +29,8 @@
 
 #include <gui/Surface.h>
 
-#include <media/mediaplayer.h>
-#include <media/AudioSystem.h>
+#include <media_legacy/mediaplayer.h>
+#include <media_legacy/AudioSystem.h>
 
 #include <binder/MemoryBase.h>
 

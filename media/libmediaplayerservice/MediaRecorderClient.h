@@ -18,7 +18,7 @@
 #ifndef ANDROID_MEDIARECORDERCLIENT_H
 #define ANDROID_MEDIARECORDERCLIENT_H
 
-#include <media/IMediaRecorder.h>
+#include <media_legacy/IMediaRecorder.h>
 
 namespace android {
 

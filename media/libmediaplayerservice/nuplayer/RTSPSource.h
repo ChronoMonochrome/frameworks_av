@@ -22,7 +22,7 @@
 
 #include "ATSParser.h"
 
-#include <media/stagefright/foundation/AHandlerReflector.h>
+#include <media_legacy/stagefright/foundation/AHandlerReflector.h>
 
 namespace android {
 

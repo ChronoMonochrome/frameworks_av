@@ -19,9 +19,9 @@
 
 #include <utils/threads.h>
 #include <utils/Vector.h>
-#include <media/AudioTrack.h>
+#include <media_legacy/AudioTrack.h>
 
-#include <media/SoundPool.h>
+#include <media_legacy/SoundPool.h>
 
 namespace android {
 

@@ -24,8 +24,8 @@
 #include "MyHandler.h"
 #include "SDPLoader.h"
 
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 namespace android {
 

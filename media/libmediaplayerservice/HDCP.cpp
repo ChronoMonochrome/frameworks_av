@@ -20,7 +20,7 @@
 
 #include "HDCP.h"
 
-#include <media/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
 
 #include <dlfcn.h>
 

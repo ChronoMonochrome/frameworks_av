@@ -18,7 +18,7 @@
 #ifndef ANDROID_MIDIFILE_H
 #define ANDROID_MIDIFILE_H
 
-#include <media/MediaPlayerInterface.h>
+#include <media_legacy/MediaPlayerInterface.h>
 #include <libsonivox/eas.h>
 
 namespace android {

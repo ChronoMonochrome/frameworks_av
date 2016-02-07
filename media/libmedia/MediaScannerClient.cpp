@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <media/mediascanner.h>
+#include <media_legacy/mediascanner.h>
 
 #include <utils/StringArray.h>
 

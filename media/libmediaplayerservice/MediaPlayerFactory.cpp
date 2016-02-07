@@ -19,8 +19,8 @@
 #include <utils/Log.h>
 
 #include <cutils/properties.h>
-#include <media/IMediaPlayer.h>
-#include <media/stagefright/foundation/ADebug.h>
+#include <media_legacy/IMediaPlayer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
 #include <utils/Errors.h>
 #include <utils/misc.h>
 

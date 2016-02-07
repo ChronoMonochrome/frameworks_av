@@ -24,7 +24,7 @@
 
 #include <binder/Parcel.h>
 
-#include <media/IAudioFlinger.h>
+#include <media_legacy/IAudioFlinger.h>
 
 namespace android {
 

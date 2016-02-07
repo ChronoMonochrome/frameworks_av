@@ -19,8 +19,8 @@
 
 #include <utils/Log.h>
 #include <binder/IServiceManager.h>
-#include <media/AudioSystem.h>
-#include <media/IAudioPolicyService.h>
+#include <media_legacy/AudioSystem.h>
+#include <media_legacy/IAudioPolicyService.h>
 #include <math.h>
 
 #include <system/audio.h>
