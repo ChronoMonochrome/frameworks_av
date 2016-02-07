@@ -1433,8 +1433,6 @@ status_t ACodec::setSupportedOutputFormat() {
 #ifdef STE_HARDWARE
            || format.eColorFormat == OMX_STE_COLOR_FormatYUV420PackedSemiPlanarMB
 #endif
-           || format.eColorFormat == OMX_SEC_COLOR_FormatNV12Tiled
-
          );
 
     return mOMX->setParameter(
