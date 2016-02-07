@@ -2,7 +2,6 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:=                     \
-        GraphicBufferSource.cpp       \
         OMX.cpp                       \
         OMXMaster.cpp                 \
         OMXNodeInstance.cpp           \
@@ -20,7 +19,6 @@ LOCAL_SHARED_LIBRARIES :=               \
         libmedia                        \
         libutils                        \
         libui                           \
-        libgui                          \
         libcutils                       \
         libstagefright_foundation       \
         libdl

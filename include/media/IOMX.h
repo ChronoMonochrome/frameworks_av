@@ -19,7 +19,6 @@
 #define ANDROID_IOMX_H_
 
 #include <binder/IInterface.h>
-#include <gui/IGraphicBufferProducer.h>
 #include <ui/GraphicBuffer.h>
 #include <utils/List.h>
 #include <utils/String8.h>
@@ -96,12 +95,6 @@ public:
     virtual status_t useGraphicBuffer(
             node_id node, OMX_U32 port_index,
             const sp<GraphicBuffer> &graphicBuffer, buffer_id *buffer) = 0;
-
-    virtual status_t createInputSurface(
-            node_id node, OMX_U32 port_index,
-            sp<IGraphicBufferProducer> *bufferProducer) = 0;
-
-    virtual status_t signalEndOfInputStream(node_id node) = 0;
 
     // This API clearly only makes sense if the caller lives in the
     // same process as the callee, i.e. is the media_server, as the
