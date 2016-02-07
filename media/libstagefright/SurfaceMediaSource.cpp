@@ -16,16 +16,16 @@
 //#define LOG_NDEBUG 0
 #define LOG_TAG "SurfaceMediaSource"
 
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/SurfaceMediaSource.h>
-#include <media/stagefright/MediaDefs.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/SurfaceMediaSource.h>
+#include <media_legacy/stagefright/MediaDefs.h>
+#include <media_legacy/stagefright/MetaData.h>
 #include <OMX_IVCommon.h>
 #include <MetadataBufferType.h>
 
 #include <ui/GraphicBuffer.h>
-#include <gui/ISurfaceComposer.h>
-#include <gui/IGraphicBufferAlloc.h>
+#include <gui_legacy/ISurfaceComposer.h>
+#include <gui_legacy/IGraphicBufferAlloc.h>
 #include <OMX_Component.h>
 
 #include <utils/Log.h>

@@ -18,7 +18,7 @@
 
 #define NATIVE_WINDOW_WRAPPER_H_
 
-#include <gui/Surface.h>
+#include <gui_legacy/Surface.h>
 
 namespace android {
 

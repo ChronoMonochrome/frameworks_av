@@ -22,8 +22,8 @@
 #include <utils/threads.h>
 #include <utils/List.h>
 #include <utils/Errors.h>
-#include <media_legacy/IMediaRecorderClient.h>
-#include <media_legacy/IMediaDeathNotifier.h>
+#include <media/IMediaRecorderClient.h>
+#include <media/IMediaDeathNotifier.h>
 
 namespace android {
 
@@ -219,6 +219,7 @@ public:
     status_t    setVideoFrameRate(int frames_per_second);
     status_t    setParameters(const String8& params);
     status_t    setListener(const sp<MediaRecorderListener>& listener);
+    status_t    setClientName(const String16& clientName);
     status_t    prepare();
     status_t    getMaxAmplitude(int* max);
     status_t    start();

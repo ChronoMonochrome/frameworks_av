@@ -41,7 +41,7 @@
 #include <media_legacy/MediaProfiles.h>
 #include <camera/ICamera.h>
 #include <camera/CameraParameters.h>
-#include <gui/Surface.h>
+#include <gui_legacy/Surface.h>
 
 #include <utils/Errors.h>
 #include <sys/types.h>
@@ -92,7 +92,10 @@ status_t StagefrightRecorder::init() {
 // while encoding GL Frames
 sp<IGraphicBufferProducer> StagefrightRecorder::querySurfaceMediaSource() const {
     ALOGV("Get SurfaceMediaSource");
-    return mSurfaceMediaSource->getBufferQueue();
+/*
+    return SurfaceMediaSource->getBufferQueue();
+*/
+    return NULL;
 }
 
 status_t StagefrightRecorder::setAudioSource(audio_source_t as) {
@@ -1311,16 +1314,19 @@ status_t StagefrightRecorder::setupCameraSource(
                 mTimeBetweenTimeLapseFrameCaptureUs);
             return BAD_VALUE;
         }
-
+/*
         mCameraSourceTimeLapse = CameraSourceTimeLapse::CreateFromCamera(
                 mCamera, mCameraProxy, mCameraId,
                 videoSize, mFrameRate, mPreviewSurface,
                 mTimeBetweenTimeLapseFrameCaptureUs);
         *cameraSource = mCameraSourceTimeLapse;
+*/
     } else {
+#if 0
         *cameraSource = CameraSource::CreateFromCamera(
                 mCamera, mCameraProxy, mCameraId, videoSize, mFrameRate,
                 mPreviewSurface, true /*storeMetaDataInVideoBuffers*/);
+#endif
     }
     mCamera.clear();
     mCameraProxy.clear();

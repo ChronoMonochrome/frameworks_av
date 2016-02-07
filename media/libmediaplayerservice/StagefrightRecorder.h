@@ -70,7 +70,7 @@ struct StagefrightRecorder : public MediaRecorderBase {
 private:
     sp<ICamera> mCamera;
     sp<ICameraRecordingProxy> mCameraProxy;
-    sp<Surface> mPreviewSurface;
+    sp<IGraphicBufferProducer> mPreviewSurface;
     sp<IMediaRecorderClient> mListener;
     sp<MediaWriter> mWriter;
     int mOutputFd;
