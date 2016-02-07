@@ -293,7 +293,8 @@ sp<IRemoteDisplay> MediaPlayerService::listenForRemoteDisplay(
         return NULL;
     }
 
-    return new RemoteDisplay(client, iface.string());
+     return NULL;
+    //return new RemoteDisplay(client, iface.string());
 }
 
 status_t MediaPlayerService::updateProxyConfig(

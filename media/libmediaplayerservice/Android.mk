@@ -16,7 +16,6 @@ LOCAL_SRC_FILES:=               \
     MetadataRetrieverClient.cpp \
     MidiFile.cpp                \
     MidiMetadataRetriever.cpp   \
-    RemoteDisplay.cpp           \
     StagefrightPlayer.cpp       \
     StagefrightRecorder.cpp     \
     TestPlayerStub.cpp          \
