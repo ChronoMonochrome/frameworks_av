@@ -21,20 +21,21 @@
 #include <binder/ProcessState.h>
 #include <cutils/properties.h> // for property_get
 
-#include <media/IStreamSource.h>
-#include <media/mediaplayer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/DataSource.h>
-#include <media/stagefright/MPEG2TSWriter.h>
-#include <media/stagefright/MediaExtractor.h>
-#include <media/stagefright/MediaSource.h>
-#include <media/stagefright/MetaData.h>
+#include <media_legacy/IStreamSource.h>
+#include <media_legacy/mediaplayer.h>
+#include <media_legacy/stagefright/foundation/ADebug.h>
+#include <media_legacy/stagefright/foundation/AMessage.h>
+#include <media_legacy/stagefright/DataSource.h>
+#include <media_legacy/stagefright/MPEG2TSWriter.h>
+#include <media_legacy/stagefright/MediaExtractor.h>
+#include <media_legacy/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MetaData.h>
 
 #include <binder/IServiceManager.h>
-#include <media/IMediaPlayerService.h>
-#include <gui/ISurfaceComposer.h>
-#include <gui/SurfaceComposerClient.h>
+#include <media_legacy/IMediaPlayerService.h>
+#include <gui_legacy/ISurfaceComposer.h>
+#include <gui_legacy/SurfaceComposerClient.h>
+#include <gui_legacy/Surface.h>
 
 #include <fcntl.h>
 #include <ui/DisplayInfo.h>
@@ -373,7 +374,7 @@ int main(int argc, char **argv) {
         service->create(getpid(), client, 0);
 
     if (player != NULL && player->setDataSource(source) == NO_ERROR) {
-        player->setVideoSurfaceTexture(surface->getSurfaceTexture());
+        player->setVideoSurfaceTexture(surface->getIGraphicBufferProducer);
         player->start();
 
         client->waitForEOS();
