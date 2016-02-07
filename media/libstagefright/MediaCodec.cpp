@@ -69,8 +69,7 @@ MediaCodec::MediaCodec(const sp<ALooper> &looper)
       mDequeueInputTimeoutGeneration(0),
       mDequeueInputReplyID(0),
       mDequeueOutputTimeoutGeneration(0),
-      mDequeueOutputReplyID(0),
-      mHaveInputSurface(false) {
+      mDequeueOutputReplyID(0) {
 }
 
 MediaCodec::~MediaCodec() {
@@ -160,6 +159,8 @@ status_t MediaCodec::configure(
 status_t MediaCodec::createInputSurface(
         sp<IGraphicBufferProducer>* bufferProducer) {
     sp<AMessage> msg = new AMessage(kWhatCreateInputSurface, id());
+
+    // TODO(fadden): require MediaFormat colorFormat == AndroidOpaque
 
     sp<AMessage> response;
     status_t err = PostAndAwaitResponse(msg, &response);
@@ -255,6 +256,8 @@ status_t MediaCodec::queueSecureInputBuffer(
 }
 
 status_t MediaCodec::dequeueInputBuffer(size_t *index, int64_t timeoutUs) {
+    // TODO(fadden): fail if an input Surface has been configured
+
     sp<AMessage> msg = new AMessage(kWhatDequeueInputBuffer, id());
     msg->setInt64("timeoutUs", timeoutUs);
 
@@ -601,9 +604,6 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                     CHECK_EQ(mState, CONFIGURING);
                     setState(CONFIGURED);
 
-                    // reset input surface flag
-                    mHaveInputSurface = false;
-
                     (new AMessage)->postReply(mReplyID);
                     break;
                 }
@@ -618,7 +618,6 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
                         msg->findObject("input-surface", &obj);
                         CHECK(obj != NULL);
                         response->setObject("input-surface", obj);
-                        mHaveInputSurface = true;
                     } else {
                         response->setInt32("err", err);
                     }
@@ -1030,16 +1029,9 @@ void MediaCodec::onMessageReceived(const sp<AMessage> &msg) {
 
         case kWhatDequeueInputBuffer:
         {
+            // TODO(fadden): make this fail if we're using an input Surface
             uint32_t replyID;
             CHECK(msg->senderAwaitsResponse(&replyID));
-
-            if (mHaveInputSurface) {
-                ALOGE("dequeueInputBuffer can't be used with input surface");
-                sp<AMessage> response = new AMessage;
-                response->setInt32("err", INVALID_OPERATION);
-                response->postReply(replyID);
-                break;
-            }
 
             if (handleDequeueInputBuffer(replyID, true /* new request */)) {
                 break;
