@@ -24,7 +24,7 @@
 #include <binder/IServiceManager.h>
 
 #include <media_legacy/IMediaPlayerService.h>
-#include <media_legacy/openmax/OMX_Audio.h>
+#include <media/openmax/OMX_Audio.h>
 #include <media_legacy/stagefright/foundation/ADebug.h>
 #include <media_legacy/stagefright/AudioSource.h>
 #include <media_legacy/stagefright/AMRWriter.h>
@@ -225,7 +225,7 @@ status_t StagefrightRecorder::setCamera(const sp<ICamera> &camera,
     return OK;
 }
 
-status_t StagefrightRecorder::setPreviewSurface(const sp<Surface> &surface) {
+status_t StagefrightRecorder::setPreviewSurface(const sp<IGraphicBufferProducer> &surface) {
     ALOGV("setPreviewSurface: %p", surface.get());
     mPreviewSurface = surface;
 

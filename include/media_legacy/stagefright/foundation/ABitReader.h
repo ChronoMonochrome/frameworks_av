@@ -18,7 +18,7 @@
 
 #define A_BIT_READER_H_
 
-#include <media/stagefright/foundation/ABase.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
 
 #include <sys/types.h>
 #include <stdint.h>

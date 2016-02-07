@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-#include <media/stagefright/MediaWriter.h>
+#include <media_legacy/stagefright/MediaWriter.h>
 #include <utils/List.h>
 #include <utils/threads.h>
 

@@ -18,10 +18,10 @@
 
 #define AUDIO_SOURCE_H_
 
-#include <media/AudioRecord.h>
-#include <media/AudioSystem.h>
-#include <media/stagefright/MediaSource.h>
-#include <media/stagefright/MediaBuffer.h>
+#include <media_legacy/AudioRecord.h>
+#include <media_legacy/AudioSystem.h>
+#include <media_legacy/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
 #include <utils/List.h>
 
 #include <system/audio.h>

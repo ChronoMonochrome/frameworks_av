@@ -19,9 +19,9 @@
 #define OMX_CODEC_H_
 
 #include <android/native_window.h>
-#include <media/IOMX.h>
-#include <media/stagefright/MediaBuffer.h>
-#include <media/stagefright/MediaSource.h>
+#include <media_legacy/IOMX.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
+#include <media_legacy/stagefright/MediaSource.h>
 #include <utils/threads.h>
 
 #include <OMX_Audio.h>

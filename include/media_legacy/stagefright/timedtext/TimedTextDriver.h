@@ -17,7 +17,7 @@
 #ifndef TIMED_TEXT_DRIVER_H_
 #define TIMED_TEXT_DRIVER_H_
 
-#include <media/stagefright/foundation/ABase.h> // for DISALLOW_* macro
+#include <media_legacy/stagefright/foundation/ABase.h> // for DISALLOW_* macro
 #include <utils/Errors.h> // for status_t
 #include <utils/RefBase.h>
 #include <utils/threads.h>

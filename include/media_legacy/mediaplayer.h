@@ -20,10 +20,10 @@
 #include <arpa/inet.h>
 
 #include <binder/IMemory.h>
-#include <media/IMediaPlayerClient.h>
-#include <media/IMediaPlayer.h>
-#include <media/IMediaDeathNotifier.h>
-#include <media/IStreamSource.h>
+#include <media_legacy/IMediaPlayerClient.h>
+#include <media_legacy/IMediaPlayer.h>
+#include <media_legacy/IMediaDeathNotifier.h>
+#include <media_legacy/IStreamSource.h>
 
 #include <utils/KeyedVector.h>
 #include <utils/String8.h>

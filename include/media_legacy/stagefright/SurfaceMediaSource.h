@@ -22,8 +22,8 @@
 
 #include <utils/threads.h>
 #include <utils/Vector.h>
-#include <media/stagefright/MediaSource.h>
-#include <media/stagefright/MediaBuffer.h>
+#include <media_legacy/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
 
 namespace android {
 // ----------------------------------------------------------------------------

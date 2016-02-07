@@ -20,11 +20,11 @@
 
 #include "Crypto.h"
 
-#include <media_legacy/hardware/CryptoAPI.h>
-#include <media_legacy/stagefright/foundation/ADebug.h>
-#include <media_legacy/stagefright/foundation/AString.h>
-#include <media_legacy/stagefright/foundation/hexdump.h>
-#include <media_legacy/stagefright/MediaErrors.h>
+#include <media/hardware/CryptoAPI.h>
+#include <media/stagefright/foundation/ADebug.h>
+#include <media/stagefright/foundation/AString.h>
+#include <media/stagefright/foundation/hexdump.h>
+#include <media/stagefright/MediaErrors.h>
 
 #include <dlfcn.h>
 

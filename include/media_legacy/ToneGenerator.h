@@ -20,8 +20,8 @@
 #include <utils/RefBase.h>
 #include <utils/KeyedVector.h>
 #include <utils/threads.h>
-#include <media/AudioSystem.h>
-#include <media/AudioTrack.h>
+#include <media_legacy/AudioSystem.h>
+#include <media_legacy/AudioTrack.h>
 
 namespace android {
 

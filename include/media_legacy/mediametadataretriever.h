@@ -21,7 +21,7 @@
 #include <utils/Errors.h>  // for status_t
 #include <utils/threads.h>
 #include <binder/IMemory.h>
-#include <media/IMediaMetadataRetriever.h>
+#include <media_legacy/IMediaMetadataRetriever.h>
 
 namespace android {
 

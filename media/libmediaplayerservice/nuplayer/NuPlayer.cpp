@@ -41,7 +41,7 @@
 #include <media_legacy/stagefright/MediaDefs.h>
 #include <media_legacy/stagefright/MediaErrors.h>
 #include <media_legacy/stagefright/MetaData.h>
-#include <gui_legacy/IGraphicBufferProducer.h>
+//#include <gui_legacy/IGraphicBufferProducer.h>
 
 #include "avc_utils.h"
 

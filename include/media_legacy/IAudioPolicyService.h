@@ -24,7 +24,7 @@
 #include <utils/RefBase.h>
 #include <utils/Errors.h>
 #include <binder/IInterface.h>
-#include <media/AudioSystem.h>
+#include <media_legacy/AudioSystem.h>
 
 #include <system/audio_policy.h>
 

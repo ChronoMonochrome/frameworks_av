@@ -24,15 +24,15 @@
 #include <utils/RefBase.h>
 #include <utils/Errors.h>
 #include <binder/IInterface.h>
-#include <media/IAudioTrack.h>
-#include <media/IAudioRecord.h>
-#include <media/IAudioFlingerClient.h>
+#include <media_legacy/IAudioTrack.h>
+#include <media_legacy/IAudioRecord.h>
+#include <media_legacy/IAudioFlingerClient.h>
 #include <system/audio.h>
 #include <system/audio_policy.h>
 #include <hardware/audio_policy.h>
 #include <hardware/audio_effect.h>
-#include <media/IEffect.h>
-#include <media/IEffectClient.h>
+#include <media_legacy/IEffect.h>
+#include <media_legacy/IEffectClient.h>
 #include <utils/String8.h>
 
 namespace android {

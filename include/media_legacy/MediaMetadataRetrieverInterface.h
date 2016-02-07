@@ -19,7 +19,7 @@
 #define ANDROID_MEDIAMETADATARETRIEVERINTERFACE_H
 
 #include <utils/RefBase.h>
-#include <media/mediametadataretriever.h>
+#include <media_legacy/mediametadataretriever.h>
 #include <private/media/VideoFrame.h>
 
 namespace android {

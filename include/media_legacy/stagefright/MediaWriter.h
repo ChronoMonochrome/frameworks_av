@@ -19,7 +19,7 @@
 #define MEDIA_WRITER_H_
 
 #include <utils/RefBase.h>
-#include <media/IMediaRecorderClient.h>
+#include <media_legacy/IMediaRecorderClient.h>
 
 namespace android {
 

@@ -18,10 +18,10 @@
 
 #define MPEG2TS_WRITER_H_
 
-#include <media/stagefright/foundation/ABase.h>
-#include <media/stagefright/foundation/AHandlerReflector.h>
-#include <media/stagefright/foundation/ALooper.h>
-#include <media/stagefright/MediaWriter.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
+#include <media_legacy/stagefright/foundation/AHandlerReflector.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/MediaWriter.h>
 
 namespace android {
 

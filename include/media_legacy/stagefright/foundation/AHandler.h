@@ -18,7 +18,7 @@
 
 #define A_HANDLER_H_
 
-#include <media/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
 #include <utils/RefBase.h>
 
 namespace android {

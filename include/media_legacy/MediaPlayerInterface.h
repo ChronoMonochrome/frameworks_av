@@ -25,9 +25,9 @@
 #include <utils/String8.h>
 #include <utils/RefBase.h>
 
-#include <media/mediaplayer.h>
-#include <media/AudioSystem.h>
-#include <media/Metadata.h>
+#include <media_legacy/mediaplayer.h>
+#include <media_legacy/AudioSystem.h>
+#include <media_legacy/Metadata.h>
 
 // Fwd decl to make sure everyone agrees that the scope of struct sockaddr_in is
 // global, and not in android::

@@ -18,8 +18,8 @@
 
 #define A_MESSAGE_H_
 
-#include <media/stagefright/foundation/ABase.h>
-#include <media/stagefright/foundation/ALooper.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
+#include <media_legacy/stagefright/foundation/ALooper.h>
 #include <utils/KeyedVector.h>
 #include <utils/RefBase.h>
 

@@ -22,8 +22,8 @@
 #include <utils/threads.h>
 #include <utils/List.h>
 #include <utils/Errors.h>
-#include <media/IMediaRecorderClient.h>
-#include <media/IMediaDeathNotifier.h>
+#include <media_legacy/IMediaRecorderClient.h>
+#include <media_legacy/IMediaDeathNotifier.h>
 
 namespace android {
 

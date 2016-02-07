@@ -18,8 +18,8 @@
 
 #define CAMERA_SOURCE_H_
 
-#include <media/stagefright/MediaBuffer.h>
-#include <media/stagefright/MediaSource.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
+#include <media_legacy/stagefright/MediaSource.h>
 #include <camera/ICamera.h>
 #include <camera/ICameraRecordingProxyListener.h>
 #include <camera/CameraParameters.h>

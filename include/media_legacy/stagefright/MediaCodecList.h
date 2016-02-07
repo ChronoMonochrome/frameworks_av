@@ -18,8 +18,8 @@
 
 #define MEDIA_CODEC_LIST_H_
 
-#include <media/stagefright/foundation/ABase.h>
-#include <media/stagefright/foundation/AString.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
+#include <media_legacy/stagefright/foundation/AString.h>
 
 #include <sys/types.h>
 #include <utils/Errors.h>

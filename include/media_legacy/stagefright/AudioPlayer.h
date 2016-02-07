@@ -18,9 +18,9 @@
 
 #define AUDIO_PLAYER_H_
 
-#include <media/MediaPlayerInterface.h>
-#include <media/stagefright/MediaBuffer.h>
-#include <media/stagefright/TimeSource.h>
+#include <media_legacy/MediaPlayerInterface.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
+#include <media_legacy/stagefright/TimeSource.h>
 #include <utils/threads.h>
 
 namespace android {

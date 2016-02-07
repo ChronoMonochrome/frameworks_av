@@ -20,9 +20,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <media/IAudioFlinger.h>
-#include <media/IAudioTrack.h>
-#include <media/AudioSystem.h>
+#include <media_legacy/IAudioFlinger.h>
+#include <media_legacy/IAudioTrack.h>
+#include <media_legacy/AudioSystem.h>
 
 #include <utils/RefBase.h>
 #include <utils/Errors.h>

@@ -25,9 +25,9 @@
 #include <binder/Parcel.h>
 #include <system/audio.h>
 
-#include <media/IMediaPlayerClient.h>
-#include <media/IMediaPlayer.h>
-#include <media/IMediaMetadataRetriever.h>
+#include <media_legacy/IMediaPlayerClient.h>
+#include <media_legacy/IMediaPlayer.h>
+#include <media_legacy/IMediaMetadataRetriever.h>
 
 namespace android {
 

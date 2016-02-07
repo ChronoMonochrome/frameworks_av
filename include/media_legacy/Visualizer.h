@@ -17,7 +17,7 @@
 #ifndef ANDROID_MEDIA_VISUALIZER_H
 #define ANDROID_MEDIA_VISUALIZER_H
 
-#include <media/AudioEffect.h>
+#include <media_legacy/AudioEffect.h>
 #include <audio_effects/effect_visualizer.h>
 #include <string.h>
 

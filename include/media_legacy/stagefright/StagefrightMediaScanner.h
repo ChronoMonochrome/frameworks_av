@@ -18,7 +18,7 @@
 
 #define STAGEFRIGHT_MEDIA_SCANNER_H_
 
-#include <media/mediascanner.h>
+#include <media_legacy/mediascanner.h>
 
 namespace android {
 

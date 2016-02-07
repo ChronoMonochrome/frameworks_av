@@ -20,9 +20,9 @@
 
 #include <stdint.h>
 #include <android/native_window.h>
-#include <media/IOMX.h>
-#include <media/stagefright/foundation/AHierarchicalStateMachine.h>
-#include <media/stagefright/SkipCutBuffer.h>
+#include <media_legacy/IOMX.h>
+#include <media_legacy/stagefright/foundation/AHierarchicalStateMachine.h>
+#include <media_legacy/stagefright/SkipCutBuffer.h>
 #include <OMX_Audio.h>
 
 #define TRACK_BUFFER_TIMING     0

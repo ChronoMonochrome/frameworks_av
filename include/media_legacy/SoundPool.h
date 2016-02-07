@@ -21,7 +21,7 @@
 #include <utils/List.h>
 #include <utils/Vector.h>
 #include <utils/KeyedVector.h>
-#include <media/AudioTrack.h>
+#include <media_legacy/AudioTrack.h>
 
 namespace android {
 

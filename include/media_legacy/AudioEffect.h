@@ -20,12 +20,12 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <media/IAudioFlinger.h>
-#include <media/IAudioPolicyService.h>
-#include <media/IEffect.h>
-#include <media/IEffectClient.h>
+#include <media_legacy/IAudioFlinger.h>
+#include <media_legacy/IAudioPolicyService.h>
+#include <media_legacy/IEffect.h>
+#include <media_legacy/IEffectClient.h>
 #include <hardware/audio_effect.h>
-#include <media/AudioSystem.h>
+#include <media_legacy/AudioSystem.h>
 
 #include <utils/RefBase.h>
 #include <utils/Errors.h>

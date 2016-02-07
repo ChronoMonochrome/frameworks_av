@@ -19,7 +19,7 @@
 #define ANDROID_MEDIAPROFILES_H
 
 #include <utils/threads.h>
-#include <media/mediarecorder.h>
+#include <media_legacy/mediarecorder.h>
 
 namespace android {
 

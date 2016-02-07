@@ -17,7 +17,7 @@
 #ifndef ANDROID_EXTENDED_AUDIO_BUFFER_PROVIDER_H
 #define ANDROID_EXTENDED_AUDIO_BUFFER_PROVIDER_H
 
-#include <media/AudioBufferProvider.h>
+#include <media_legacy/AudioBufferProvider.h>
 
 namespace android {
 

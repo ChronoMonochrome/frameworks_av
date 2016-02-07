@@ -18,8 +18,8 @@
 
 #define SKIP_CUT_BUFFER_H_
 
-#include <media/stagefright/MediaBuffer.h>
-#include <media/stagefright/foundation/ABuffer.h>
+#include <media_legacy/stagefright/MediaBuffer.h>
+#include <media_legacy/stagefright/foundation/ABuffer.h>
 
 namespace android {
 

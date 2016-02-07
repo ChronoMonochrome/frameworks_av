@@ -18,7 +18,7 @@
 #define ANDROID_IMEDIADEATHNOTIFIER_H
 
 #include <utils/threads.h>
-#include <media/IMediaPlayerService.h>
+#include <media_legacy/IMediaPlayerService.h>
 #include <utils/SortedVector.h>
 
 namespace android {

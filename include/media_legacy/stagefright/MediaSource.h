@@ -20,7 +20,7 @@
 
 #include <sys/types.h>
 
-#include <media/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/MediaErrors.h>
 #include <utils/RefBase.h>
 #include <utils/Vector.h>
 

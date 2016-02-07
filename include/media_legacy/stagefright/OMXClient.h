@@ -18,7 +18,7 @@
 
 #define OMX_CLIENT_H_
 
-#include <media/IOMX.h>
+#include <media_legacy/IOMX.h>
 
 namespace android {
 

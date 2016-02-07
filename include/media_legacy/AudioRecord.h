@@ -19,8 +19,8 @@
 
 #include <binder/IMemory.h>
 #include <cutils/sched_policy.h>
-#include <media/AudioSystem.h>
-#include <media/IAudioRecord.h>
+#include <media_legacy/AudioSystem.h>
+#include <media_legacy/IAudioRecord.h>
 #include <system/audio.h>
 #include <utils/RefBase.h>
 #include <utils/Errors.h>

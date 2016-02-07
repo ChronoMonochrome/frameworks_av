@@ -19,13 +19,13 @@
 
 #include <utils/RefBase.h>
 #include <utils/threads.h>
-#include <media/IAudioFlinger.h>
+#include <media_legacy/IAudioFlinger.h>
 
 #include <system/audio.h>
 #include <system/audio_policy.h>
 
 /* XXX: Should be include by all the users instead */
-#include <media/AudioParameter.h>
+#include <media_legacy/AudioParameter.h>
 
 namespace android {
 

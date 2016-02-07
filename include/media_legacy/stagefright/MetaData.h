@@ -104,7 +104,7 @@ enum {
     kKey2ByteNalLength    = '2NAL',  // int32_t (bool)
 
     // Identify the file output format for authoring
-    // Please see <media/mediarecorder.h> for the supported
+    // Please see <media_legacy/mediarecorder.h> for the supported
     // file output formats.
     kKeyFileType          = 'ftyp',  // int32_t
 

@@ -20,8 +20,8 @@
 
 #include <string.h>
 
-#include <media/stagefright/foundation/ABase.h>
-#include <media/stagefright/foundation/AString.h>
+#include <media_legacy/stagefright/foundation/ABase.h>
+#include <media_legacy/stagefright/foundation/AString.h>
 #include <utils/Log.h>
 
 namespace android {

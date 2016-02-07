@@ -18,7 +18,7 @@
 
 #define A_HANDLER_REFLECTOR_H_
 
-#include <media/stagefright/foundation/AHandler.h>
+#include <media_legacy/stagefright/foundation/AHandler.h>
 
 namespace android {
 

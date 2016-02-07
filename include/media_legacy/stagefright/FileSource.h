@@ -20,8 +20,8 @@
 
 #include <stdio.h>
 
-#include <media/stagefright/DataSource.h>
-#include <media/stagefright/MediaErrors.h>
+#include <media_legacy/stagefright/DataSource.h>
+#include <media_legacy/stagefright/MediaErrors.h>
 #include <utils/threads.h>
 #include <drm/DrmManagerClient.h>
 

@@ -21,7 +21,7 @@
 
 #include <libsonivox/jet.h>
 #include <libsonivox/eas_types.h>
-#include <media/AudioTrack.h>
+#include <media_legacy/AudioTrack.h>
 
 
 namespace android {
