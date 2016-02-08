@@ -19,7 +19,6 @@
 
 #include <utils/KeyedVector.h>
 #include <utils/String8.h>
-#include <camera/CameraParametersExtra.h>
 
 namespace android {
 
@@ -1102,10 +1101,6 @@ public:
     void setOrientation(int orientation);
     void setPreviewFpsRange(int minFPS,int maxFPS);
     void getSupportedHfrSizes(Vector<Size> &sizes) const;
-#endif
-
-#ifdef CAMERA_PARAMETERS_EXTRA_H
-CAMERA_PARAMETERS_EXTRA_H
 #endif
 
 private:
